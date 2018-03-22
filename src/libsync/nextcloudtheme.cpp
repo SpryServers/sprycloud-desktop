@@ -44,7 +44,8 @@ QString NextcloudTheme::about() const
 {
      QString re;
      re = tr("<p>Version %1. For more information please visit <a href='%2'>%3</a>.</p>")
-              .arg(MIRALL_VERSION_STRING).arg("http://"MIRALL_STRINGIFY(APPLICATION_DOMAIN));
+              .arg(MIRALL_VERSION_STRING).arg("https://" MIRALL_STRINGIFY(APPLICATION_DOMAIN))
+              .arg(MIRALL_STRINGIFY(APPLICATION_DOMAIN));
 
      re += trUtf8("<p><small>By Klaas Freitag, Daniel Molkentin, Jan-Christoph Borchardt, "
                   "Olivier Goffart, Markus Götz and others.</small></p>");

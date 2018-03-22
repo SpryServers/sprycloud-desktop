@@ -1,7 +1,7 @@
 set( APPLICATION_NAME       "spryCloud" )
 set( APPLICATION_SHORTNAME  "sprycloud" )
 set( APPLICATION_EXECUTABLE "sprycloud" )
-set( APPLICATION_DOMAIN     "https://www.spryservers.net" )
+set( APPLICATION_DOMAIN     "www.spryservers.net" )
 set( APPLICATION_VENDOR     "Spry Servers, LLC" )
 set( APPLICATION_UPDATE_URL "https://updates.nextcloud.org/client/" CACHE string "URL for updater" )
 set( APPLICATION_ICON_NAME  "Nextcloud" )
