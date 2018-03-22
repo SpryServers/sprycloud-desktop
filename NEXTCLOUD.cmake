@@ -1,12 +1,12 @@
-set( APPLICATION_NAME       "Nextcloud" )
-set( APPLICATION_SHORTNAME  "Nextcloud" )
-set( APPLICATION_EXECUTABLE "nextcloud" )
-set( APPLICATION_DOMAIN     "nextcloud.com" )
-set( APPLICATION_VENDOR     "Nextcloud GmbH" )
+set( APPLICATION_NAME       "spryCloud" )
+set( APPLICATION_SHORTNAME  "sprycloud" )
+set( APPLICATION_EXECUTABLE "sprycloud" )
+set( APPLICATION_DOMAIN     "https://www.spryservers.net" )
+set( APPLICATION_VENDOR     "Spry Servers, LLC" )
 set( APPLICATION_UPDATE_URL "https://updates.nextcloud.org/client/" CACHE string "URL for updater" )
 set( APPLICATION_ICON_NAME  "Nextcloud" )
 
-set( LINUX_PACKAGE_SHORTNAME "nextcloud" )
+set( LINUX_PACKAGE_SHORTNAME "sprycloud" )
 
 set( THEME_CLASS            "NextcloudTheme" )
 set( APPLICATION_REV_DOMAIN "com.nextcloud.desktopclient" )
