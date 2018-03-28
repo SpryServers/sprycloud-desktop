@@ -219,7 +219,7 @@ QString Theme::defaultServerFolder() const
 
 QString Theme::overrideServerUrl() const
 {
-    return QString("https://cloud.spryservers.net/");
+    return QString("https://cloud.spryservers.net");
 }
 
 QString Theme::forceConfigAuthType() const

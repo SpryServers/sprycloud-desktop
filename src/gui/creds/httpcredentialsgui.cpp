@@ -142,11 +142,11 @@ QString HttpCredentialsGui::requestAppPasswordText(const Account *account)
     QString path;
 
     if (version >= Account::makeServerVersion(13, 0, 0)) {
-        path = QLatin1String("index.php/settings/user/security");
+        path = QLatin1String("/settings/user/security");
     } else if (version >= Account::makeServerVersion(12, 0, 0)) {
-        path = QLatin1String("index.php/settings/personal#security");
+        path = QLatin1String("/settings/personal#security");
     } else if (version >= Account::makeServerVersion(11, 0, 0)) {
-        path = QLatin1String("index.php/settings/personal#apppasswords");
+        path = QLatin1String("/settings/personal#apppasswords");
     } else {
         return QString();
     }

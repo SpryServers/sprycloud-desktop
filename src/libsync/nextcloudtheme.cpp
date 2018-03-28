@@ -50,7 +50,8 @@ QString NextcloudTheme::about() const
      re += trUtf8("<p><small>By Klaas Freitag, Daniel Molkentin, Jan-Christoph Borchardt, "
                   "Olivier Goffart, Markus Götz and others.</small></p>");
 
-     re += tr("<p>This release was supplied by Spry Servers, LLC<br />"
+     re += tr("<p>This is a custom release built and maintained by Spry Servers<br />"
+              "Copyright 2013-2018 Spry Servers, LLC<br />"
               "Copyright Nextcloud GmbH<br />"
               "Copyright 2012-2017 ownCloud GmbH</p>");
 
