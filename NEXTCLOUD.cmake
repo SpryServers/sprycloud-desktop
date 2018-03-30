@@ -1,5 +1,5 @@
 set( APPLICATION_NAME       "spryCloud" )
-set( APPLICATION_SHORTNAME  "sprycloud" )
+set( APPLICATION_SHORTNAME  "spryCloud" )
 set( APPLICATION_EXECUTABLE "sprycloud" )
 set( APPLICATION_DOMAIN     "www.spryservers.net" )
 set( APPLICATION_VENDOR     "Spry Servers, LLC" )
