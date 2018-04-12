@@ -1,0 +1,3 @@
+sprycloud-client: binary-or-shlib-defines-rpath
+sprycloud-client: binary-without-manpage
+sprycloud-client: license-problem-convert-utf-code

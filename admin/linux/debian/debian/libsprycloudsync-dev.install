@@ -1,0 +1,3 @@
+usr/include
+usr/lib/*/libsprycloudsync.so
+usr/lib/*/sprycloud/libocsync.so

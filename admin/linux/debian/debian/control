@@ -1,4 +1,4 @@
-Source: nextcloud-client
+Source: sprycloud-client
 Section: contrib/devel
 Priority: optional
 Maintainer: István Váradi <ivaradi@varadiistvan.hu>
@@ -26,13 +26,13 @@ Build-Depends: cmake,
                qttools5-dev-tools,
                xvfb
 Standards-Version: 3.9.8
-Homepage: https://github.com/nextcloud/client_theming
-#Vcs-Git: git://anonscm.debian.org/collab-maint/nextcloud-client.git
-#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/nextcloud-client.git
+Homepage: https://github.com/SpryServers/sprycloud-client-next
+#Vcs-Git: git://github.com/SpryServers/sprycloud-client-next.git
+#Vcs-Browser: https://github.com/SpryServers/sprycloud-client-next.git
 
-Package: nextcloud-client
+Package: sprycloud-client
 Architecture: any
-Depends: libnextcloudsync0 (=${binary:Version}), ${shlibs:Depends}, ${misc:Depends}, nextcloud-client-l10n
+Depends: libsprycloudsync0 (=${binary:Version}), ${shlibs:Depends}, ${misc:Depends}, sprycloud-client-l10n
 Recommends: libgnome-keyring0
 Description: Nextcloud desktop sync client
  Use the desktop client to keep your files synchronized
@@ -40,49 +40,49 @@ Description: Nextcloud desktop sync client
  one or more directories on your local machine and always
  have access to your latest files wherever you are.
 
-Package: libnextcloudsync0
+Package: libsprycloudsync0
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Nextcloud sync library
  Used by the Nextcloud desktop client as the synchronization engine.
 
-Package: libnextcloudsync-dev
+Package: libsprycloudsync-dev
 Architecture: any
 Section: contrib/libdevel
-Depends: libnextcloudsync0 (=${binary:Version}), ${misc:Depends}
+Depends: libsprycloudsync0 (=${binary:Version}), ${misc:Depends}
 Description: Nextcloud sync library development files
  The headers and development library for the Nextcloud sync library.
 
-Package: nextcloud-client-l10n
+Package: sprycloud-client-l10n
 Architecture: all
 Depends: ${misc:Depends}
 Description: Nextcloud client internatialization files
  The translation files.
 
-Package: nextcloud-client-nautilus
+Package: sprycloud-client-nautilus
 Architecture: all
-Depends: nextcloud-client (>=${binary:Version}), libnextcloudsync0, python-nautilus, nautilus, ${misc:Depends}
+Depends: sprycloud-client (>=${binary:Version}), libsprycloudsync0, python-nautilus, nautilus, ${misc:Depends}
 Description: Nautilus plugin for Nextcloud
  This package contains a Nautilus plugin to display
  synchronization status icons for Nextcloud files.
 
-Package: nextcloud-client-nemo
+Package: sprycloud-client-nemo
 Architecture: all
-Depends: nextcloud-client (>=${binary:Version}), libnextcloudsync0, python-nemo | nemo-python, nemo, ${misc:Depends}
+Depends: sprycloud-client (>=${binary:Version}), libsprycloudsync0, python-nemo | nemo-python, nemo, ${misc:Depends}
 Description: Nemo plugin for Nextcloud
  This package contains a Nemo plugin to display
  synchronization status icons for Nextcloud files.
 
-Package: nextcloud-client-caja
+Package: sprycloud-client-caja
 Architecture: all
-Depends: nextcloud-client (>=${binary:Version}), libnextcloudsync0, python-caja, caja, ${misc:Depends}
+Depends: sprycloud-client (>=${binary:Version}), libsprycloudsync0, python-caja, caja, ${misc:Depends}
 Description: Caja plugin for Nextcloud
  This package contains a Caja plugin to display
  synchronization status icons for Nextcloud files.
 
-Package: nextcloud-client-dolphin
+Package: sprycloud-client-dolphin
 Architecture: any
-Depends: dolphin (>= 4:15.12.1), libnextcloudsync0 (= ${binary:Version}), nextcloud-client, ${misc:Depends}, ${shlibs:Depends}
+Depends: dolphin (>= 4:15.12.1), libsprycloudsync0 (= ${binary:Version}), sprycloud-client, ${misc:Depends}, ${shlibs:Depends}
 Description: Dolphin plugin for Nextcloud
  This package contains a Dolphin plugin to display
  synchronization status icons for Nextcloud files.

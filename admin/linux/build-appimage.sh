@@ -27,7 +27,7 @@ mkdir build
 cd build
 cmake -D CMAKE_INSTALL_PREFIX=/usr ../
 make -j4
-make DESTDIR=/app install 
+make DESTDIR=/app install
 
 #Build client
 cd /build
@@ -46,16 +46,16 @@ make DESTDIR=/app install
 # Move stuff around
 cd /app
 
-mv ./usr/lib/x86_64-linux-gnu/nextcloud/* ./usr/lib/x86_64-linux-gnu/
+mv ./usr/lib/x86_64-linux-gnu/sprycloud/* ./usr/lib/x86_64-linux-gnu/
 mv ./usr/lib/x86_64-linux-gnu/* ./usr/lib/
-rm -rf ./usr/lib/nextcloud
+rm -rf ./usr/lib/sprycloud
 rm -rf ./usr/lib/cmake
 rm -rf ./usr/include
 rm -rf ./usr/mkspecs
 rm -rf ./usr/lib/x86_64-linux-gnu/
 
 # Don't bundle nextcloudcmd as we don't run it anyway
-rm -rf ./usr/bin/nextcloudcmd
+rm -rf ./usr/bin/sprycloudcmd
 
 # Don't bundle the explorer extentions as we can't do anything with them in the AppImage
 rm -rf ./usr/share/caja-python/
@@ -66,7 +66,7 @@ rm -rf ./usr/share/nemo-python/
 mv ./etc/Nextcloud/sync-exclude.lst ./usr/bin/
 rm -rf ./etc
 
-sed -i -e 's|Icon=nextcloud|Icon=Nextcloud|g' usr/share/applications/nextcloud.desktop # Bug in desktop file?
+sed -i -e 's|Icon=sprycloud|Icon=spryCloud|g' usr/share/applications/sprycloud.desktop # Bug in desktop file?
 cp ./usr/share/icons/hicolor/512x512/apps/Nextcloud.png . # Workaround for linuxeployqt bug, FIXME
 
 
@@ -82,13 +82,13 @@ chmod a+x linuxdeployqt*.AppImage
 rm ./linuxdeployqt-continuous-x86_64.AppImage
 unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/app/usr/lib/
-./squashfs-root/AppRun /app/usr/share/applications/nextcloud.desktop -bundle-non-qt-libs
+./squashfs-root/AppRun /app/usr/share/applications/sprycloud.desktop -bundle-non-qt-libs
 
 # Set origin
-./squashfs-root/usr/bin/patchelf --set-rpath '$ORIGIN/' /app/usr/lib/libnextcloudsync.so.0
+./squashfs-root/usr/bin/patchelf --set-rpath '$ORIGIN/' /app/usr/lib/libsprycloudsync.so.0
 
 # Build AppImage
-./squashfs-root/AppRun /app/usr/share/applications/nextcloud.desktop -appimage
+./squashfs-root/AppRun /app/usr/share/applications/sprycloud.desktop -appimage
 
 mv Nextcloud*.AppImage Nextcloud-${SUFFIX}-${DRONE_COMMIT}-x86_64.AppImage
 

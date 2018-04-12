@@ -7,7 +7,7 @@ scriptdir=`cd "${scriptdir}" && pwd`
 
 . "${scriptdir}/config.sh"
 
-package="nextcloud-client"
+package="sprycloud-client"
 tag="${1}"
 version="${2}"
 distribution="${3}"

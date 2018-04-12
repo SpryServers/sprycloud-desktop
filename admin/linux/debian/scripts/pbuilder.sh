@@ -18,4 +18,4 @@ rm -f "${resultdir}/"*
 source "${HOME}/.pbuilderrc"
 
 dscversion=`echo ${NEXTCLOUD_CLIENT_FULL_VERSION} | sed "s:@DISTRIBUTION@:${distribution}:g"`
-pbuilder-dist "${distribution}" build --othermirror "${OTHERMIRROR}" --debbuildopts "-j${NUMCPUS}" "$@" "${BUILDAREA}/nextcloud-client_${dscversion}.dsc"
+pbuilder-dist "${distribution}" build --othermirror "${OTHERMIRROR}" --debbuildopts "-j${NUMCPUS}" "$@" "${BUILDAREA}/sprycloud-client_${dscversion}.dsc"

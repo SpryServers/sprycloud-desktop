@@ -6,7 +6,7 @@ scriptdir=`dirname $0`
 
 DEFAULT_DIST=yakkety
 
-package="nextcloud-client"
+package="sprycloud-client"
 version="$1"
 comment="$2"
 distver="${3:-}"

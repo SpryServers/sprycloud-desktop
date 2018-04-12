@@ -1,0 +1,4 @@
+usr/lib/*/libspryclouddolphinpluginhelper.so
+usr/lib/*/qt5/plugins/kf5/overlayicon/spryclouddolphinoverlayplugin.so
+usr/lib/*/qt5/plugins/spryclouddolphinactionplugin.so
+usr/share/kservices5/spryclouddolphinactionplugin.desktop

@@ -85,7 +85,7 @@ def genChangeLogEntries(f, entries, distribution):
             version = upstreamVersion
         else:
             version = upstreamVersion + "~" + distribution + "1"
-        print >> f, "nextcloud-client (%s) %s; urgency=medium" % (version, distribution)
+        print >> f, "sprycloud-client (%s) %s; urgency=medium" % (version, distribution)
         print >> f
         print >> f, "  * " + subject
         print >> f

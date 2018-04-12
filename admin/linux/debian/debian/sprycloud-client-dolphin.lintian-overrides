@@ -1,0 +1,2 @@
+sprycloud-client-dolphin: package-name-doesnt-match-sonames
+sprycloud-client-dolphin: shlib-without-versioned-soname
