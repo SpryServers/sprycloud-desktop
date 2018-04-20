@@ -75,7 +75,7 @@ QIcon NextcloudTheme::trayFolderIcon(const QString &) const
 
 QIcon NextcloudTheme::applicationIcon() const
 {
-    return themeIcon(QLatin1String("Nextcloud-icon"));
+    return themeIcon(QLatin1String("spryCloud-icon"));
 }
 
 
