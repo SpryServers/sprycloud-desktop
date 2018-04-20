@@ -47,7 +47,7 @@ QString NextcloudTheme::about() const
               .arg(MIRALL_VERSION_STRING).arg("https://" MIRALL_STRINGIFY(APPLICATION_DOMAIN))
               .arg(MIRALL_STRINGIFY(APPLICATION_DOMAIN));
 
-     re += trUtf8("<p><small>By Klaas Freitag, Daniel Molkentin, Jan-Christoph Borchardt, "
+     re += tr("<p><small>By Klaas Freitag, Daniel Molkentin, Jan-Christoph Borchardt, "
                   "Olivier Goffart, Markus Götz and others.</small></p>");
 
      re += tr("<p>This is a custom release built and maintained by Spry Servers<br />"
