@@ -63,11 +63,11 @@ rm -rf ./usr/share/nautilus-python/
 rm -rf ./usr/share/nemo-python/
 
 # Move sync exlucde to right location
-mv ./etc/Nextcloud/sync-exclude.lst ./usr/bin/
+mv ./etc/spryCloud/sync-exclude.lst ./usr/bin/
 rm -rf ./etc
 
 sed -i -e 's|Icon=sprycloud|Icon=spryCloud|g' usr/share/applications/sprycloud.desktop # Bug in desktop file?
-cp ./usr/share/icons/hicolor/512x512/apps/Nextcloud.png . # Workaround for linuxeployqt bug, FIXME
+cp ./usr/share/icons/hicolor/512x512/apps/spryCloud.png . # Workaround for linuxeployqt bug, FIXME
 
 
 # Because distros need to get their shit together
@@ -90,9 +90,9 @@ export LD_LIBRARY_PATH=/app/usr/lib/
 # Build AppImage
 ./squashfs-root/AppRun /app/usr/share/applications/sprycloud.desktop -appimage
 
-mv Nextcloud*.AppImage Nextcloud-${SUFFIX}-${DRONE_COMMIT}-x86_64.AppImage
+mv spryCloud*.AppImage spryCloud-${SUFFIX}-${DRONE_COMMIT}-x86_64.AppImage
 
-curl --upload-file $(readlink -f ./Nextcloud*.AppImage) https://transfer.sh/Nextcloud-${SUFFIX}-${DRONE_COMMIT}-x86_64.AppImage
+curl --upload-file $(readlink -f ./spryCloud*.AppImage) https://transfer.sh/spryCloud-${SUFFIX}-${DRONE_COMMIT}-x86_64.AppImage
 
 echo
 echo "Get the AppImage at the link above!"
