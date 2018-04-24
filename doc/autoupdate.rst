@@ -101,8 +101,8 @@ Preventing Automatic Updates in Mac OS X Environments
 
 You can disable the automatic update mechanism, in the Mac OS X operating system,
 by copying the file
-``nextcloud.app/Contents/Resources/deny_autoupdate_com.nextcloud.desktopclient.plist``
-to ``/Library/Preferences/com.nextcloud.desktopclient.plist``.
+``nextcloud.app/Contents/Resources/deny_autoupdate_net.spryservers.sprycloudclient.plist``
+to ``/Library/Preferences/net.spryservers.sprycloudclient.plist``.
 
 Preventing Automatic Updates in Linux Environments
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -9,7 +9,7 @@ set( APPLICATION_ICON_NAME  "spryCloud" )
 set( LINUX_PACKAGE_SHORTNAME "sprycloud" )
 
 set( THEME_CLASS            "NextcloudTheme" )
-set( APPLICATION_REV_DOMAIN "com.nextcloud.desktopclient" )
+set( APPLICATION_REV_DOMAIN "net.spryservers.sprycloudclient" )
 set( WIN_SETUP_BITMAP_PATH  "${CMAKE_SOURCE_DIR}/admin/win/nsi" )
 
 set( MAC_INSTALLER_BACKGROUND_FILE "${CMAKE_SOURCE_DIR}/admin/osx/installer-background.png" CACHE STRING "The MacOSX installer background image")
