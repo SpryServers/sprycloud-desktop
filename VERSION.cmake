@@ -5,7 +5,7 @@ set( MIRALL_VERSION_YEAR  2018 )
 set( MIRALL_SOVERSION 0 )
 
 if ( NOT DEFINED MIRALL_VERSION_SUFFIX )
-    set( MIRALL_VERSION_SUFFIX "-spry-r3") #e.g. beta1, beta2, rc1
+    set( MIRALL_VERSION_SUFFIX "-spry-r4") #e.g. beta1, beta2, rc1
 endif( NOT DEFINED MIRALL_VERSION_SUFFIX )
 
 if (WIN32)
