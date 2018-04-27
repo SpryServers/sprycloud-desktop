@@ -144,7 +144,7 @@ QString HttpCredentialsGui::requestAppPasswordText(const Account *account)
         url.chop(1);
 
     if (version >= Account::makeServerVersion(13, 0, 0)) {
-        url += QLatin1String("/index.php/settings/user/security");
+        url += QLatin1String("/index.php/settings/user/security#apppasswords");
     } else if (version >= Account::makeServerVersion(12, 0, 0)) {
         url += QLatin1String("/index.php/settings/personal#security");
     } else if (version >= Account::makeServerVersion(11, 0, 0)) {
