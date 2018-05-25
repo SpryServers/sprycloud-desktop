@@ -208,7 +208,7 @@ QVariant FolderStatusModel::data(const QModelIndex &index, int role) const
     case FolderStatusDelegate::FolderSecondPathRole:
         return f->remotePath();
     case FolderStatusDelegate::FolderConflictMsg:
-        return (f->syncResult().numNewConflictItems() + f->syncResult().numOldConflictItems() > 0)
+        return (f->syncResult().hasUnresolvedConflicts())
             ? QStringList(tr("There are unresolved conflicts. Click for details."))
             : QStringList();
     case FolderStatusDelegate::FolderErrorMsg:
@@ -1102,7 +1102,8 @@ void FolderStatusModel::slotFolderSyncStateChange(Folder *f)
     // update the icon etc. now
     slotUpdateFolderState(f);
 
-    if (state == SyncResult::Success && f->syncResult().folderStructureWasChanged()) {
+    if (f->syncResult().folderStructureWasChanged()
+        && (state == SyncResult::Success || state == SyncResult::Problem)) {
         // There is a new or a removed folder. reset all data
         auto &info = _folders[folderIndex];
         info.resetSubs(this, index(folderIndex));

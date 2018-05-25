@@ -316,38 +316,56 @@ void ownCloudGui::slotComputeOverallSyncStatus()
     QString trayMessage;
     FolderMan *folderMan = FolderMan::instance();
     Folder::Map map = folderMan->map();
-    SyncResult::Status overallResult = FolderMan::accountStatus(map.values()).status();
+
+    SyncResult::Status overallStatus = SyncResult::Undefined;
+    bool hasUnresolvedConflicts = false;
+    FolderMan::trayOverallStatus(map.values(), &overallStatus, &hasUnresolvedConflicts);
+
+    // If the sync succeeded but there are unresolved conflicts,
+    // show the problem icon!
+    auto iconStatus = overallStatus;
+    if (iconStatus == SyncResult::Success && hasUnresolvedConflicts) {
+        iconStatus = SyncResult::Problem;
+    }
+
+    // If we don't get a status for whatever reason, that's a Problem
+    if (iconStatus == SyncResult::Undefined) {
+        iconStatus = SyncResult::Problem;
+    }
+
+    QIcon statusIcon = Theme::instance()->syncStateIcon(iconStatus, true, contextMenuVisible());
+    _tray->setIcon(statusIcon);
 
     // create the tray blob message, check if we have an defined state
-    if (overallResult != SyncResult::Undefined && map.count() > 0) {
+    if (map.count() > 0) {
 #ifdef Q_OS_WIN
         // Windows has a 128-char tray tooltip length limit.
-        trayMessage = folderMan->statusToString(overallResult, false);
+        trayMessage = folderMan->trayTooltipStatusString(overallStatus, hasUnresolvedConflicts, false);
 #else
         QStringList allStatusStrings;
         foreach (Folder *folder, map.values()) {
-            QString folderMessage = folderMan->statusToString(folder->syncResult().status(), folder->syncPaused());
+            QString folderMessage = FolderMan::trayTooltipStatusString(
+                folder->syncResult().status(),
+                folder->syncResult().hasUnresolvedConflicts(),
+                folder->syncPaused());
             allStatusStrings += tr("Folder %1: %2").arg(folder->shortGuiLocalPath(), folderMessage);
         }
         trayMessage = allStatusStrings.join(QLatin1String("\n"));
 #endif
-
-        QIcon statusIcon = Theme::instance()->syncStateIcon(overallResult, true, contextMenuVisible());
-        _tray->setIcon(statusIcon);
         _tray->setToolTip(trayMessage);
 
-        if (overallResult == SyncResult::Success || overallResult == SyncResult::Problem) {
-            setStatusText(tr("Up to date"));
-        } else if (overallResult == SyncResult::Paused) {
+        if (overallStatus == SyncResult::Success || overallStatus == SyncResult::Problem) {
+            if (hasUnresolvedConflicts) {
+                setStatusText(tr("Unresolved conflicts"));
+            } else {
+                setStatusText(tr("Up to date"));
+            }
+        } else if (overallStatus == SyncResult::Paused) {
             setStatusText(tr("Synchronization is paused"));
         } else {
             setStatusText(tr("Error during synchronization"));
         }
     } else {
-        if (overallResult == SyncResult::Undefined)
-            overallResult = SyncResult::Problem;
-        QIcon icon = Theme::instance()->syncStateIcon(overallResult, true, contextMenuVisible());
-        _tray->setIcon(icon);
         _tray->setToolTip(tr("There are no sync folders configured."));
         setStatusText(tr("No sync folders configured"));
     }
@@ -740,57 +758,80 @@ void ownCloudGui::setupActions()
     }
 }
 
+void ownCloudGui::slotEtagResponseHeaderReceived(const QByteArray &value, int statusCode){
+    if(statusCode == 200){
+        qCDebug(lcApplication) << "New navigation apps ETag Response Header received " << value;
+        auto account = qvariant_cast<AccountStatePtr>(sender()->property(propertyAccountC));
+        account->setNavigationAppsEtagResponseHeader(value);
+    }
+}
+
 void ownCloudGui::fetchNavigationApps(AccountStatePtr account, QMenu *accountMenu){
     OcsNavigationAppsJob *job = new OcsNavigationAppsJob(account->account());
-    job->setProperty(propertyAccountC, QVariant::fromValue(account->account()));
+    job->setProperty(propertyAccountC, QVariant::fromValue(account));
     job->setProperty(propertyMenuC, QVariant::fromValue(accountMenu));
+    job->addRawHeader("If-None-Match", account->navigationAppsEtagResponseHeader());
     connect(job, &OcsNavigationAppsJob::appsJobFinished, this, &ownCloudGui::slotNavigationAppsFetched);
+    connect(job, &OcsNavigationAppsJob::etagResponseHeaderReceived, this, &ownCloudGui::slotEtagResponseHeaderReceived);
     connect(job, &OcsNavigationAppsJob::ocsError, this, &ownCloudGui::slotOcsError);
     job->getNavigationApps();
 }
 
-void ownCloudGui::slotNavigationAppsFetched(const QJsonDocument &reply)
-{
-    if(!reply.isEmpty()){
-        auto element = reply.object().value("ocs").toObject().value("data");
-        auto navLinks = element.toArray();
-        if(navLinks.size() > 0){
-            if(auto account = qvariant_cast<AccountPtr>(sender()->property(propertyAccountC))){
-                if(QMenu *accountMenu = qvariant_cast<QMenu*>(sender()->property(propertyMenuC))){
+void ownCloudGui::buildNavigationAppsMenu(AccountStatePtr account, QMenu *accountMenu){
+    auto navLinks = _navApps.value(account);
+    if(navLinks.size() > 0){
 
-                    // when there is only one account add the nav links above the settings
-                    QAction *actionBefore = _actionSettings;
+        // when there is only one account add the nav links above the settings
+        QAction *actionBefore = _actionSettings;
 
-                    // when there is more than one account add the nav links above pause/unpause folder or logout action
-                    if(AccountManager::instance()->accounts().size() > 1){
-                        foreach(QAction *action, accountMenu->actions()){
+        // when there is more than one account add the nav links above pause/unpause folder or logout action
+        if(AccountManager::instance()->accounts().size() > 1){
+            foreach(QAction *action, accountMenu->actions()){
 
-                            // pause/unpause folder and logout actions have propertyAccountC
-                            if(auto actionAccount = qvariant_cast<AccountStatePtr>(action->property(propertyAccountC))){
-                                if(actionAccount->account() == account){
-                                    actionBefore = action;
-                                    break;
-                                }
-                             }
-                        }
+                // pause/unpause folder and logout actions have propertyAccountC
+                if(auto actionAccount = qvariant_cast<AccountStatePtr>(action->property(propertyAccountC))){
+                    if(actionAccount == account){
+                        actionBefore = action;
+                        break;
                     }
-
-                    // Create submenu with links
-                    QMenu *navLinksMenu = new QMenu(tr("Apps"));
-                    accountMenu->insertSeparator(actionBefore);
-                    accountMenu->insertMenu(actionBefore, navLinksMenu);
-                    foreach (const QJsonValue &value, navLinks) {
-                        auto navLink = value.toObject();
-                        QAction *action = new QAction(navLink.value("name").toString(), this);
-                        QUrl href(navLink.value("href").toString());
-                        connect(action, &QAction::triggered, this, [href] { QDesktopServices::openUrl(href); });
-                        navLinksMenu->addAction(action);
-                    }
-                    accountMenu->insertSeparator(actionBefore);
                 }
             }
         }
+
+        // Create submenu with links
+        QMenu *navLinksMenu = new QMenu(tr("Apps"));
+        accountMenu->insertSeparator(actionBefore);
+        accountMenu->insertMenu(actionBefore, navLinksMenu);
+        foreach (const QJsonValue &value, navLinks) {
+            auto navLink = value.toObject();
+            QAction *action = new QAction(navLink.value("name").toString(), this);
+            QUrl href(navLink.value("href").toString());
+            connect(action, &QAction::triggered, this, [href] { QDesktopServices::openUrl(href); });
+            navLinksMenu->addAction(action);
+        }
+        accountMenu->insertSeparator(actionBefore);
     }
+}
+
+void ownCloudGui::slotNavigationAppsFetched(const QJsonDocument &reply, int statusCode)
+{
+    auto account = qvariant_cast<AccountStatePtr>(sender()->property(propertyAccountC));
+    auto accountMenu = qvariant_cast<QMenu*>(sender()->property(propertyMenuC));
+
+    if (statusCode == 304) {
+        qCWarning(lcApplication) << "Status code " << statusCode << " Not Modified - No new navigation apps.";
+    } else {
+        if(!reply.isEmpty()){
+            auto element = reply.object().value("ocs").toObject().value("data");
+            auto navLinks = element.toArray();
+            if(account){
+                _navApps.insert(account, navLinks);
+            }
+         }
+    }
+
+    if(accountMenu)
+        buildNavigationAppsMenu(account, accountMenu);
 }
 
 void ownCloudGui::slotOcsError(int statusCode, const QString &message)

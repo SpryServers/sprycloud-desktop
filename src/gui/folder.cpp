@@ -673,6 +673,7 @@ void Folder::setSyncOptions()
     auto newFolderLimit = cfgFile.newBigFolderSizeLimit();
     opt._newBigFolderSizeLimit = newFolderLimit.first ? newFolderLimit.second * 1000LL * 1000LL : -1; // convert from MB to B
     opt._confirmExternalStorage = cfgFile.confirmExternalStorage();
+    opt._moveFilesToTrash = cfgFile.moveToTrash();
 
     QByteArray chunkSizeEnv = qgetenv("OWNCLOUD_CHUNK_SIZE");
     if (!chunkSizeEnv.isEmpty()) {
@@ -1004,11 +1005,11 @@ void Folder::slotAboutToRemoveAllFiles(SyncFileItem::Direction dir, bool *cancel
                                                  "synchronized with your server, making such files unavailable unless restored.\n"
                                                  "Are you sure you want to sync those actions with the server?\n"
                                                  "If this was an accident and you decide to keep your files, they will be re-synced from the server.");
-    QMessageBox msgBox(QMessageBox::Warning, tr("Remove All Files?"),
+    QMessageBox msgBox(QMessageBox::Warning, tr("Download new files?"),
         msg.arg(shortGuiLocalPath()));
     msgBox.setWindowFlags(msgBox.windowFlags() | Qt::WindowStaysOnTopHint);
-    msgBox.addButton(tr("Remove all files"), QMessageBox::DestructiveRole);
-    QPushButton *keepBtn = msgBox.addButton(tr("Keep files"), QMessageBox::AcceptRole);
+    msgBox.addButton(tr("Download new files"), QMessageBox::DestructiveRole);
+    QPushButton *keepBtn = msgBox.addButton(tr("Keep local files"), QMessageBox::AcceptRole);
     if (msgBox.exec() == -1) {
         *cancel = true;
         return;
