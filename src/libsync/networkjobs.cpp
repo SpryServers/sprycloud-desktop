@@ -921,7 +921,7 @@ void DetermineAuthTypeJob::checkBothDone()
         result = Shibboleth;
 
     // WebViewFlow > OAuth > Shib > Basic
-    if (_account->serverVersionInt() >= Account::makeServerVersion(12, 0, 0)) {
+    if (_account->serverVersionInt() >= Account::makeServerVersion(99, 0, 0)) {
         result = WebViewFlow;
     }
 
@@ -1019,4 +1019,3 @@ void fetchPrivateLinkUrl(AccountPtr account, const QString &remotePath,
 }
 
 } // namespace OCC
-
