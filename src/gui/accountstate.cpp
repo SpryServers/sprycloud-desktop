@@ -77,11 +77,6 @@ QStringList AccountState::connectionErrors() const
     return _connectionErrors;
 }
 
-QString AccountState::connectionStatusString(ConnectionStatus status)
-{
-    return ConnectionValidator::statusString(status);
-}
-
 AccountState::State AccountState::state() const
 {
     return _state;
@@ -219,11 +214,11 @@ void AccountState::checkConnectivity()
     // IF the account is connected the connection check can be skipped
     // if the last successful etag check job is not so long ago.
     ConfigFile cfg;
-    int polltime = cfg.remotePollInterval();
+    std::chrono::milliseconds polltime = cfg.remotePollInterval();
 
     if (isConnected() && _timeSinceLastETagCheck.isValid()
-        && _timeSinceLastETagCheck.elapsed() < polltime) {
-        qCDebug(lcAccountState) << account()->displayName() << "The last ETag check succeeded within the last " << polltime / 1000 << " secs. No connection check needed!";
+        && _timeSinceLastETagCheck.hasExpired(polltime.count())) {
+        qCDebug(lcAccountState) << account()->displayName() << "The last ETag check succeeded within the last " << polltime.count() / 1000 << " secs. No connection check needed!";
         return;
     }
 
@@ -258,7 +253,7 @@ void AccountState::checkConnectivity()
 void AccountState::slotConnectionValidatorResult(ConnectionValidator::Status status, const QStringList &errors)
 {
     if (isSignedOut()) {
-        qCWarning(lcAccountState) << "Signed out, ignoring" << connectionStatusString(status) << _account->url().toString();
+        qCWarning(lcAccountState) << "Signed out, ignoring" << status << _account->url().toString();
         return;
     }
 
@@ -281,8 +276,8 @@ void AccountState::slotConnectionValidatorResult(ConnectionValidator::Status sta
 
     if (_connectionStatus != status) {
         qCInfo(lcAccountState) << "AccountState connection status change: "
-                               << connectionStatusString(_connectionStatus) << "->"
-                               << connectionStatusString(status);
+                               << _connectionStatus << "->"
+                               << status;
         _connectionStatus = status;
     }
     _connectionErrors = errors;

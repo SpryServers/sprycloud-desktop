@@ -114,6 +114,12 @@ public:
         int _errorCount;
         bool _valid;
         QByteArray _contentChecksum;
+        /**
+         * Returns true if this entry refers to a chunked upload that can be continued.
+         * (As opposed to a small file transfer which is stored in the db so we can detect the case
+         * when the upload succeeded, but the connection was dropped before we got the answer)
+         */
+        bool isChunked() const { return _transferid != 0; }
     };
 
     struct PollInfo
@@ -216,13 +222,13 @@ public:
     /// Store a new or updated record in the database
     void setConflictRecord(const ConflictRecord &record);
 
-    /// Retrieve a conflict record by path of the _conflict- file
+    /// Retrieve a conflict record by path of the file with the conflict tag
     ConflictRecord conflictRecord(const QByteArray &path);
 
-    /// Delete a conflict record by path of the _conflict- file
+    /// Delete a conflict record by path of the file with the conflict tag
     void deleteConflictRecord(const QByteArray &path);
 
-    /// Return all paths of _conflict- files with records in the db
+    /// Return all paths of files with a conflict tag in the name and records in the db
     QByteArrayList conflictRecordPaths();
 
 
