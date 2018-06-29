@@ -331,14 +331,14 @@ QString Theme::about() const
     devString += tr("<p><small>By Klaas Freitag, Daniel Molkentin, Jan-Christoph Borchardt, "
                     "Olivier Goffart, Markus Götz and others.</small></p>");
 
-    devString += tr("<p>This is a custom release built and maintained by Spry Servers<br />"
+    devString += tr("<p>This is a custom Nextcloud release built and maintained by Spry Servers<br />"
                     "Copyright 2013-2018 Spry Servers, LLC<br />"
                     "Copyright 2017-2018 Nextcloud GmbH<br />"
                     "Copyright 2012-2018 ownCloud GmbH</p>");
 
     devString += tr("<p>Licensed under the GNU General Public License (GPL) Version 2.0.<br/>"
                     "%2 and the %2 Logo are registered trademarks of %1 in the "
-                    "European Union, other countries, or both.</p>")
+                    "United States</p>")
               .arg(APPLICATION_VENDOR)
               .arg(APPLICATION_NAME);
 
