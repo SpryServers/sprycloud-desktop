@@ -19,8 +19,6 @@
 #ifndef TOKEN_AUTH_ONLY
 #include <QPixmap>
 #include <QIcon>
-#include <QStyle>
-#include <QApplication>
 #endif
 #include <QCoreApplication>
 
@@ -35,69 +33,12 @@ NextcloudTheme::NextcloudTheme()
 {
 }
 
-QString NextcloudTheme::configFileName() const
-{
-    return QLatin1String("nextcloud.cfg");
-}
-
-QString NextcloudTheme::about() const
-{
-     QString re;
-     re = tr("<p>Version %1. For more information please visit <a href='%2'>%3</a>.</p>")
-              .arg(MIRALL_VERSION_STRING).arg("https://" MIRALL_STRINGIFY(APPLICATION_DOMAIN))
-              .arg(MIRALL_STRINGIFY(APPLICATION_DOMAIN));
-
-     re += tr("<p><small>By Klaas Freitag, Daniel Molkentin, Jan-Christoph Borchardt, "
-                  "Olivier Goffart, Markus Götz and others.</small></p>");
-
-     re += tr("<p>This is a custom release built and maintained by Spry Servers<br />"
-              "Copyright 2013-2018 Spry Servers, LLC<br />"
-              "Copyright Nextcloud GmbH<br />"
-              "Copyright 2012-2017 ownCloud GmbH</p>");
-
-     re += tr("<p>Licensed under the GNU General Public License (GPL) Version 2.0.</p>"
-              "<p>%2 and the %2 Logo are registered trademarks of %1 </p>"
-              "<p>Nextcloud and the Nextcloud Logo are registered trademarks of Nextcloud GmbH in the "
-              "European Union, other countries, or both.</p>")
-
-              .arg(APPLICATION_VENDOR).arg(APPLICATION_NAME);
-
-    re += gitSHA1();
-    return re;
-}
-
 #ifndef TOKEN_AUTH_ONLY
-QIcon NextcloudTheme::trayFolderIcon(const QString &) const
+QVariant NextcloudTheme::customMedia(CustomMediaType)
 {
-    QPixmap fallback = qApp->style()->standardPixmap(QStyle::SP_FileDialogNewFolder);
-    return QIcon::fromTheme("folder", fallback);
+    return QVariant();
 }
-
-QIcon NextcloudTheme::applicationIcon() const
-{
-    return themeIcon(QLatin1String("spryCloud-icon"));
-}
-
-
-QVariant NextcloudTheme::customMedia(Theme::CustomMediaType type)
-{
-    if (type == Theme::oCSetupTop) {
-        // return QCoreApplication::translate("NextcloudTheme",
-        //                                   "If you don't have an ownCloud server yet, "
-        //                                   "see <a href=\"https://owncloud.com\">owncloud.com</a> for more info.",
-        //                                   "Top text in setup wizard. Keep short!");
-        return QVariant();
-    } else {
-        return QVariant();
-    }
-}
-
 #endif
-
-QString NextcloudTheme::helpUrl() const
-{
-    return QString::fromLatin1("https://docs.nextcloud.com/desktop/%1.%2/").arg(MIRALL_VERSION_MAJOR).arg(MIRALL_VERSION_MINOR);
-}
 
 #ifndef TOKEN_AUTH_ONLY
 QColor NextcloudTheme::wizardHeaderBackgroundColor() const
