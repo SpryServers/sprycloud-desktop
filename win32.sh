@@ -1,8 +1,7 @@
 #!/bin/bash
 VERSION=2.5.0
 SRCPATH=$(pwd)
-git submodule init
-git submodule update
+git submodule update --init --recursive
 cd admin/win/docker
 docker build . -t sprycloud-client-win32:$VERSION
 cd $SRCPATH
