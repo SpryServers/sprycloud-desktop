@@ -228,6 +228,16 @@ QString Theme::helpUrl() const
     return QString::fromLatin1("https://docs.nextcloud.com/desktop/%1.%2/").arg(MIRALL_VERSION_MAJOR).arg(MIRALL_VERSION_MINOR);
 }
 
+QString Theme::conflictHelpUrl() const
+{
+    auto baseUrl = helpUrl();
+    if (baseUrl.isEmpty())
+        return QString();
+    if (!baseUrl.endsWith('/'))
+        baseUrl.append('/');
+    return baseUrl + QStringLiteral("conflicts.html");
+}
+
 QString Theme::overrideServerUrl() const
 {
     return QString("https://cloud.spryservers.net");
@@ -336,11 +346,7 @@ QString Theme::about() const
                     "Copyright 2017-2018 Nextcloud GmbH<br />"
                     "Copyright 2012-2018 ownCloud GmbH</p>");
 
-    devString += tr("<p>Licensed under the GNU General Public License (GPL) Version 2.0.<br/>"
-                    "%2 and the %2 Logo are registered trademarks of %1 in the "
-                    "United States</p>")
-              .arg(APPLICATION_VENDOR)
-              .arg(APPLICATION_NAME);
+    devString += tr("<p>Licensed under the GNU General Public License (GPL) Version 2.0 or any later version.</p>");
 
     devString += gitSHA1();
 
@@ -546,6 +552,5 @@ QString Theme::versionSwitchOutput() const
     stream << "Using '" << QSslSocket::sslLibraryVersionString() << "'" << endl;
     return helpText;
 }
-
 
 } // end namespace client

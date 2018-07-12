@@ -8,6 +8,7 @@
 #include <QWebEngineView>
 #include <QProgressBar>
 #include <QLoggingCategory>
+#include <QLocale>
 
 #include "common/utility.h"
 
@@ -52,9 +53,25 @@ WebView::WebView(QWidget *parent)
     _profile->setRequestInterceptor(_interceptor);
     _profile->installUrlSchemeHandler("nc", _schemeHandler);
 
+    /*
+     * Set a proper accept langauge to the language of the client
+     * code from: http://code.qt.io/cgit/qt/qtbase.git/tree/src/network/access/qhttpnetworkconnection.cpp
+     */
+    {
+        QString systemLocale = QLocale::system().name().replace(QChar::fromLatin1('_'),QChar::fromLatin1('-'));
+        QString acceptLanguage;
+        if (systemLocale == QLatin1String("C")) {
+            acceptLanguage = QString::fromLatin1("en,*");
+        } else if (systemLocale.startsWith(QLatin1String("en-"))) {
+            acceptLanguage = systemLocale + QLatin1String(",*");
+        } else {
+            acceptLanguage = systemLocale + QLatin1String(",en,*");
+        }
+        _profile->setHttpAcceptLanguage(acceptLanguage);
+    }
+
     _webview->setPage(_page);
     _ui.verticalLayout->addWidget(_webview);
-    _webview->show();
 
     connect(_webview, &QWebEngineView::loadProgress, _ui.progressBar, &QProgressBar::setValue);
     connect(_schemeHandler, &WebViewPageUrlSchemeHandler::urlCatched, this, &WebView::urlCatched);
