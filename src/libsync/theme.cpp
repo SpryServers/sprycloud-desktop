@@ -338,7 +338,7 @@ QString Theme::about() const
               .arg("https://" MIRALL_STRINGIFY(APPLICATION_DOMAIN))
               .arg(MIRALL_STRINGIFY(APPLICATION_DOMAIN));
 
-    devString += tr("<p>This is a custom Nextcloud release built and maintained by Spry Servers<br />"
+    devString += tr("<p>This is a custom Nextcloud release built and maintained by Spry Servers<br />");
 
     devString += gitSHA1();
 
