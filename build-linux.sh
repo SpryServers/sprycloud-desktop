@@ -12,7 +12,7 @@ cmake .. -DCMAKE_INSTALL_PREFIX=/usr \
       -DQTKEYCHAIN_LIBRARY=/usr/lib/libqt5keychain.so \
       -DQTKEYCHAIN_INCLUDE_DIR=/usr/include/qt5keychain/
 make -j4
-make DESTDIR ../client-build install
+make DESTDIR=$SRCDIR/client-build install
 cd $SRCDIR
 cd client-build
 sed -i -e 's|Icon=sprycloud|Icon=spryCloud|g' usr/share/applications/sprycloud.desktop
