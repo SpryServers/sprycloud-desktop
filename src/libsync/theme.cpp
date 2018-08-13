@@ -338,15 +338,7 @@ QString Theme::about() const
               .arg("https://" MIRALL_STRINGIFY(APPLICATION_DOMAIN))
               .arg(MIRALL_STRINGIFY(APPLICATION_DOMAIN));
 
-    devString += tr("<p><small>By Klaas Freitag, Daniel Molkentin, Jan-Christoph Borchardt, "
-                    "Olivier Goffart, Markus Götz and others.</small></p>");
-
-    devString += tr("<p>This is a custom Nextcloud release built and maintained by Spry Servers<br />"
-                    "Copyright 2013-2018 Spry Servers, LLC<br />"
-                    "Copyright 2017-2018 Nextcloud GmbH<br />"
-                    "Copyright 2012-2018 ownCloud GmbH</p>");
-
-    devString += tr("<p>Licensed under the GNU General Public License (GPL) Version 2.0 or any later version.</p>");
+    devString += tr("<p>This is a custom Nextcloud release built and maintained by Spry Servers<br />");
 
     devString += gitSHA1();
 

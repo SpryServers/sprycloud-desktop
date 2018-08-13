@@ -20,10 +20,9 @@ set(client_UI_SRCS
     folderwizardsourcepage.ui
     folderwizardtargetpage.ui
     generalsettings.ui
+    legalnotice.ui
     ignorelisteditor.ui
     networksettings.ui
-    protocolwidget.ui
-    issueswidget.ui
     activitywidget.ui
     synclogdialog.ui
     settingsdialog.ui
@@ -58,6 +57,7 @@ set(client_SRCS
     folderwatcher.cpp
     folderwizard.cpp
     generalsettings.cpp
+    legalnotice.cpp
     ignorelisteditor.cpp
     lockwatcher.cpp
     logbrowser.cpp
@@ -70,8 +70,6 @@ set(client_SRCS
     openfilemanager.cpp
     owncloudgui.cpp
     owncloudsetupwizard.cpp
-    protocolwidget.cpp
-    issueswidget.cpp
     activitydata.cpp
     activitylistmodel.cpp
     activitywidget.cpp
@@ -102,6 +100,7 @@ set(client_SRCS
     servernotificationhandler.cpp
     guiutility.cpp
     elidedlabel.cpp
+    iconjob.cpp
     creds/credentialsfactory.cpp
     creds/httpcredentialsgui.cpp
     creds/oauth.cpp
