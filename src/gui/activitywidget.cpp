@@ -30,7 +30,6 @@
 #include "accountmanager.h"
 #include "activityitemdelegate.h"
 #include "QProgressIndicator.h"
-#include "notificationwidget.h"
 #include "notificationconfirmjob.h"
 #include "servernotificationhandler.h"
 #include "theme.h"
@@ -68,7 +67,6 @@ ActivityWidget::ActivityWidget(AccountState *accountState, QWidget *parent)
     ActivityItemDelegate *delegate = new ActivityItemDelegate;
     delegate->setParent(this);
     _ui->_activityList->setItemDelegate(delegate);
-    _ui->_activityList->setBackgroundRole(QPalette::Background);
     _ui->_activityList->setAlternatingRowColors(true);
     _ui->_activityList->setModel(_model);
 
@@ -77,15 +75,11 @@ ActivityWidget::ActivityWidget(AccountState *accountState, QWidget *parent)
     connect(_model, &ActivityListModel::activityJobStatusCode,
         this, &ActivityWidget::slotAccountActivityStatus);
 
-    _ui->_copyButton->setToolTip(tr("Copy the activity list to the clipboard."));
-    connect(_ui->_copyButton, &QPushButton::click, this, &ActivityWidget::copyToClipboard);
-
     connect(_model, &QAbstractItemModel::rowsInserted, this, &ActivityWidget::rowsInserted);
 
     connect(delegate, &ActivityItemDelegate::primaryButtonClickedOnItemView, this, &ActivityWidget::slotPrimaryButtonClickedOnListView);
     connect(delegate, &ActivityItemDelegate::secondaryButtonClickedOnItemView, this, &ActivityWidget::slotSecondaryButtonClickedOnListView);
     connect(_ui->_activityList, &QListView::activated, this, &ActivityWidget::slotOpenFile);
-    connect(&_removeTimer, &QTimer::timeout, this, &ActivityWidget::slotCheckToCleanWidgets);
 
     connect(ProgressDispatcher::instance(), &ProgressDispatcher::progressInfo,
         this, &ActivityWidget::slotProgressInfo);
@@ -326,14 +320,17 @@ void ActivityWidget::slotRemoveAccount()
 
 void ActivityWidget::showLabels()
 {
-    QString t = tr("Server Activities");
-    t.clear();
+    _ui->_bottomLabel->hide(); // hide whatever was there before
+    QString t("");
     QSetIterator<QString> i(_accountsWithoutActivities);
     while (i.hasNext()) {
         t.append(tr("<br/>Account %1 does not have activities enabled.").arg(i.next()));
     }
-    _ui->_bottomLabel->setTextFormat(Qt::RichText);
-    _ui->_bottomLabel->setText(t);
+    if(!t.isEmpty()){
+        _ui->_bottomLabel->setTextFormat(Qt::RichText);
+        _ui->_bottomLabel->setText(t);
+        _ui->_bottomLabel->show();
+    }
 }
 
 void ActivityWidget::slotAccountActivityStatus(int statusCode)
@@ -347,7 +344,7 @@ void ActivityWidget::slotAccountActivityStatus(int statusCode)
         _accountsWithoutActivities.remove(_accountState->account()->displayName());
     }
 
-    checkActivityTabVisibility();
+    checkActivityWidgetVisibility();
     showLabels();
 }
 
@@ -398,16 +395,15 @@ void ActivityWidget::storeActivityList(QTextStream &ts)
     }
 }
 
-void ActivityWidget::checkActivityTabVisibility()
+void ActivityWidget::checkActivityWidgetVisibility()
 {
     int accountCount = AccountManager::instance()->accounts().count();
     bool hasAccountsWithActivity =
         _accountsWithoutActivities.count() != accountCount;
-    bool hasNotifications = !_widgetForNotifId.isEmpty();
 
     _ui->_activityList->setVisible(hasAccountsWithActivity);
 
-    emit hideActivityTab(!hasAccountsWithActivity && !hasNotifications);
+    emit hideActivityTab(!hasAccountsWithActivity);
 }
 
 void ActivityWidget::slotOpenFile(QModelIndex indx)
@@ -508,7 +504,7 @@ void ActivityWidget::slotSendNotificationRequest(const QString &accountName, con
     }
 }
 
-void ActivityWidget::endNotificationRequest(NotificationWidget *widget, int replyCode)
+void ActivityWidget::endNotificationRequest(int replyCode)
 {
     _notificationRequestsRunning--;
     slotNotificationRequestFinished(replyCode);
@@ -523,7 +519,7 @@ void ActivityWidget::slotNotifyNetworkError(QNetworkReply *reply)
 
     int resultCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
-    endNotificationRequest(job->widget(), resultCode);
+    endNotificationRequest(resultCode);
     qCWarning(lcActivity) << "Server notify job failed with code " << resultCode;
 }
 
@@ -534,71 +530,9 @@ void ActivityWidget::slotNotifyServerFinished(const QString &reply, int replyCod
         return;
     }
 
-    endNotificationRequest(job->widget(), replyCode);
+    endNotificationRequest(replyCode);
     qCInfo(lcActivity) << "Server Notification reply code" << replyCode << reply;
-
-    // if the notification was successful start a timer that triggers
-    // removal of the done widgets in a few seconds
-    // Add 200 millisecs to the predefined value to make sure that the timer in
-    // widget's method readyToClose() has elapsed.
-    if (replyCode == OCS_SUCCESS_STATUS_CODE || replyCode == OCS_SUCCESS_STATUS_CODE_V2) {
-        //scheduleWidgetToRemove(job->widget());
-    }
 }
-
-// blacklist the activity coming in here.
-void ActivityWidget::slotRequestCleanupAndBlacklist(const Activity &blacklistActivity)
-{
-    if (!_blacklistedNotifications.contains(blacklistActivity)) {
-        _blacklistedNotifications.append(blacklistActivity);
-    }
-
-    NotificationWidget *widget = _widgetForNotifId[blacklistActivity.ident()];
-    scheduleWidgetToRemove(widget);
-}
-
-void ActivityWidget::scheduleWidgetToRemove(NotificationWidget *widget, int milliseconds)
-{
-    if (!widget) {
-        return;
-    }
-    // in five seconds from now, remove the widget.
-    QDateTime removeTime = QDateTime::currentDateTimeUtc().addMSecs(milliseconds);
-    QDateTime &it = _widgetsToRemove[widget];
-    if (!it.isValid() || it > removeTime) {
-        it = removeTime;
-    }
-    if (!_removeTimer.isActive()) {
-        _removeTimer.start();
-    }
-}
-
-// Called every second to see if widgets need to be removed.
-void ActivityWidget::slotCheckToCleanWidgets()
-{
-    auto currentTime = QDateTime::currentDateTimeUtc();
-    auto it = _widgetsToRemove.begin();
-    while (it != _widgetsToRemove.end()) {
-        // loop over all widgets in the to-remove queue
-        QDateTime t = it.value();
-        NotificationWidget *widget = it.key();
-
-        if (currentTime > t) {
-            // found one to remove!
-            Activity::Identifier id = widget->activity().ident();
-            _widgetForNotifId.remove(id);
-            widget->deleteLater();
-            it = _widgetsToRemove.erase(it);
-        } else {
-            ++it;
-        }
-    }
-
-    if (_widgetsToRemove.isEmpty()) {
-        _removeTimer.stop();
-    }
-}
-
 
 /* ==================================================================== */
 
@@ -611,14 +545,7 @@ ActivitySettings::ActivitySettings(AccountState *accountState, QWidget *parent)
 
     _activityWidget = new ActivityWidget(_accountState, this);
 
-    // set background white
-    QPalette palette;
-    palette.setColor(QPalette::Background, Qt::white);
-    _activityWidget->setAutoFillBackground(true);
-    _activityWidget->setPalette(palette);
-
     _vbox->insertWidget(1, _activityWidget);
-    connect(_activityWidget, &ActivityWidget::copyToClipboard, this, &ActivitySettings::slotCopyToClipboard);
     connect(_activityWidget, &ActivityWidget::guiLog, this, &ActivitySettings::guiLog);
     connect(&_notificationCheckTimer, &QTimer::timeout,
         this, &ActivitySettings::slotRegularNotificationCheck);
@@ -639,21 +566,6 @@ void ActivitySettings::setNotificationRefreshInterval(std::chrono::milliseconds 
 {
     qCDebug(lcActivity) << "Starting Notification refresh timer with " << interval.count() / 1000 << " sec interval";
     _notificationCheckTimer.start(interval.count());
-}
-
-void ActivitySettings::slotCopyToClipboard()
-{
-    QString text;
-    QTextStream ts(&text);
-
-    QString message;
-
-    _activityWidget->storeActivityList(ts);
-    message = tr("The server activity and notifications list has been copied to the clipboard.");
-
-    QApplication::clipboard()->setText(text);
-
-    emit guiLog(tr("Copied to clipboard"), message);
 }
 
 void ActivitySettings::slotRemoveAccount()
