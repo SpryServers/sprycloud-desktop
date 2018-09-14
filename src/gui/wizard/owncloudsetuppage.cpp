@@ -79,6 +79,7 @@ OwncloudSetupPage::OwncloudSetupPage(QWidget *parent)
     connect(_ui.loginButton, &QPushButton::clicked, this, &OwncloudSetupPage::slotLogin);
     connect(_ui.createAccountButton, &QPushButton::clicked, this, &OwncloudSetupPage::slotGotoProviderList);
 
+    _ui.installLink->hide();
     _ui.login->hide();
     _slideshow.append(qMakePair(QString("nextcloud"), tr("Keep your data secure and under your control")));
     _slideshow.append(qMakePair(QString("files"), tr("Secure collaboration & file exchange")));
