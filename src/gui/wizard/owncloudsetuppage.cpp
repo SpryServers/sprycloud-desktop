@@ -156,8 +156,15 @@ void OwncloudSetupPage::slotLogin()
     animation->setEndValue(500);
     _ui.login->show();
     _ui.loginButton->hide();
+    _ui.createAccountButton->hide();
     wizard()->resize(wizard()->sizeHint());
     animation->start();
+    setCommitPage(true);
+    // Hack: setCommitPage() changes caption, but after an error this page could still be visible
+    setButtonText(QWizard::CommitButton, tr("&Next >"));
+    validatePage();
+    wizard()->next();
+    setVisible(false);
 }
 void OwncloudSetupPage::slotGotoProviderList()
 {
@@ -235,7 +242,7 @@ void OwncloudSetupPage::initializePage()
     // we just check the server type and switch to second page
     // immediately.
 //    if (Theme::instance()->overrideServerUrl().isEmpty()) {
-        _ui.leUrl->setFocus();
+//        _ui.leUrl->setFocus();
 //    } else {
 //        setCommitPage(true);
         // Hack: setCommitPage() changes caption, but after an error this page could still be visible
