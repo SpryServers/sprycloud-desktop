@@ -32,7 +32,7 @@ WebViewPage::WebViewPage(QWidget *parent)
 void WebViewPage::initializePage() {
     QString url;
     if (_ocWizard->registration()) {
-        url = "https://nextcloud.com/register";
+        url = "https://www.spryservers.net/clients/cart.php?gid=15";
     } else {
         url = _ocWizard->ocUrl();
         url += "/index.php/login/flow";
