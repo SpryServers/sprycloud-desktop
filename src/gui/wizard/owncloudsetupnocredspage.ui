@@ -140,7 +140,7 @@
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>Register with a provider</string>
+        <string>Sign up for free</string>
        </property>
        <property name="default">
         <bool>false</bool>
