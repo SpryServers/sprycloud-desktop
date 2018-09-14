@@ -233,15 +233,15 @@ void OwncloudSetupPage::initializePage()
     // If url is overriden by theme, it's already set and
     // we just check the server type and switch to second page
     // immediately.
-    if (Theme::instance()->overrideServerUrl().isEmpty()) {
+//    if (Theme::instance()->overrideServerUrl().isEmpty()) {
         _ui.leUrl->setFocus();
-    } else {
-        setCommitPage(true);
+//    } else {
+//        setCommitPage(true);
         // Hack: setCommitPage() changes caption, but after an error this page could still be visible
-        setButtonText(QWizard::CommitButton, tr("&Next >"));
-        validatePage();
-        setVisible(false);
-    }
+//        setButtonText(QWizard::CommitButton, tr("&Next >"));
+//        validatePage();
+//        setVisible(false);
+//    }
     wizard()->resize(wizard()->sizeHint());
 }
 
