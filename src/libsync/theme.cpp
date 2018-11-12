@@ -141,7 +141,7 @@ QIcon Theme::themeIcon(const QString &name, bool sysTray, bool sysTrayMenuVisibl
         }
 
         QList<int> sizes;
-        sizes << 16 << 22 << 32 << 48 << 64 << 128 << 256;
+        sizes << 16 << 22 << 32 << 48 << 64 << 128 << 256 << 512 << 1024;
         foreach (int size, sizes) {
             QString pixmapName = QString::fromLatin1(":/client/theme/%1/%2-%3.png").arg(flavor).arg(name).arg(size);
             if (QFile::exists(pixmapName)) {
@@ -338,7 +338,8 @@ QString Theme::about() const
               .arg("https://" MIRALL_STRINGIFY(APPLICATION_DOMAIN))
               .arg(MIRALL_STRINGIFY(APPLICATION_DOMAIN));
 
-    devString += tr("<p>This is a custom Nextcloud release built and maintained by Spry Servers<br />");
+    devString += tr("<p>This release was supplied by %1</p>")
+              .arg(APPLICATION_VENDOR);
 
     devString += gitSHA1();
 

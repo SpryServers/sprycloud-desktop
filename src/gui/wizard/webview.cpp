@@ -22,16 +22,16 @@ class WebViewPageUrlRequestInterceptor : public QWebEngineUrlRequestInterceptor
 {
     Q_OBJECT
 public:
-    WebViewPageUrlRequestInterceptor(QObject *parent = 0);
-    void interceptRequest(QWebEngineUrlRequestInfo &info);
+    WebViewPageUrlRequestInterceptor(QObject *parent = nullptr);
+    void interceptRequest(QWebEngineUrlRequestInfo &info) override;
 };
 
 class WebViewPageUrlSchemeHandler : public QWebEngineUrlSchemeHandler
 {
     Q_OBJECT
 public:
-    WebViewPageUrlSchemeHandler(QObject *parent = 0);
-    void requestStarted(QWebEngineUrlRequestJob *request);
+    WebViewPageUrlSchemeHandler(QObject *parent = nullptr);
+    void requestStarted(QWebEngineUrlRequestJob *request) override;
 
 Q_SIGNALS:
     void urlCatched(QString user, QString pass, QString host);
@@ -41,6 +41,13 @@ class WebEnginePage : public QWebEnginePage {
 public:
     WebEnginePage(QWebEngineProfile *profile, QObject* parent = nullptr);
     QWebEnginePage * createWindow(QWebEnginePage::WebWindowType type) override;
+    void setUrl(const QUrl &url);
+
+protected:
+    bool certificateError(const QWebEngineCertificateError &certificateError) override;
+
+private:
+    QUrl _rootUrl;
 };
 
 // We need a separate class here, since we cannot simply return the same WebEnginePage object
@@ -130,7 +137,9 @@ void WebViewPageUrlSchemeHandler::requestStarted(QWebEngineUrlRequestJob *reques
             password = part.mid(9);
         }
     }
-
+    if (!server.startsWith("http://") && !server.startsWith("https://")) {
+        server = "https://" + server;
+    }
     qCInfo(lcWizardWebiew()) << "Got user: " << user << ", server: " << server;
 
     emit urlCatched(user, password, server);
@@ -144,6 +153,19 @@ WebEnginePage::WebEnginePage(QWebEngineProfile *profile, QObject* parent) : QWeb
 QWebEnginePage * WebEnginePage::createWindow(QWebEnginePage::WebWindowType type) {
     ExternalWebEnginePage *view = new ExternalWebEnginePage(this->profile());
     return view;
+}
+
+void WebEnginePage::setUrl(const QUrl &url) {
+    QWebEnginePage::setUrl(url);
+    _rootUrl = url;
+}
+
+bool WebEnginePage::certificateError(const QWebEngineCertificateError &certificateError) {
+    if (certificateError.error() == QWebEngineCertificateError::CertificateAuthorityInvalid) {
+        return certificateError.url().host() == _rootUrl.host();
+    }
+
+    return false;
 }
 
 ExternalWebEnginePage::ExternalWebEnginePage(QWebEngineProfile *profile, QObject* parent) : QWebEnginePage(profile, parent) {
