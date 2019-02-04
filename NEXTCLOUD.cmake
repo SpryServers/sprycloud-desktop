@@ -1,10 +1,12 @@
-set( APPLICATION_NAME       "spryCloud" )
-set( APPLICATION_SHORTNAME  "spryCloud" )
-set( APPLICATION_EXECUTABLE "sprycloud" )
-set( APPLICATION_DOMAIN     "www.spryservers.net" )
-set( APPLICATION_VENDOR     "Spry Servers, LLC" )
-set( APPLICATION_UPDATE_URL "https://updates.cloud.spryservers.net/" CACHE string "URL for updater" )
-set( APPLICATION_ICON_NAME  "spryCloud" )
+set( APPLICATION_NAME       "Nextcloud" )
+set( APPLICATION_SHORTNAME  "Nextcloud" )
+set( APPLICATION_EXECUTABLE "nextcloud" )
+set( APPLICATION_DOMAIN     "nextcloud.com" )
+set( APPLICATION_VENDOR     "Nextcloud GmbH" )
+set( APPLICATION_UPDATE_URL "https://updates.nextcloud.org/client/" CACHE string "URL for updater" )
+set( APPLICATION_HELP_URL   "" CACHE string "URL for the help menu" )
+set( APPLICATION_ICON_NAME  "Nextcloud" )
+set( APPLICATION_SERVER_URL "" CACHE string "URL for the server to use. If entered the server can only connect to this instance" )
 
 set( LINUX_PACKAGE_SHORTNAME "sprycloud" )
 
@@ -22,3 +24,9 @@ option( WITH_CRASHREPORTER "Build crashreporter" OFF )
 #set( CRASHREPORTER_ICON ":/owncloud-icon.png" )
 
 option( WITH_PROVIDERS "Build with providers list" ON )
+
+
+## Theming options
+set( APPLICATION_WIZARD_HEADER_BACKGROUND_COLOR "#0082c9" CACHE string "Hex color of the wizard header background")
+set( APPLICATION_WIZARD_HEADER_TITLE_COLOR "#ffffff" CACHE string "Hex color of the text in the wizard header")
+option( APPLICATION_WIZARD_USE_CUSTOM_LOGO "Use the logo from ':/client/theme/colored/wizard_logo.png' else the default application icon is used" ON )
