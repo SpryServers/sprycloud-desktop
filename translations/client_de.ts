@@ -517,17 +517,17 @@
         <translation>Akzeptieren</translation>
     </message>
     <message>
-        <location filename="../src/gui/activitywidget.cpp" line="182"/>
+        <location filename="../src/gui/activitywidget.cpp" line="183"/>
         <source>Synced</source>
         <translation>Synchronisiert</translation>
     </message>
     <message>
-        <location filename="../src/gui/activitywidget.cpp" line="217"/>
+        <location filename="../src/gui/activitywidget.cpp" line="218"/>
         <source>Retry all uploads</source>
         <translation>Alle Uploads neu starten</translation>
     </message>
     <message>
-        <location filename="../src/gui/activitywidget.cpp" line="332"/>
+        <location filename="../src/gui/activitywidget.cpp" line="333"/>
         <source>&lt;br/&gt;Account %1 does not have activities enabled.</source>
         <translation>&lt;br/&gt;Für Konto %1 sind serverseitig keine Aktivitäten aktiviert.</translation>
     </message>
@@ -1920,7 +1920,7 @@ for additional privileges during the process.</source>
     <message>
         <location filename="../src/gui/wizard/owncloudconnectionmethoddialog.cpp" line="34"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Failed to connect to the secure server address &lt;em&gt;%1&lt;/em&gt;. How do you wish to proceed?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sichere Verbindung zur Server-Adresse &lt;em&gt;%1&lt;/em&gt; fehlgeschlagen. Wie wollen Sie fortfahren?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sichere Verbindung zur Serveradresse &lt;em&gt;%1&lt;/em&gt; fehlgeschlagen. Wie wollen Sie fortfahren?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -3363,6 +3363,19 @@ Es ist nicht ratsam, sie zu benutzen.</translation>
     </message>
 </context>
 <context>
+    <name>OCC::WebEnginePage</name>
+    <message>
+        <location filename="../src/gui/wizard/webview.cpp" line="199"/>
+        <source>Invalid certificate detected</source>
+        <translation>Ungültiges Zertifikat gefunden</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/webview.cpp" line="200"/>
+        <source>The host &quot;%1&quot; provided an invalid certitiface. Continue?</source>
+        <translation>Host &quot;%1&quot; hat ein ungültiges Zertifikat bereitgestellt. Fortfahren?</translation>
+    </message>
+</context>
+<context>
     <name>OCC::WebFlowCredentials</name>
     <message>
         <location filename="../src/gui/creds/webflowcredentials.cpp" line="124"/>
@@ -3762,8 +3775,8 @@ Es ist nicht ratsam, sie zu benutzen.</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="288"/>
-        <source>Ser&amp;ver Address</source>
-        <translation>Ser&amp;veradresse</translation>
+        <source>Server Address</source>
+        <translation>Serveradresse</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="304"/>

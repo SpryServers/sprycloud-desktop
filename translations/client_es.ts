@@ -517,17 +517,17 @@
         <translation>Aceptar</translation>
     </message>
     <message>
-        <location filename="../src/gui/activitywidget.cpp" line="182"/>
+        <location filename="../src/gui/activitywidget.cpp" line="183"/>
         <source>Synced</source>
-        <translation type="unfinished"/>
+        <translation>Sincronizado</translation>
     </message>
     <message>
-        <location filename="../src/gui/activitywidget.cpp" line="217"/>
+        <location filename="../src/gui/activitywidget.cpp" line="218"/>
         <source>Retry all uploads</source>
         <translation>Volver a intentar todas las subidas</translation>
     </message>
     <message>
-        <location filename="../src/gui/activitywidget.cpp" line="332"/>
+        <location filename="../src/gui/activitywidget.cpp" line="333"/>
         <source>&lt;br/&gt;Account %1 does not have activities enabled.</source>
         <translation>&lt;br/&gt;La cuenta %1 no tiene actividades habilitadas.</translation>
     </message>
@@ -3363,6 +3363,19 @@ No se recomienda usarla.</translation>
     </message>
 </context>
 <context>
+    <name>OCC::WebEnginePage</name>
+    <message>
+        <location filename="../src/gui/wizard/webview.cpp" line="199"/>
+        <source>Invalid certificate detected</source>
+        <translation>Certificado inválido detectado</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/webview.cpp" line="200"/>
+        <source>The host &quot;%1&quot; provided an invalid certitiface. Continue?</source>
+        <translation>El host &quot;%1&quot; ha ofrecido un certificado inválido. ¿Continuar?</translation>
+    </message>
+</context>
+<context>
     <name>OCC::WebFlowCredentials</name>
     <message>
         <location filename="../src/gui/creds/webflowcredentials.cpp" line="124"/>
@@ -3762,8 +3775,8 @@ No se recomienda usarla.</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="288"/>
-        <source>Ser&amp;ver Address</source>
-        <translation>Dirección del ser&amp;vidor</translation>
+        <source>Server Address</source>
+        <translation>Dirección del servidor</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="304"/>

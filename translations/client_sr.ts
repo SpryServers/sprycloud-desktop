@@ -517,17 +517,17 @@
         <translation>Прихвати</translation>
     </message>
     <message>
-        <location filename="../src/gui/activitywidget.cpp" line="182"/>
+        <location filename="../src/gui/activitywidget.cpp" line="183"/>
         <source>Synced</source>
         <translation>Синхронизовано</translation>
     </message>
     <message>
-        <location filename="../src/gui/activitywidget.cpp" line="217"/>
+        <location filename="../src/gui/activitywidget.cpp" line="218"/>
         <source>Retry all uploads</source>
         <translation>Понови сва отпремања</translation>
     </message>
     <message>
-        <location filename="../src/gui/activitywidget.cpp" line="332"/>
+        <location filename="../src/gui/activitywidget.cpp" line="333"/>
         <source>&lt;br/&gt;Account %1 does not have activities enabled.</source>
         <translation>&lt;br/&gt;Налог %1 нема укључене активности.</translation>
     </message>
@@ -3357,6 +3357,19 @@ It is not advisable to use it.</source>
     </message>
 </context>
 <context>
+    <name>OCC::WebEnginePage</name>
+    <message>
+        <location filename="../src/gui/wizard/webview.cpp" line="199"/>
+        <source>Invalid certificate detected</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/webview.cpp" line="200"/>
+        <source>The host &quot;%1&quot; provided an invalid certitiface. Continue?</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
     <name>OCC::WebFlowCredentials</name>
     <message>
         <location filename="../src/gui/creds/webflowcredentials.cpp" line="124"/>
@@ -3756,8 +3769,8 @@ It is not advisable to use it.</source>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="288"/>
-        <source>Ser&amp;ver Address</source>
-        <translation>Ад&amp;реса сервера</translation>
+        <source>Server Address</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="304"/>
