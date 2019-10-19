@@ -3,6 +3,6 @@
 	BackgroundColor="#151e3d"
 	ForegroundText="light"
     ShowNameOnSquare150x150Logo="on"
-    Square150x150Logo="visualelements\150-Nextcloud-w10startmenu.png"
-	Square70x70Logo="visualelements\70-Nextcloud-w10startmenu.png"/>
+    Square150x150Logo="visualelements\150-spryCloud-w10startmenu.png"
+	Square70x70Logo="visualelements\70-spryCloud-w10startmenu.png"/>
 </Application>
