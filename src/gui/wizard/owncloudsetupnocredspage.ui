@@ -79,10 +79,7 @@
          <width>40</width>
          <height>16777215</height>
         </size>
-       </property>
-       <property name="text">
-        <string>Sign up for free</string>
-       </property>
+      </property>
        <property name="flat">
         <bool>true</bool>
        </property>
@@ -340,7 +337,7 @@
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>Register with a provider</string>
+        <string>Sign up for free</string>
        </property>
        <property name="default">
         <bool>false</bool>

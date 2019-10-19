@@ -52,7 +52,7 @@ OwncloudSetupPage::OwncloudSetupPage(QWidget *parent)
 
     Theme *theme = Theme::instance();
     setTitle(WizardCommon::titleTemplate().arg(tr("Connect to %1").arg(theme->appNameGUI())));
-    setSubTitle(WizardCommon::subTitleTemplate().arg(tr("Setup %1 server").arg(theme->appNameGUI())));
+    setSubTitle(WizardCommon::subTitleTemplate().arg(tr("Setup your %1 account").arg(theme->appNameGUI())));
 
     if (theme->overrideServerUrl().isEmpty()) {
         _ui.leUrl->setPostfix(theme->wizardUrlPostfix());
