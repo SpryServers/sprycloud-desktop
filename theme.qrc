@@ -127,8 +127,8 @@
         <file>theme/colored/wizard-files@2x.png</file>
         <file>theme/colored/wizard-groupware.png</file>
         <file>theme/colored/wizard-groupware@2x.png</file>
-        <file>theme/colored/wizard-spryCloud.png</file>
-        <file>theme/colored/wizard-spryCloud@2x.png</file>
+        <file>theme/colored/wizard-nextcloud.png</file>
+        <file>theme/colored/wizard-nextcloud@2x.png</file>
         <file>theme/colored/wizard-talk.png</file>
         <file>theme/colored/wizard-talk@2x.png</file>
     </qresource>
