@@ -85,7 +85,22 @@ OwncloudSetupPage::OwncloudSetupPage(QWidget *parent)
     _ui.slideShow->addSlide(Theme::hidpiFileName(":/client/theme/colored/wizard-files.png"), tr("Secure collaboration & file exchange"));
     _ui.slideShow->addSlide(Theme::hidpiFileName(":/client/theme/colored/wizard-groupware.png"), tr("Easy-to-use web mail, calendaring & contacts"));
     _ui.slideShow->addSlide(Theme::hidpiFileName(":/client/theme/colored/wizard-talk.png"), tr("Screensharing, online meetings & web conferences"));
-    connect(_ui.slideShow, &SlideShow::clicked, _ui.slideShow, &SlideShow::nextSlide);
+    connect(_ui.slideShow, &SlideShow::clicked, _ui.slideShow, &SlideShow::stopShow);
+    connect(_ui.nextButton, &QPushButton::clicked, _ui.slideShow, &SlideShow::nextSlide);
+    connect(_ui.prevButton, &QPushButton::clicked, _ui.slideShow, &SlideShow::prevSlide);
+
+	auto widgetBgLightness = OwncloudSetupPage::palette().color(OwncloudSetupPage::backgroundRole()).lightness();
+	bool widgetHasDarkBg =
+        (widgetBgLightness >= 125)
+        ? false
+        : true;
+	_ui.nextButton->setIcon(theme->uiThemeIcon(QString("control-next.svg"), widgetHasDarkBg));
+    _ui.prevButton->setIcon(theme->uiThemeIcon(QString("control-prev.svg"), widgetHasDarkBg));
+
+	// QPushButtons are a mess when it comes to consistent background coloring without stylesheets,
+	// so we do it here even though this is an exceptional styling method here
+    _ui.createAccountButton->setStyleSheet("QPushButton {background-color: #0082C9; color: white}");
+
     _ui.slideShow->startShow();
 
     QPalette pal = _ui.slideShow->palette();
@@ -266,6 +281,8 @@ int OwncloudSetupPage::nextId() const
         return WizardCommon::Page_HttpCreds;
     case DetermineAuthTypeJob::OAuth:
         return WizardCommon::Page_OAuthCreds;
+    case DetermineAuthTypeJob::LoginFlowV2:
+        return WizardCommon::Page_Flow2AuthCreds;
     case DetermineAuthTypeJob::Shibboleth:
         return WizardCommon::Page_ShibbolethCreds;
     case DetermineAuthTypeJob::WebViewFlow:
@@ -383,12 +400,13 @@ QString subjectInfoHelper(const QSslCertificate &cert, const QByteArray &qa)
 //called during the validation of the client certificate.
 void OwncloudSetupPage::slotCertificateAccepted()
 {
-    QList<QSslCertificate> clientCaCertificates;
     QFile certFile(addCertDial->getCertificatePath());
     certFile.open(QFile::ReadOnly);
-    if (QSslCertificate::importPkcs12(&certFile,
-            &_ocWizard->_clientSslKey, &_ocWizard->_clientSslCertificate,
-            &clientCaCertificates,
+    if (QSslCertificate::importPkcs12(
+            &certFile,
+            &_ocWizard->_clientSslKey,
+            &_ocWizard->_clientSslCertificate,
+            &_ocWizard->_clientSslCaCertificates,
             addCertDial->getCertificatePasswd().toLocal8Bit())) {
         AccountPtr acc = _ocWizard->account();
 
@@ -400,6 +418,12 @@ void OwncloudSetupPage::slotCertificateAccepted()
         // cert will come via the HttpCredentials
         sslConfiguration.setLocalCertificate(_ocWizard->_clientSslCertificate);
         sslConfiguration.setPrivateKey(_ocWizard->_clientSslKey);
+
+        // Be sure to merge the CAs
+        auto ca = sslConfiguration.systemCaCertificates();
+        ca.append(_ocWizard->_clientSslCaCertificates);
+        sslConfiguration.setCaCertificates(ca);
+
         acc->setSslConfiguration(sslConfiguration);
 
         // Make sure TCP connections get re-established

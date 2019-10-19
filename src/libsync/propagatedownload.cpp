@@ -571,6 +571,12 @@ void PropagateDownloadFile::slotGetFinished()
             qCWarning(lcPropagateDownload) << "server replied 404, assuming file was deleted";
         }
 
+        // Getting a 423 means that the file is locked
+        const bool fileLocked = _item->_httpErrorCode == 423;
+        if (fileLocked) {
+            qCWarning(lcPropagateDownload) << "server replied 423, file is Locked";
+        }
+
         // Don't keep the temporary file if it is empty or we
         // used a bad range header or the file's not on the server anymore.
         if (_tmpFile.size() == 0 || badRangeHeader || fileNotFound) {
@@ -792,7 +798,11 @@ namespace { // Anonymous namespace for the recall feature
     static void preserveGroupOwnership(const QString &fileName, const QFileInfo &fi)
     {
 #ifdef Q_OS_UNIX
-        chown(fileName.toLocal8Bit().constData(), -1, fi.groupId());
+        int chownErr = chown(fileName.toLocal8Bit().constData(), -1, fi.groupId());
+        if (chownErr) {
+            // TODO: Consider further error handling!
+            qCWarning(lcPropagateDownload) << QString("preserveGroupOwnership: chown error %1: setting group %2 failed on file %3").arg(chownErr).arg(fi.groupId()).arg(fileName);
+        }
 #else
         Q_UNUSED(fileName);
         Q_UNUSED(fi);

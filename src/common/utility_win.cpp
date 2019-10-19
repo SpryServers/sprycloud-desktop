@@ -87,9 +87,17 @@ void setLaunchOnStartup_private(const QString &appName, const QString &guiName, 
     }
 }
 
+// TODO: Right now only detection on toggle/startup, not when windows theme is switched while nextcloud is running
 static inline bool hasDarkSystray_private()
 {
-    return true;
+    if(Utility::registryGetKeyValue(    HKEY_CURRENT_USER,
+                                        "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                                        "SystemUsesLightTheme" ) == 1) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 QVariant Utility::registryGetKeyValue(HKEY hRootKey, const QString &subKey, const QString &valueName)
@@ -254,6 +262,15 @@ bool Utility::registryWalkSubKeys(HKEY hRootKey, const QString &subKey, const st
 
     RegCloseKey(hKey);
     return retCode != ERROR_NO_MORE_ITEMS;
+}
+
+DWORD Utility::convertSizeToDWORD(size_t &convertVar)
+{
+    if( convertVar > UINT_MAX ) {
+        //throw std::bad_cast();
+        convertVar = UINT_MAX; // intentionally default to wrong value here to not crash: exception handling TBD
+    }
+    return static_cast<DWORD>(convertVar);
 }
 
 } // namespace OCC

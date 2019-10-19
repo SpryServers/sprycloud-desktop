@@ -328,7 +328,25 @@ trigger:
   event:
     - pull_request
     - push
+---
+kind: pipeline
+name: Debian
 
+steps:
+- name: build
+  image: nextcloudci/client-debian-ci:client-debian-ci-2
+  commands:
+    - /bin/bash -c "./admin/linux/debian/drone-build.sh"
+  environment:
+    DEBIAN_SECRET_KEY:
+      from_secret: DEBIAN_SECRET_KEY
+    DEBIAN_SECRET_IV:
+      from_secret: DEBIAN_SECRET_IV
+trigger:
+  branch:
+    - stable-2.6
+  event:
+    - tag
 ---
 kind: pipeline
 name: Documentation

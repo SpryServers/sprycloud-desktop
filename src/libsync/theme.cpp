@@ -177,6 +177,14 @@ QIcon Theme::themeIcon(const QString &name, bool sysTray, bool sysTrayMenuVisibl
     return cached;
 }
 
+QIcon Theme::uiThemeIcon(const QString &iconName, bool uiHasDarkBg) const
+{
+    QString themeResBasePath = ":/client/theme/";
+    QString iconPath = themeResBasePath + (uiHasDarkBg?"white/":"black/") + iconName;
+    std::string icnPath = iconPath.toUtf8().constData();
+    return QIcon(QPixmap(iconPath));
+}
+
 QString Theme::hidpiFileName(const QString &fileName, QPaintDevice *dev)
 {
     qreal devicePixelRatio = dev ? dev->devicePixelRatio() : qApp->primaryScreen()->devicePixelRatio();
@@ -341,10 +349,9 @@ QString Theme::gitSHA1() const
 QString Theme::about() const
 {
     QString devString;
-    devString = tr("<p>Version %1. For more information please visit <a href='%2'>%3</a>.</p>")
+    devString = tr("<p>Version %1. For more information please click <a href='%2'>here</a>.</p>")
               .arg(MIRALL_VERSION_STRING)
-              .arg("https://" MIRALL_STRINGIFY(APPLICATION_DOMAIN))
-              .arg(MIRALL_STRINGIFY(APPLICATION_DOMAIN));
+              .arg(helpUrl());
 
     devString += tr("<p>This release was supplied by %1</p>")
               .arg(APPLICATION_VENDOR);

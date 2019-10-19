@@ -124,7 +124,9 @@ static int _csync_detect_update(CSYNC *ctx, std::unique_ptr<csync_file_stat_t> f
        * because it's a hidden file that should not be synced.
        * This code should probably be in csync_exclude, but it does not have the fs parameter.
        * Keep it here for now */
-      if (ctx->ignore_hidden_files && (fs->is_hidden)) {
+      if (ctx->ignore_hidden_files
+          && fs->is_hidden
+          && !fs->path.endsWith(".sync-exclude.lst")) {
           qCInfo(lcUpdate, "file excluded because it is a hidden file: %s", fs->path.constData());
           excluded = CSYNC_FILE_EXCLUDE_HIDDEN;
       }
@@ -722,7 +724,8 @@ int csync_ftw(CSYNC *ctx, const char *uri, csync_walker_fn fn,
     if (ctx->current == LOCAL_REPLICA) {
         ASSERT(dirent->path.startsWith(ctx->local.uri)); // path is relative to uri
         // "len + 1" to include the slash in-between.
-        dirent->path = dirent->path.mid(strlen(ctx->local.uri) + 1);
+        size_t uriLength = strlen(ctx->local.uri);
+        dirent->path = dirent->path.mid(OCC::Utility::convertSizeToInt(uriLength) + 1);
     }
 
     previous_fs = ctx->current_fs;
