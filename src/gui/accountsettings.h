@@ -63,11 +63,14 @@ signals:
     void openFolderAlias(const QString &);
     void showIssuesList(AccountState *account);
     void requesetMnemonic();
+    void removeAccountFolders(AccountState *account);
+    void styleChanged();
 
 public slots:
     void slotOpenOC();
     void slotUpdateQuota(qint64, qint64);
     void slotAccountStateChanged();
+    void slotStyleChanged();
 
     AccountState *accountsState() { return _accountState; }
 
@@ -128,11 +131,12 @@ private:
     bool event(QEvent *) override;
     void createAccountToolbox();
     void openIgnoredFilesDialog(const QString & absFolderPath);
+    void customizeStyle();
 
     /// Returns the alias of the selected folder, empty string if none
     QString selectedFolderAlias() const;
 
-    Ui::AccountSettings *ui;
+    Ui::AccountSettings *_ui;
 
     FolderStatusModel *_model;
     QUrl _OCUrl;

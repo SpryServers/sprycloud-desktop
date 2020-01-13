@@ -38,6 +38,20 @@ class ActivityListModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
+    enum ActivityIconType {
+        iconUseCached = 0,
+        iconActivity,
+        iconBell,
+        iconStateError,
+        iconStateWarning,
+        iconStateInfo,
+        iconStateSync
+    };
+    struct ActionIcon {
+        ActivityIconType iconType;
+        QIcon cachedIcon;
+    };
+
     explicit ActivityListModel(AccountState *accountState, QWidget *parent = nullptr);
 
     QVariant data(const QModelIndex &index, int role) const override;
@@ -51,6 +65,7 @@ public:
     void addNotificationToActivityList(Activity activity);
     void clearNotifications();
     void addErrorToActivityList(Activity activity);
+    void addIgnoredFileToList(Activity newActivity);
     void addSyncFileItemToActivityList(Activity activity);
     void removeActivityFromActivityList(int row);
     void removeActivityFromActivityList(Activity activity);
@@ -73,6 +88,8 @@ private:
     ActivityList _activityLists;
     ActivityList _syncFileItemLists;
     ActivityList _notificationLists;
+    ActivityList _listOfIgnoredFiles;
+    Activity _notificationIgnoredFiles;
     ActivityList _notificationErrorsLists;
     ActivityList _finalList;
     AccountState *_accountState;
@@ -81,4 +98,7 @@ private:
     int _currentItem = 0;
 };
 }
+
+Q_DECLARE_METATYPE(OCC::ActivityListModel::ActionIcon)
+
 #endif // ACTIVITYLISTMODEL_H

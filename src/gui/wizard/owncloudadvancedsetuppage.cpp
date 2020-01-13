@@ -58,7 +58,7 @@ OwncloudAdvancedSetupPage::OwncloudAdvancedSetupPage()
     setupCustomization();
 
     connect(_ui.pbSelectLocalFolder, &QAbstractButton::clicked, this, &OwncloudAdvancedSetupPage::slotSelectFolder);
-    setButtonText(QWizard::NextButton, tr("Connect..."));
+    setButtonText(QWizard::NextButton, tr("Connect …"));
 
     connect(_ui.rSyncEverything, &QAbstractButton::clicked, this, &OwncloudAdvancedSetupPage::slotSyncEverythingClicked);
     connect(_ui.rSelectiveSync, &QAbstractButton::clicked, this, &OwncloudAdvancedSetupPage::slotSelectiveSyncClicked);
@@ -387,6 +387,17 @@ qint64 OwncloudAdvancedSetupPage::availableLocalSpace() const
 QString OwncloudAdvancedSetupPage::checkLocalSpace(qint64 remoteSize) const
 {
     return (availableLocalSpace()>remoteSize) ? QString() : tr("There isn't enough free space in the local folder!");
+}
+
+void OwncloudAdvancedSetupPage::slotStyleChanged()
+{
+    customizeStyle();
+}
+
+void OwncloudAdvancedSetupPage::customizeStyle()
+{
+    if(_progressIndi)
+        _progressIndi->setColor(QGuiApplication::palette().color(QPalette::Text));
 }
 
 } // namespace OCC

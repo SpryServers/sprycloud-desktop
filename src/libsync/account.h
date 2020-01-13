@@ -41,6 +41,12 @@ class QNetworkReply;
 class QUrl;
 class QNetworkAccessManager;
 
+namespace QKeychain {
+class Job;
+class WritePasswordJob;
+class ReadPasswordJob;
+}
+
 namespace OCC {
 
 class AbstractCredentials;
@@ -49,7 +55,6 @@ typedef QSharedPointer<Account> AccountPtr;
 class QuotaInfo;
 class AccessManager;
 class SimpleNetworkJob;
-
 
 /**
  * @brief Reimplement this to handle SSL errors from libsync
@@ -236,6 +241,11 @@ public:
 
     ClientSideEncryption* e2e();
 
+    /// Used in RemoteWipe
+    void retrieveAppPassword();
+    void writeAppPasswordOnce(QString appPassword);
+    void deleteAppPassword();
+
 public slots:
     /// Used when forgetting credentials
     void clearQNAMCache();
@@ -261,6 +271,9 @@ signals:
 
     void accountChangedAvatar();
     void accountChangedDisplayName();
+
+    /// Used in RemoteWipe
+    void appPasswordRetrieved(QString);
 
 protected Q_SLOTS:
     void slotCredentialsFetched();
@@ -306,7 +319,26 @@ private:
     QString _davPath; // defaults to value from theme, might be overwritten in brandings
     ClientSideEncryption _e2e;
 
+    /// Used in RemoteWipe
+    bool _wroteAppPassword = false;
+
     friend class AccountManager;
+
+    /* IMPORTANT - remove later - FIXME MS@2019-12-07 -->
+     * TODO: For "Log out" & "Remove account": Remove client CA certs and KEY!
+     *
+     *       Disabled as long as selecting another cert is not supported by the UI.
+     *
+     *       Being able to specify a new certificate is important anyway: expiry etc.
+     *
+     *       We introduce this dirty hack here, to allow deleting them upon Remote Wipe.
+    */
+    public:
+        void setRemoteWipeRequested_HACK() { _isRemoteWipeRequested_HACK = true; }
+        bool isRemoteWipeRequested_HACK() { return _isRemoteWipeRequested_HACK; }
+    private:
+        bool _isRemoteWipeRequested_HACK = false;
+    // <-- FIXME MS@2019-12-07
 };
 }
 

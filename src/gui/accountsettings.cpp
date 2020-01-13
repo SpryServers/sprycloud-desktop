@@ -57,10 +57,6 @@
 
 #include "account.h"
 
-#ifdef Q_OS_MAC
-#include "settingsdialogmac.h"
-#endif
-
 namespace OCC {
 
 Q_LOGGING_CATEGORY(lcAccountSettings, "nextcloud.gui.account.settings", QtInfoMsg)
@@ -113,13 +109,13 @@ protected:
 
 AccountSettings::AccountSettings(AccountState *accountState, QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::AccountSettings)
+    , _ui(new Ui::AccountSettings)
     , _wasDisabledBefore(false)
     , _accountState(accountState)
     , _quotaInfo(accountState)
     , _menuShown(false)
 {
-    ui->setupUi(this);
+    _ui->setupUi(this);
 
     _model = new FolderStatusModel;
     _model->setAccountState(_accountState);
@@ -127,35 +123,40 @@ AccountSettings::AccountSettings(AccountState *accountState, QWidget *parent)
     FolderStatusDelegate *delegate = new FolderStatusDelegate;
     delegate->setParent(this);
 
-    ui->_folderList->header()->hide();
-    ui->_folderList->setItemDelegate(delegate);
-    ui->_folderList->setModel(_model);
+    // Connect styleChanged events to our widgets, so they can adapt (Dark-/Light-Mode switching)
+    connect(this, &AccountSettings::styleChanged, delegate, &FolderStatusDelegate::slotStyleChanged);
+
+    _ui->_folderList->header()->hide();
+    _ui->_folderList->setItemDelegate(delegate);
+    _ui->_folderList->setModel(_model);
 #if defined(Q_OS_MAC)
-    ui->_folderList->setMinimumWidth(400);
+    _ui->_folderList->setMinimumWidth(400);
 #else
-    ui->_folderList->setMinimumWidth(300);
+    _ui->_folderList->setMinimumWidth(300);
 #endif
-    new ToolTipUpdater(ui->_folderList);
+    new ToolTipUpdater(_ui->_folderList);
 
     auto mouseCursorChanger = new MouseCursorChanger(this);
-    mouseCursorChanger->folderList = ui->_folderList;
+    mouseCursorChanger->folderList = _ui->_folderList;
     mouseCursorChanger->model = _model;
-    ui->_folderList->setMouseTracking(true);
-    ui->_folderList->setAttribute(Qt::WA_Hover, true);
-    ui->_folderList->installEventFilter(mouseCursorChanger);
+    _ui->_folderList->setMouseTracking(true);
+    _ui->_folderList->setAttribute(Qt::WA_Hover, true);
+    _ui->_folderList->installEventFilter(mouseCursorChanger);
 
     createAccountToolbox();
     connect(AccountManager::instance(), &AccountManager::accountAdded,
         this, &AccountSettings::slotAccountAdded);
-    connect(ui->_folderList, &QWidget::customContextMenuRequested,
+    connect(this, &AccountSettings::removeAccountFolders,
+            AccountManager::instance(), &AccountManager::removeAccountFolders);
+    connect(_ui->_folderList, &QWidget::customContextMenuRequested,
         this, &AccountSettings::slotCustomContextMenuRequested);
-    connect(ui->_folderList, &QAbstractItemView::clicked,
+    connect(_ui->_folderList, &QAbstractItemView::clicked,
         this, &AccountSettings::slotFolderListClicked);
-    connect(ui->_folderList, &QTreeView::expanded, this, &AccountSettings::refreshSelectiveSyncStatus);
-    connect(ui->_folderList, &QTreeView::collapsed, this, &AccountSettings::refreshSelectiveSyncStatus);
-    connect(ui->selectiveSyncNotification, &QLabel::linkActivated,
+    connect(_ui->_folderList, &QTreeView::expanded, this, &AccountSettings::refreshSelectiveSyncStatus);
+    connect(_ui->_folderList, &QTreeView::collapsed, this, &AccountSettings::refreshSelectiveSyncStatus);
+    connect(_ui->selectiveSyncNotification, &QLabel::linkActivated,
         this, &AccountSettings::slotLinkActivated);
-    connect(_model, &FolderStatusModel::suggestExpand, ui->_folderList, &QTreeView::expand);
+    connect(_model, &FolderStatusModel::suggestExpand, _ui->_folderList, &QTreeView::expand);
     connect(_model, &FolderStatusModel::dirtyChanged, this, &AccountSettings::refreshSelectiveSyncStatus);
     refreshSelectiveSyncStatus();
     connect(_model, &QAbstractItemModel::rowsInserted,
@@ -172,20 +173,21 @@ AccountSettings::AccountSettings(AccountState *accountState, QWidget *parent)
     addAction(syncNowWithRemoteDiscovery);
 
 
-    connect(ui->selectiveSyncApply, &QAbstractButton::clicked, _model, &FolderStatusModel::slotApplySelectiveSync);
-    connect(ui->selectiveSyncCancel, &QAbstractButton::clicked, _model, &FolderStatusModel::resetFolders);
-    connect(ui->bigFolderApply, &QAbstractButton::clicked, _model, &FolderStatusModel::slotApplySelectiveSync);
-    connect(ui->bigFolderSyncAll, &QAbstractButton::clicked, _model, &FolderStatusModel::slotSyncAllPendingBigFolders);
-    connect(ui->bigFolderSyncNone, &QAbstractButton::clicked, _model, &FolderStatusModel::slotSyncNoPendingBigFolders);
+    connect(_ui->selectiveSyncApply, &QAbstractButton::clicked, _model, &FolderStatusModel::slotApplySelectiveSync);
+    connect(_ui->selectiveSyncCancel, &QAbstractButton::clicked, _model, &FolderStatusModel::resetFolders);
+    connect(_ui->bigFolderApply, &QAbstractButton::clicked, _model, &FolderStatusModel::slotApplySelectiveSync);
+    connect(_ui->bigFolderSyncAll, &QAbstractButton::clicked, _model, &FolderStatusModel::slotSyncAllPendingBigFolders);
+    connect(_ui->bigFolderSyncNone, &QAbstractButton::clicked, _model, &FolderStatusModel::slotSyncNoPendingBigFolders);
 
     connect(FolderMan::instance(), &FolderMan::folderListChanged, _model, &FolderStatusModel::resetFolders);
     connect(this, &AccountSettings::folderChanged, _model, &FolderStatusModel::resetFolders);
 
 
-    QColor color = palette().highlight().color();
-    ui->quotaProgressBar->setStyleSheet(QString::fromLatin1(progressBarStyleC).arg(color.name()));
+    // quotaProgressBar style now set in customizeStyle()
+    /*QColor color = palette().highlight().color();
+     _ui->quotaProgressBar->setStyleSheet(QString::fromLatin1(progressBarStyleC).arg(color.name()));*/
 
-    ui->connectLabel->setText(tr("No account configured."));
+    _ui->connectLabel->setText(tr("No account configured."));
 
     connect(_accountState, &AccountState::stateChanged, this, &AccountSettings::slotAccountStateChanged);
     slotAccountStateChanged();
@@ -202,8 +204,10 @@ AccountSettings::AccountSettings(AccountState *accountState, QWidget *parent)
     {
         slotNewMnemonicGenerated();
     } else {
-        ui->encryptionMessage->hide();
+        _ui->encryptionMessage->hide();
     }
+
+    customizeStyle();
 }
 
 
@@ -225,9 +229,9 @@ void AccountSettings::createAccountToolbox()
     menu->addAction(action);
     connect(action, &QAction::triggered, this, &AccountSettings::slotDeleteAccount);
 
-    ui->_accountToolbox->setText(tr("Account") + QLatin1Char(' '));
-    ui->_accountToolbox->setMenu(menu);
-    ui->_accountToolbox->setPopupMode(QToolButton::InstantPopup);
+    _ui->_accountToolbox->setText(tr("Account") + QLatin1Char(' '));
+    _ui->_accountToolbox->setMenu(menu);
+    _ui->_accountToolbox->setPopupMode(QToolButton::InstantPopup);
 
     slotAccountAdded(_accountState);
 }
@@ -235,14 +239,14 @@ void AccountSettings::createAccountToolbox()
 
 void AccountSettings::slotNewMnemonicGenerated()
 {
-    ui->encryptionMessage->setText(tr("This account supports end-to-end encryption"));
+    _ui->encryptionMessage->setText(tr("This account supports end-to-end encryption"));
 
     QAction *mnemonic = new QAction(tr("Enable encryption"), this);
     connect(mnemonic, &QAction::triggered, this, &AccountSettings::requesetMnemonic);
-    connect(mnemonic, &QAction::triggered, ui->encryptionMessage, &KMessageWidget::hide);
+    connect(mnemonic, &QAction::triggered, _ui->encryptionMessage, &KMessageWidget::hide);
 
-    ui->encryptionMessage->addAction(mnemonic);
-    ui->encryptionMessage->show();
+    _ui->encryptionMessage->addAction(mnemonic);
+    _ui->encryptionMessage->show();
 }
 
 void AccountSettings::slotMenuBeforeShow() {
@@ -250,7 +254,7 @@ void AccountSettings::slotMenuBeforeShow() {
         return;
     }
 
-    auto menu = ui->_accountToolbox->menu();
+    auto menu = _ui->_accountToolbox->menu();
 
     // We can't check this during the initial creation as there is no account yet then
     if (_accountState->account()->capabilities().clientSideEncryptionAvaliable()) {
@@ -265,7 +269,7 @@ void AccountSettings::slotMenuBeforeShow() {
 
 QString AccountSettings::selectedFolderAlias() const
 {
-    QModelIndex selected = ui->_folderList->selectionModel()->currentIndex();
+    QModelIndex selected = _ui->_folderList->selectionModel()->currentIndex();
     if (!selected.isValid())
         return "";
     return _model->data(selected, FolderStatusDelegate::FolderAliasRole).toString();
@@ -278,16 +282,7 @@ void AccountSettings::slotOpenAccountWizard()
     if (qgetenv("QT_QPA_PLATFORMTHEME") == "appmenu-qt5" || QSystemTrayIcon::isSystemTrayAvailable()) {
         topLevelWidget()->close();
     }
-#ifdef Q_OS_MAC
-    qCDebug(lcAccountSettings) << parent() << topLevelWidget();
-    SettingsDialogMac *sd = qobject_cast<SettingsDialogMac *>(topLevelWidget());
 
-    if (sd) {
-        sd->showActivityPage();
-    } else {
-        qFatal("nope");
-    }
-#endif
     OwncloudSetupWizard::runWizard(qApp, SLOT(slotownCloudWizardDone(int)), nullptr);
 }
 
@@ -303,7 +298,7 @@ void AccountSettings::slotToggleSignInState()
 
 void AccountSettings::doExpand()
 {
-    ui->_folderList->expandToDepth(0);
+    _ui->_folderList->expandToDepth(0);
 }
 
 void AccountSettings::slotShowMnemonic(const QString &mnemonic) {
@@ -334,9 +329,9 @@ void AccountSettings::slotEncryptionFlagError(const QByteArray& fileId, int http
 
 void AccountSettings::slotLockForEncryptionSuccess(const QByteArray& fileId, const QByteArray &token)
 {
-		accountsState()->account()->e2e()->setTokenForFolder(fileId, token);
+        accountsState()->account()->e2e()->setTokenForFolder(fileId, token);
 
-		FolderMetadata emptyMetadata(accountsState()->account());
+        FolderMetadata emptyMetadata(accountsState()->account());
     auto encryptedMetadata = emptyMetadata.encryptedMetadata();
     if (encryptedMetadata.isEmpty()) {
       //TODO: Mark the folder as unencrypted as the metadata generation failed.
@@ -348,36 +343,36 @@ void AccountSettings::slotLockForEncryptionSuccess(const QByteArray& fileId, con
       return;
     }
     auto storeMetadataJob = new StoreMetaDataApiJob(accountsState()->account(), fileId, emptyMetadata.encryptedMetadata());
-		connect(storeMetadataJob, &StoreMetaDataApiJob::success,
-						this, &AccountSettings::slotUploadMetadataSuccess);
-		connect(storeMetadataJob, &StoreMetaDataApiJob::error,
-						this, &AccountSettings::slotUpdateMetadataError);
+        connect(storeMetadataJob, &StoreMetaDataApiJob::success,
+                        this, &AccountSettings::slotUploadMetadataSuccess);
+        connect(storeMetadataJob, &StoreMetaDataApiJob::error,
+                        this, &AccountSettings::slotUpdateMetadataError);
 
-		storeMetadataJob->start();
+        storeMetadataJob->start();
 }
 
 void AccountSettings::slotUploadMetadataSuccess(const QByteArray& folderId)
 {
-	const auto token = accountsState()->account()->e2e()->tokenForFolder(folderId);
-	auto unlockJob = new UnlockEncryptFolderApiJob(accountsState()->account(), folderId, token);
-	connect(unlockJob, &UnlockEncryptFolderApiJob::success,
-					this, &AccountSettings::slotUnlockFolderSuccess);
-	connect(unlockJob, &UnlockEncryptFolderApiJob::error,
-					this, &AccountSettings::slotUnlockFolderError);
-	unlockJob->start();
+    const auto token = accountsState()->account()->e2e()->tokenForFolder(folderId);
+    auto unlockJob = new UnlockEncryptFolderApiJob(accountsState()->account(), folderId, token);
+    connect(unlockJob, &UnlockEncryptFolderApiJob::success,
+                    this, &AccountSettings::slotUnlockFolderSuccess);
+    connect(unlockJob, &UnlockEncryptFolderApiJob::error,
+                    this, &AccountSettings::slotUnlockFolderError);
+    unlockJob->start();
 }
 
 void AccountSettings::slotUpdateMetadataError(const QByteArray& folderId, int httpReturnCode)
 {
     Q_UNUSED(httpReturnCode);
 
-	const auto token = accountsState()->account()->e2e()->tokenForFolder(folderId);
-	auto unlockJob = new UnlockEncryptFolderApiJob(accountsState()->account(), folderId, token);
-	connect(unlockJob, &UnlockEncryptFolderApiJob::success,
-					this, &AccountSettings::slotUnlockFolderSuccess);
-	connect(unlockJob, &UnlockEncryptFolderApiJob::error,
-					this, &AccountSettings::slotUnlockFolderError);
-	unlockJob->start();
+    const auto token = accountsState()->account()->e2e()->tokenForFolder(folderId);
+    auto unlockJob = new UnlockEncryptFolderApiJob(accountsState()->account(), folderId, token);
+    connect(unlockJob, &UnlockEncryptFolderApiJob::success,
+                    this, &AccountSettings::slotUnlockFolderSuccess);
+    connect(unlockJob, &UnlockEncryptFolderApiJob::error,
+                    this, &AccountSettings::slotUnlockFolderError);
+    unlockJob->start();
 }
 
 void AccountSettings::slotLockForEncryptionError(const QByteArray& fileId, int httpErrorCode)
@@ -551,7 +546,7 @@ void AccountSettings::slotEditCurrentIgnoredFiles()
 
 void AccountSettings::slotEditCurrentLocalIgnoredFiles()
 {
-    QModelIndex selected = ui->_folderList->selectionModel()->currentIndex();
+    QModelIndex selected = _ui->_folderList->selectionModel()->currentIndex();
     if (!selected.isValid() || _model->classify(selected) != FolderStatusModel::SubFolder)
         return;
     QString fileName = _model->data(selected, FolderStatusDelegate::FolderPathRole).toString();
@@ -623,7 +618,7 @@ void AccountSettings::slotSubfolderContextMenuRequested(const QModelIndex& index
 
 void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
 {
-    QTreeView *tv = ui->_folderList;
+    QTreeView *tv = _ui->_folderList;
     QModelIndex index = tv->indexAt(pos);
     if (!index.isValid()) {
         return;
@@ -654,7 +649,7 @@ void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
     ac = menu->addAction(tr("Edit Ignored Files"));
     connect(ac, &QAction::triggered, this, &AccountSettings::slotEditCurrentIgnoredFiles);
 
-    if (!ui->_folderList->isExpanded(index)) {
+    if (!_ui->_folderList->isExpanded(index)) {
         ac = menu->addAction(tr("Choose what to sync"));
         ac->setEnabled(folderConnected);
         connect(ac, &QAction::triggered, this, &AccountSettings::doExpand);
@@ -693,7 +688,7 @@ void AccountSettings::slotFolderListClicked(const QModelIndex &indx)
     }
     if (_model->classify(indx) == FolderStatusModel::RootFolder) {
         // tries to find if we clicked on the '...' button.
-        QTreeView *tv = ui->_folderList;
+        QTreeView *tv = _ui->_folderList;
         auto pos = tv->mapFromGlobal(QCursor::pos());
         if (FolderStatusDelegate::optionsButtonRect(tv->visualRect(indx), layoutDirection()).contains(pos)) {
             slotCustomContextMenuRequested(pos);
@@ -706,8 +701,8 @@ void AccountSettings::slotFolderListClicked(const QModelIndex &indx)
 
         // Expand root items on single click
         if (_accountState && _accountState->state() == AccountState::Connected) {
-            bool expanded = !(ui->_folderList->isExpanded(indx));
-            ui->_folderList->setExpanded(indx, expanded);
+            bool expanded = !(_ui->_folderList->isExpanded(indx));
+            _ui->_folderList->setExpanded(indx, expanded);
         }
     }
 }
@@ -744,7 +739,7 @@ void AccountSettings::slotFolderWizardAccepted()
             qCInfo(lcAccountSettings) << "Creating folder" << definition.localPath;
             if (!dir.mkpath(".")) {
                 QMessageBox::warning(this, tr("Folder creation failed"),
-                    tr("<p>Could not create local folder <i>%1</i>.")
+                    tr("<p>Could not create local folder <i>%1</i>.</p>")
                         .arg(QDir::toNativeSeparators(definition.localPath)));
                 return;
             }
@@ -789,7 +784,7 @@ void AccountSettings::slotRemoveCurrentFolder()
 {
     FolderMan *folderMan = FolderMan::instance();
     auto folder = folderMan->folder(selectedFolderAlias());
-    QModelIndex selected = ui->_folderList->selectionModel()->currentIndex();
+    QModelIndex selected = _ui->_folderList->selectionModel()->currentIndex();
     if (selected.isValid() && folder) {
         int row = selected.row();
 
@@ -831,7 +826,7 @@ void AccountSettings::slotOpenCurrentFolder()
 
 void AccountSettings::slotOpenCurrentLocalSubFolder()
 {
-    QModelIndex selected = ui->_folderList->selectionModel()->currentIndex();
+    QModelIndex selected = _ui->_folderList->selectionModel()->currentIndex();
     if (!selected.isValid() || _model->classify(selected) != FolderStatusModel::SubFolder)
         return;
     QString fileName = _model->data(selected, FolderStatusDelegate::FolderPathRole).toString();
@@ -845,18 +840,21 @@ void AccountSettings::showConnectionLabel(const QString &message, QStringList er
                                            "border-width: 1px; border-style: solid; border-color: #aaaaaa;"
                                            "border-radius:5px;");
     if (errors.isEmpty()) {
-        ui->connectLabel->setText(message);
-        ui->connectLabel->setToolTip(QString());
-        ui->connectLabel->setStyleSheet(QString());
+        QString msg = message;
+        Theme::replaceLinkColorStringBackgroundAware(msg);
+        _ui->connectLabel->setText(msg);
+        _ui->connectLabel->setToolTip(QString());
+        _ui->connectLabel->setStyleSheet(QString());
     } else {
         errors.prepend(message);
-        const QString msg = errors.join(QLatin1String("\n"));
+        QString msg = errors.join(QLatin1String("\n"));
         qCDebug(lcAccountSettings) << msg;
-        ui->connectLabel->setText(msg);
-        ui->connectLabel->setToolTip(QString());
-        ui->connectLabel->setStyleSheet(errStyle);
+        Theme::replaceLinkColorString(msg, QColor("#c1c8e6"));
+        _ui->connectLabel->setText(msg);
+        _ui->connectLabel->setToolTip(QString());
+        _ui->connectLabel->setStyleSheet(errStyle);
     }
-    ui->accountStatus->setVisible(!message.isEmpty());
+    _ui->accountStatus->setVisible(!message.isEmpty());
 }
 
 void AccountSettings::slotEnableCurrentFolder()
@@ -954,29 +952,29 @@ void AccountSettings::slotOpenOC()
 void AccountSettings::slotUpdateQuota(qint64 total, qint64 used)
 {
     if (total > 0) {
-        ui->quotaProgressBar->setVisible(true);
-        ui->quotaProgressBar->setEnabled(true);
+        _ui->quotaProgressBar->setVisible(true);
+        _ui->quotaProgressBar->setEnabled(true);
         // workaround the label only accepting ints (which may be only 32 bit wide)
         const double percent = used / (double)total * 100;
         const int percentInt = qMin(qRound(percent), 100);
-        ui->quotaProgressBar->setValue(percentInt);
+        _ui->quotaProgressBar->setValue(percentInt);
         QString usedStr = Utility::octetsToString(used);
         QString totalStr = Utility::octetsToString(total);
         QString percentStr = Utility::compactFormatDouble(percent, 1);
         QString toolTip = tr("%1 (%3%) of %2 in use. Some folders, including network mounted or shared folders, might have different limits.").arg(usedStr, totalStr, percentStr);
-        ui->quotaInfoLabel->setText(tr("%1 of %2 in use").arg(usedStr, totalStr));
-        ui->quotaInfoLabel->setToolTip(toolTip);
-        ui->quotaProgressBar->setToolTip(toolTip);
+        _ui->quotaInfoLabel->setText(tr("%1 of %2 in use").arg(usedStr, totalStr));
+        _ui->quotaInfoLabel->setToolTip(toolTip);
+        _ui->quotaProgressBar->setToolTip(toolTip);
     } else {
-        ui->quotaProgressBar->setVisible(false);
-        ui->quotaInfoLabel->setToolTip(QString());
+        _ui->quotaProgressBar->setVisible(false);
+        _ui->quotaInfoLabel->setToolTip(QString());
 
         /* -1 means not computed; -2 means unknown; -3 means unlimited  (#3940)*/
         if (total == 0 || total == -1) {
-            ui->quotaInfoLabel->setText(tr("Currently there is no storage usage information available."));
+            _ui->quotaInfoLabel->setText(tr("Currently there is no storage usage information available."));
         } else {
             QString usedStr = Utility::octetsToString(used);
-            ui->quotaInfoLabel->setText(tr("%1 in use").arg(usedStr));
+            _ui->quotaInfoLabel->setText(tr("%1 in use").arg(usedStr));
         }
     }
 }
@@ -985,7 +983,7 @@ void AccountSettings::slotAccountStateChanged()
 {
     int state = _accountState ? _accountState->state() : AccountState::Disconnected;
     if (_accountState) {
-        ui->sslButton->updateAccountState(_accountState);
+        _ui->sslButton->updateAccountState(_accountState);
         AccountPtr account = _accountState->account();
         QUrl safeUrl(account->url());
         safeUrl.setPassword(QString()); // Remove the password from the URL to avoid showing it in the UI
@@ -1030,7 +1028,7 @@ void AccountSettings::slotAccountStateChanged()
                                        "<a href='%1'>Click here</a> to re-open the browser.")
                                         .arg(url.toString(QUrl::FullyEncoded)));
             } else {
-                showConnectionLabel(tr("Connecting to %1...").arg(serverWithUser));
+                showConnectionLabel(tr("Connecting to %1 …").arg(serverWithUser));
             }
         } else {
             showConnectionLabel(tr("No connection to %1 at %2.")
@@ -1044,14 +1042,14 @@ void AccountSettings::slotAccountStateChanged()
     }
 
     /* Allow to expand the item if the account is connected. */
-    ui->_folderList->setItemsExpandable(state == AccountState::Connected);
+    _ui->_folderList->setItemsExpandable(state == AccountState::Connected);
 
     if (state != AccountState::Connected) {
         /* check if there are expanded root items, if so, close them */
         int i;
         for (i = 0; i < _model->rowCount(); ++i) {
-            if (ui->_folderList->isExpanded(_model->index(i)))
-                ui->_folderList->setExpanded(_model->index(i), false);
+            if (_ui->_folderList->isExpanded(_model->index(i)))
+                _ui->_folderList->setExpanded(_model->index(i), false);
         }
     } else if (_model->isDirty()) {
         // If we connect and have pending changes, show the list.
@@ -1095,21 +1093,21 @@ void AccountSettings::slotLinkActivated(const QString &link)
         // Make sure the folder itself is expanded
         Folder *f = FolderMan::instance()->folder(alias);
         QModelIndex folderIndx = _model->indexForPath(f, QString());
-        if (!ui->_folderList->isExpanded(folderIndx)) {
-            ui->_folderList->setExpanded(folderIndx, true);
+        if (!_ui->_folderList->isExpanded(folderIndx)) {
+            _ui->_folderList->setExpanded(folderIndx, true);
         }
 
         QModelIndex indx = _model->indexForPath(f, myFolder);
         if (indx.isValid()) {
             // make sure all the parents are expanded
             for (auto i = indx.parent(); i.isValid(); i = i.parent()) {
-                if (!ui->_folderList->isExpanded(i)) {
-                    ui->_folderList->setExpanded(i, true);
+                if (!_ui->_folderList->isExpanded(i)) {
+                    _ui->_folderList->setExpanded(i, true);
                 }
             }
-            ui->_folderList->setSelectionMode(QAbstractItemView::SingleSelection);
-            ui->_folderList->setCurrentIndex(indx);
-            ui->_folderList->scrollTo(indx);
+            _ui->_folderList->setSelectionMode(QAbstractItemView::SingleSelection);
+            _ui->_folderList->setCurrentIndex(indx);
+            _ui->_folderList->scrollTo(indx);
         } else {
             qCWarning(lcAccountSettings) << "Unable to find a valid index for " << myFolder;
         }
@@ -1118,7 +1116,7 @@ void AccountSettings::slotLinkActivated(const QString &link)
 
 AccountSettings::~AccountSettings()
 {
-    delete ui;
+    delete _ui;
 }
 
 void AccountSettings::refreshSelectiveSyncStatus()
@@ -1156,8 +1154,8 @@ void AccountSettings::refreshSelectiveSyncStatus()
     }
 
     if (msg.isEmpty()) {
-        ui->selectiveSyncButtons->setVisible(true);
-        ui->bigFolderUi->setVisible(false);
+        _ui->selectiveSyncButtons->setVisible(true);
+        _ui->bigFolderUi->setVisible(false);
     } else {
         ConfigFile cfg;
         QString info = !cfg.confirmExternalStorage()
@@ -1166,27 +1164,27 @@ void AccountSettings::refreshSelectiveSyncStatus()
                 ? tr("There are folders that were not synchronized because they are external storages: ")
                 : tr("There are folders that were not synchronized because they are too big or external storages: ");
 
-        ui->selectiveSyncNotification->setText(info + msg);
-        ui->selectiveSyncButtons->setVisible(false);
-        ui->bigFolderUi->setVisible(true);
+        _ui->selectiveSyncNotification->setText(info + msg);
+        _ui->selectiveSyncButtons->setVisible(false);
+        _ui->bigFolderUi->setVisible(true);
         shouldBeVisible = true;
     }
 
-    ui->selectiveSyncApply->setEnabled(_model->isDirty() || !msg.isEmpty());
-    bool wasVisible = !ui->selectiveSyncStatus->isHidden();
+    _ui->selectiveSyncApply->setEnabled(_model->isDirty() || !msg.isEmpty());
+    bool wasVisible = !_ui->selectiveSyncStatus->isHidden();
     if (wasVisible != shouldBeVisible) {
-        QSize hint = ui->selectiveSyncStatus->sizeHint();
+        QSize hint = _ui->selectiveSyncStatus->sizeHint();
         if (shouldBeVisible) {
-            ui->selectiveSyncStatus->setMaximumHeight(0);
-            ui->selectiveSyncStatus->setVisible(true);
+            _ui->selectiveSyncStatus->setMaximumHeight(0);
+            _ui->selectiveSyncStatus->setVisible(true);
         }
-        auto anim = new QPropertyAnimation(ui->selectiveSyncStatus, "maximumHeight", ui->selectiveSyncStatus);
+        auto anim = new QPropertyAnimation(_ui->selectiveSyncStatus, "maximumHeight", _ui->selectiveSyncStatus);
         anim->setEndValue(shouldBeVisible ? hint.height() : 0);
         anim->start(QAbstractAnimation::DeleteWhenStopped);
         connect(anim, &QPropertyAnimation::finished, [this, shouldBeVisible]() {
-            ui->selectiveSyncStatus->setMaximumHeight(QWIDGETSIZE_MAX);
+            _ui->selectiveSyncStatus->setMaximumHeight(QWIDGETSIZE_MAX);
             if (!shouldBeVisible) {
-                ui->selectiveSyncStatus->hide();
+                _ui->selectiveSyncStatus->hide();
             }
         });
     }
@@ -1246,10 +1244,28 @@ bool AccountSettings::event(QEvent *e)
         // Expand the folder automatically only if there's only one, see #4283
         // The 2 is 1 folder + 1 'add folder' button
         if (_model->rowCount() <= 2) {
-            ui->_folderList->setExpanded(_model->index(0, 0), true);
+            _ui->_folderList->setExpanded(_model->index(0, 0), true);
         }
     }
     return QWidget::event(e);
+}
+
+void AccountSettings::slotStyleChanged()
+{
+    customizeStyle();
+
+    // Notify the other widgets (Dark-/Light-Mode switching)
+    emit styleChanged();
+}
+
+void AccountSettings::customizeStyle()
+{
+    QString msg = _ui->connectLabel->text();
+    Theme::replaceLinkColorStringBackgroundAware(msg);
+    _ui->connectLabel->setText(msg);
+
+    QColor color = palette().highlight().color();
+    _ui->quotaProgressBar->setStyleSheet(QString::fromLatin1(progressBarStyleC).arg(color.name()));
 }
 
 } // namespace OCC

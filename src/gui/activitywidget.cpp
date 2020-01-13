@@ -89,6 +89,9 @@ ActivityWidget::ActivityWidget(AccountState *accountState, QWidget *parent)
         this, &ActivityWidget::addError);
 
     _removeTimer.setInterval(1000);
+
+    // Connect styleChanged events to our widgets, so they can adapt (Dark-/Light-Mode switching)
+    connect(this, &ActivityWidget::styleChanged, delegate, &ActivityItemDelegate::slotStyleChanged);
 }
 
 ActivityWidget::~ActivityWidget()
@@ -127,10 +130,11 @@ void ActivityWidget::slotProgressInfo(const QString &folder, const ProgressInfo 
             }
 
 
-            if(activity._status == SyncFileItem::FileIgnored && !QFileInfo(f->path() + activity._file).exists()){
+            if(activity._status == SyncFileItem::FileIgnored && !QFileInfo(f->path() + activity._file).exists()) {
                 _model->removeActivityFromActivityList(activity);
                 continue;
             }
+
 
             if(!QFileInfo(f->path() + activity._file).exists()){
                 _model->removeActivityFromActivityList(activity);
@@ -175,7 +179,7 @@ void ActivityWidget::slotItemCompleted(const QString &folder, const SyncFileItem
         Activity activity;
         activity._type = Activity::SyncFileItemType; //client activity
         activity._status = item->_status;
-        activity._dateTime = QDateTime::fromString(QDateTime::currentDateTime().toString(), Qt::ISODate);
+        activity._dateTime = QDateTime::currentDateTime();
         activity._message = item->_originalFile;
         activity._link = folderInstance->accountState()->account()->url();
         activity._accName = folderInstance->accountState()->account()->displayName();
@@ -191,8 +195,12 @@ void ActivityWidget::slotItemCompleted(const QString &folder, const SyncFileItem
             qCWarning(lcActivity) << "Item " << item->_file << " retrieved resulted in error " << item->_errorString;
             activity._subject = item->_errorString;
 
-            // add 'protocol error' to activity list
-            _model->addErrorToActivityList(activity);
+            if(item->_status == SyncFileItem::Status::FileIgnored) {
+                _model->addIgnoredFileToList(activity);
+            } else {
+                // add 'protocol error' to activity list
+                _model->addErrorToActivityList(activity);
+            }
         }
     }
 }
@@ -543,6 +551,12 @@ void ActivityWidget::slotNotifyServerFinished(const QString &reply, int replyCod
     qCInfo(lcActivity) << "Server Notification reply code" << replyCode << reply;
 }
 
+void ActivityWidget::slotStyleChanged()
+{
+    // Notify the other widgets (Dark-/Light-Mode switching)
+    emit styleChanged();
+}
+
 /* ==================================================================== */
 
 ActivitySettings::ActivitySettings(AccountState *accountState, QWidget *parent)
@@ -565,6 +579,9 @@ ActivitySettings::ActivitySettings(AccountState *accountState, QWidget *parent)
     // connect a model signal to stop the animation
     connect(_activityWidget, &ActivityWidget::rowsInserted, _progressIndicator, &QProgressIndicator::stopAnimation);
     connect(_activityWidget, &ActivityWidget::rowsInserted, this, &ActivitySettings::slotDisplayActivities);
+
+    // Connect styleChanged events to our widgets, so they can adapt (Dark-/Light-Mode switching)
+    connect(this, &ActivitySettings::styleChanged, _activityWidget, &ActivityWidget::slotStyleChanged);
 }
 
 void ActivitySettings::slotDisplayActivities(){
@@ -623,4 +640,14 @@ bool ActivitySettings::event(QEvent *e)
 ActivitySettings::~ActivitySettings()
 {
 }
+
+void ActivitySettings::slotStyleChanged()
+{
+    if(_progressIndicator)
+        _progressIndicator->setColor(QGuiApplication::palette().color(QPalette::Text));
+
+    // Notify the other widgets (Dark-/Light-Mode switching)
+    emit styleChanged();
+}
+
 }

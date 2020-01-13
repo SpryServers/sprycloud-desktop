@@ -331,7 +331,7 @@ void OwncloudSetupWizard::slotConnectToOCUrl(const QString &url)
     AbstractCredentials *creds = _ocWizard->getCredentials();
     _ocWizard->account()->setCredentials(creds);
     _ocWizard->setField(QLatin1String("OCUrl"), url);
-    _ocWizard->appendToConfigurationLog(tr("Trying to connect to %1 at %2...")
+    _ocWizard->appendToConfigurationLog(tr("Trying to connect to %1 at %2 …")
                                             .arg(Theme::instance()->appNameGUI())
                                             .arg(url));
 
@@ -407,7 +407,8 @@ void OwncloudSetupWizard::slotAuthError()
         errorMsg = tr("There was an invalid response to an authenticated webdav request");
     }
 
-    _ocWizard->show();
+    // bring wizard to top
+    _ocWizard->bringToTop();
     if (_ocWizard->currentId() == WizardCommon::Page_ShibbolethCreds || _ocWizard->currentId() == WizardCommon::Page_OAuthCreds || _ocWizard->currentId() == WizardCommon::Page_Flow2AuthCreds) {
         _ocWizard->back();
     }
@@ -452,7 +453,7 @@ void OwncloudSetupWizard::slotCreateLocalAndRemoteFolders(const QString &localFo
             tr("Local sync folder %1 already exists, setting it up for sync.<br/><br/>")
                 .arg(Utility::escape(localFolder)));
     } else {
-        QString res = tr("Creating local sync folder %1...").arg(localFolder);
+        QString res = tr("Creating local sync folder %1 …").arg(localFolder);
         if (fi.mkpath(localFolder)) {
             FileSystem::setFolderMinimumPermissions(localFolder);
             Utility::setupFavLink(localFolder);
