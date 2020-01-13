@@ -24,7 +24,7 @@ LegalNotice::LegalNotice(QDialog *parent)
 {
     _ui->setupUi(this);
 
-    QString notice = tr("<p>Copyright 2013-2018 Spry Servers, LLC<br />"
+    QString notice = tr("<p>Copyright 2013-2020 Spry Servers, LLC<br />"
                         "Copyright 2017-2019 Nextcloud GmbH<br />"
                         "Copyright 2012-2018 ownCloud GmbH</p>");
 
