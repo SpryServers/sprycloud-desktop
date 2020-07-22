@@ -2,83 +2,83 @@
 <context>
     <name>CloudProviderWrapper</name>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="107"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="106"/>
         <source>%1 (%2, %3)</source>
         <translation>%1 (%2, %3)</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="124"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="123"/>
         <source>Checking for changes in &apos;%1&apos;</source>
         <translation>Controleren op wijzigingen in &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="129"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="128"/>
         <source>Syncing %1 of %2  (%3 left)</source>
         <translation>Sync %1 van %2  (%3 over)</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="134"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="133"/>
         <source>Syncing %1 of %2</source>
         <translation>Synchroniseren %1 van %2</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="141"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="140"/>
         <source>Syncing %1 (%2 left)</source>
         <translation>Sync %1 (%2 over)</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="144"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="143"/>
         <source>Syncing %1</source>
         <translation>Synchroniseren %1</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="165"/>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="227"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="164"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="226"/>
         <source>No recently changed files</source>
         <translation>Geen recent gewijzigde bestanden</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="181"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="180"/>
         <source>Sync paused</source>
         <translation>Sync gepauzeerd</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="184"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="183"/>
         <source>Syncing</source>
         <translation>Synchroniseren</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="220"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="219"/>
         <source>Open website</source>
         <translation>Openen website</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="232"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="231"/>
         <source>Recently changed</source>
         <translation>Recent gewijzigd</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="239"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="238"/>
         <source>Pause synchronization</source>
         <translation>Pauzeer synchronisatie</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="246"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="245"/>
         <source>Help</source>
         <translation>Help</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="249"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="248"/>
         <source>Settings</source>
         <translation>Instellingen</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="252"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="251"/>
         <source>Log out</source>
         <translation>Uitloggen</translation>
     </message>
     <message>
-        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="255"/>
+        <location filename="../src/gui/cloudproviders/cloudproviderwrapper.cpp" line="254"/>
         <source>Quit sync client</source>
         <translation>Afsluiten syncclient</translation>
     </message>
@@ -169,17 +169,17 @@
 <context>
     <name>OCC::AbstractNetworkJob</name>
     <message>
-        <location filename="../src/libsync/abstractnetworkjob.cpp" line="282"/>
+        <location filename="../src/libsync/abstractnetworkjob.cpp" line="281"/>
         <source>Connection timed out</source>
         <translation>Time-out verbinding</translation>
     </message>
     <message>
-        <location filename="../src/libsync/abstractnetworkjob.cpp" line="284"/>
+        <location filename="../src/libsync/abstractnetworkjob.cpp" line="283"/>
         <source>Unknown error: network reply was deleted</source>
         <translation>Onbekende fout: netwerkantwoord verwijderd</translation>
     </message>
     <message>
-        <location filename="../src/libsync/abstractnetworkjob.cpp" line="436"/>
+        <location filename="../src/libsync/abstractnetworkjob.cpp" line="435"/>
         <source>Server replied &quot;%1 %2&quot; to &quot;%3 %4&quot;</source>
         <translation>Server antwoordde &quot;%1 %2&quot; naar &quot;%3 %4&quot;</translation>
     </message>
@@ -274,6 +274,11 @@
     </message>
     <message>
         <location filename="../src/gui/accountsettings.cpp" line="232"/>
+        <source>Warning</source>
+        <translation>Waarschuwing</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/accountsettings.cpp" line="232"/>
         <source>Account</source>
         <translation>Account</translation>
     </message>
@@ -281,6 +286,12 @@
         <location filename="../src/gui/accountsettings.cpp" line="261"/>
         <source>Show E2E mnemonic</source>
         <translation>Tonen E2E mnemonic</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/accountsettings.cpp" line="289"/>
+        <source>You cannot encrypt a folder with contents, please remove the files.
+Wait for the new sync, then encrypt it.</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/accountsettings.cpp" line="589"/>
@@ -473,47 +484,47 @@
 <context>
     <name>OCC::AccountState</name>
     <message>
-        <location filename="../src/gui/accountstate.cpp" line="127"/>
+        <location filename="../src/gui/accountstate.cpp" line="125"/>
         <source>Signed out</source>
         <translation>Afgemeld</translation>
     </message>
     <message>
-        <location filename="../src/gui/accountstate.cpp" line="129"/>
+        <location filename="../src/gui/accountstate.cpp" line="127"/>
         <source>Disconnected</source>
         <translation>Niet verbonden</translation>
     </message>
     <message>
-        <location filename="../src/gui/accountstate.cpp" line="131"/>
+        <location filename="../src/gui/accountstate.cpp" line="129"/>
         <source>Connected</source>
         <translation>Verbonden</translation>
     </message>
     <message>
-        <location filename="../src/gui/accountstate.cpp" line="133"/>
+        <location filename="../src/gui/accountstate.cpp" line="131"/>
         <source>Service unavailable</source>
         <translation>Dienst niet beschikbaar</translation>
     </message>
     <message>
-        <location filename="../src/gui/accountstate.cpp" line="135"/>
+        <location filename="../src/gui/accountstate.cpp" line="133"/>
         <source>Maintenance mode</source>
         <translation>Onderhoudsmodus</translation>
     </message>
     <message>
-        <location filename="../src/gui/accountstate.cpp" line="137"/>
+        <location filename="../src/gui/accountstate.cpp" line="135"/>
         <source>Network error</source>
         <translation>Netwerkfout</translation>
     </message>
     <message>
-        <location filename="../src/gui/accountstate.cpp" line="139"/>
+        <location filename="../src/gui/accountstate.cpp" line="137"/>
         <source>Configuration error</source>
         <translation>Configuratiefout</translation>
     </message>
     <message>
-        <location filename="../src/gui/accountstate.cpp" line="141"/>
+        <location filename="../src/gui/accountstate.cpp" line="139"/>
         <source>Asking Credentials</source>
         <translation>Vragen naar inloggegevens</translation>
     </message>
     <message>
-        <location filename="../src/gui/accountstate.cpp" line="143"/>
+        <location filename="../src/gui/accountstate.cpp" line="141"/>
         <source>Unknown account state</source>
         <translation>Onbekende account-status</translation>
     </message>
@@ -526,7 +537,7 @@
         <translation>Bestanden uit de negeerlijst en symbolische koppelingen worden niet gesynchroniseerd. Dit bevat:</translation>
     </message>
     <message>
-        <location filename="../src/gui/tray/ActivityListModel.cpp" line="424"/>
+        <location filename="../src/gui/tray/ActivityListModel.cpp" line="443"/>
         <source>For more activities please open the Activity app.</source>
         <translation>Voor meer activiteiten open de Activiteit app.</translation>
     </message>
@@ -572,17 +583,17 @@
 <context>
     <name>OCC::Application</name>
     <message>
-        <location filename="../src/gui/application.cpp" line="193"/>
+        <location filename="../src/gui/application.cpp" line="208"/>
         <source>Error accessing the configuration file</source>
         <translation>Fout bij benaderen configuratiebestand</translation>
     </message>
     <message>
-        <location filename="../src/gui/application.cpp" line="194"/>
+        <location filename="../src/gui/application.cpp" line="209"/>
         <source>There was an error while accessing the configuration file at %1. Please make sure the file can be accessed by your user.</source>
         <translation>Fout bij het benaderen van het configuratiebestand op %1. Zorg ervoor dat het bestand door je gebruiker kan worden benaderd,</translation>
     </message>
     <message>
-        <location filename="../src/gui/application.cpp" line="197"/>
+        <location filename="../src/gui/application.cpp" line="212"/>
         <source>Quit %1</source>
         <translation>Afsluiten %1</translation>
     </message>
@@ -613,7 +624,7 @@
 <context>
     <name>OCC::CleanupPollsJob</name>
     <message>
-        <location filename="../src/libsync/owncloudpropagator.cpp" line="1021"/>
+        <location filename="../src/libsync/owncloudpropagator.cpp" line="1017"/>
         <source>Error writing metadata to the database</source>
         <translation>Fout bij schrijven van Metadata naar de database</translation>
     </message>
@@ -621,12 +632,12 @@
 <context>
     <name>OCC::ClientSideEncryption</name>
     <message>
-        <location filename="../src/libsync/clientsideencryption.cpp" line="1000"/>
+        <location filename="../src/libsync/clientsideencryption.cpp" line="998"/>
         <source>Please enter your end to end encryption passphrase:&lt;br&gt;&lt;br&gt;User: %2&lt;br&gt;Account: %3&lt;br&gt;</source>
         <translation>Voer je begin-tot-eind crypto wachtwoordzin in: &lt;br&gt;&lt;br&gt;Gebruiker: %2&lt;br&gt;Account: %3&lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src/libsync/clientsideencryption.cpp" line="1008"/>
+        <location filename="../src/libsync/clientsideencryption.cpp" line="1006"/>
         <source>Enter E2E passphrase</source>
         <translation>Invoeren E2E wachtwoordzin</translation>
     </message>
@@ -681,28 +692,37 @@
     </message>
 </context>
 <context>
+    <name>OCC::EncryptFolderJob</name>
+    <message>
+        <location filename="../src/libsync/encryptfolderjob.cpp" line="72"/>
+        <source>Could not generate the metadata for encryption, Unlocking the folder.
+This can be an issue with your OpenSSL libraries.</source>
+        <translation type="unfinished"/>
+    </message>
+</context>
+<context>
     <name>OCC::Flow2Auth</name>
     <message>
-        <location filename="../src/gui/creds/flow2auth.cpp" line="109"/>
-        <location filename="../src/gui/creds/flow2auth.cpp" line="212"/>
+        <location filename="../src/gui/creds/flow2auth.cpp" line="107"/>
+        <location filename="../src/gui/creds/flow2auth.cpp" line="210"/>
         <source>Error returned from the server: &lt;em&gt;%1&lt;/em&gt;</source>
         <translation>Fout gemeld door de server: &lt;em&gt;%1&lt;/em&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/creds/flow2auth.cpp" line="112"/>
-        <location filename="../src/gui/creds/flow2auth.cpp" line="215"/>
+        <location filename="../src/gui/creds/flow2auth.cpp" line="110"/>
+        <location filename="../src/gui/creds/flow2auth.cpp" line="213"/>
         <source>There was an error accessing the &apos;token&apos; endpoint: &lt;br&gt;&lt;em&gt;%1&lt;/em&gt;</source>
         <translation>Er trad een fout op bij het benaderen van het &apos;token&apos; endpoint: &lt;br&gt;&lt;em&gt;%1&lt;/em&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/creds/flow2auth.cpp" line="115"/>
-        <location filename="../src/gui/creds/flow2auth.cpp" line="218"/>
+        <location filename="../src/gui/creds/flow2auth.cpp" line="113"/>
+        <location filename="../src/gui/creds/flow2auth.cpp" line="216"/>
         <source>Could not parse the JSON returned from the server: &lt;br&gt;&lt;em&gt;%1&lt;/em&gt;</source>
         <translation>Kon de van de server ontvangen JSON niet verklaren: &lt;br&gt;&lt;em&gt;%1&lt;/em&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/creds/flow2auth.cpp" line="118"/>
-        <location filename="../src/gui/creds/flow2auth.cpp" line="221"/>
+        <location filename="../src/gui/creds/flow2auth.cpp" line="116"/>
+        <location filename="../src/gui/creds/flow2auth.cpp" line="219"/>
         <source>The reply from the server did not contain all expected fields</source>
         <translation>Het antwoord van de server bevatte niet alle verwachte velden</translation>
     </message>
@@ -1085,145 +1105,145 @@ Doorgaan met deze synchronisatie overschrijft al je bestanden door een eerdere v
 <context>
     <name>OCC::FolderStatusModel</name>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="144"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="142"/>
         <source>You need to be connected to add a folder</source>
         <translation>U moet verbonden zijn om een map toe te voegen</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="146"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="144"/>
         <source>Click this button to add a folder to synchronize.</source>
         <translation>Klik op deze knop om een te synchroniseren map toe te voegen.</translation>
     </message>
     <message>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="153"/>
         <location filename="../src/gui/folderstatusmodel.cpp" line="155"/>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="157"/>
         <source>%1 (%2)</source>
         <extracomment>Example text: &quot;File.txt (23KB)&quot;</extracomment>
         <translation>
 %1 (%2)</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="186"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="184"/>
         <source>Error while loading the list of folders from the server.</source>
         <translation>Fout bij ophalen mappenlijst van de server.</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="189"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="187"/>
         <source>Fetching folder list from server …</source>
         <translation>Mappenlijst ophalen van de server ...</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="215"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="213"/>
         <source>There are unresolved conflicts. Click for details.</source>
         <translation>Er zijn nog niet-opgehelderde conflicten. Klik voor details.</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="239"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="237"/>
         <source>Signed out</source>
         <translation>Afgemeld</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="921"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="919"/>
         <source>Checking for changes in remote &apos;%1&apos;</source>
         <translation>Controleren op wijzigingen in externe &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="925"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="923"/>
         <source>Checking for changes in local &apos;%1&apos;</source>
         <translation>Controleren op wijzigingen in lokale &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="932"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="930"/>
         <source>Reconciling changes</source>
         <translation>Wijzigingen in overeenstemming brengen</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="967"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="965"/>
         <source>, &apos;%1&apos;</source>
         <extracomment>Build a list of file names</extracomment>
         <translation>, &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="970"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="968"/>
         <source>&apos;%1&apos;</source>
         <extracomment>Argument is a file name</extracomment>
         <translation>&apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="994"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="992"/>
         <source>Syncing %1</source>
         <extracomment>Example text: &quot;Syncing 'foo.txt', 'bar.txt'&quot;</extracomment>
         <translation>Synchroniseren %1</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="996"/>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1007"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="994"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1005"/>
         <source>, </source>
         <translation>, </translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1000"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="998"/>
         <source>download %1/s</source>
         <extracomment>Example text: &quot;download 24Kb/s&quot; (%1 is replaced by 24Kb (translated))</extracomment>
         <translation>download %1/s</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1002"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1000"/>
         <source>↓ %1/s</source>
         <translation>↓ %1/s</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1010"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1008"/>
         <source>upload %1/s</source>
         <extracomment>Example text: &quot;upload 24Kb/s&quot; (%1 is replaced by 24Kb (translated))</extracomment>
         <translation>upload %1/s</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1012"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1010"/>
         <source>↑ %1/s</source>
         <translation>↑ %1/s</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1018"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1016"/>
         <source>%1 %2 (%3 of %4)</source>
         <extracomment>Example text: &quot;uploading foobar.png (2MB of 2MB)&quot;</extracomment>
         <translation>%1 %2 (%3 van %4)</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1022"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1020"/>
         <source>%1 %2</source>
         <extracomment>Example text: &quot;uploading foobar.png&quot;</extracomment>
         <translation>%1 %2</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1041"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1039"/>
         <source>%5 left, %1 of %2, file %3 of %4</source>
         <extracomment>Example text: &quot;5 minutes left, 12 MB of 345 MB, file 6 of 7&quot;</extracomment>
         <translation>%5 over, %1 van %2, bestand %3 van %4</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1049"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1047"/>
         <source>%1 of %2, file %3 of %4</source>
         <extracomment>Example text: &quot;12 MB of 345 MB, file 6 of 7&quot;</extracomment>
         <translation>%1 van %2, bestand %3 van %4</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1056"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1054"/>
         <source>file %1 of %2</source>
         <translation>bestand %1 van %2</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1102"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1100"/>
         <source>Waiting …</source>
         <translation>Wachten ...</translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1104"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1102"/>
         <source>Waiting for %n other folder(s) …</source>
         <translation><numerusform>Wacht op %n andere map ...</numerusform><numerusform>Wacht op %n andere mappen ...</numerusform></translation>
     </message>
     <message>
-        <location filename="../src/gui/folderstatusmodel.cpp" line="1110"/>
+        <location filename="../src/gui/folderstatusmodel.cpp" line="1108"/>
         <source>Preparing to sync …</source>
         <translation>Voorbereiden synchronisatie ...</translation>
     </message>
@@ -1231,7 +1251,7 @@ Doorgaan met deze synchronisatie overschrijft al je bestanden door een eerdere v
 <context>
     <name>OCC::FolderWatcherPrivate</name>
     <message>
-        <location filename="../src/gui/folderwatcher_linux.cpp" line="87"/>
+        <location filename="../src/gui/folderwatcher_linux.cpp" line="85"/>
         <source>This problem usually happens when the inotify watches are exhausted. Check the FAQ for details.</source>
         <translation>Dit gebeurt gewoonlijk wanneer de inotify monitors op zijn. Klik op de FAQ voor details.</translation>
     </message>
@@ -1239,12 +1259,12 @@ Doorgaan met deze synchronisatie overschrijft al je bestanden door een eerdere v
 <context>
     <name>OCC::FolderWizard</name>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="550"/>
+        <location filename="../src/gui/folderwizard.cpp" line="544"/>
         <source>Add Folder Sync Connection</source>
         <translation>Toevoegen mapsync verbinding</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="552"/>
+        <location filename="../src/gui/folderwizard.cpp" line="546"/>
         <source>Add Sync Connection</source>
         <translation>Toevoegen Sync verbinding</translation>
     </message>
@@ -1262,7 +1282,7 @@ Doorgaan met deze synchronisatie overschrijft al je bestanden door een eerdere v
         <translation>Geef het pad op naar de lokale map.</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="135"/>
+        <location filename="../src/gui/folderwizard.cpp" line="133"/>
         <source>Select the source folder</source>
         <translation>Selecteer de bronmap</translation>
     </message>
@@ -1270,47 +1290,47 @@ Doorgaan met deze synchronisatie overschrijft al je bestanden door een eerdere v
 <context>
     <name>OCC::FolderWizardRemotePath</name>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="183"/>
+        <location filename="../src/gui/folderwizard.cpp" line="181"/>
         <source>Create Remote Folder</source>
         <translation>Externe map aanmaken</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="184"/>
+        <location filename="../src/gui/folderwizard.cpp" line="182"/>
         <source>Enter the name of the new folder to be created below &apos;%1&apos;:</source>
         <translation>Voer de naam van de hieronder te maken nieuwe map in &apos;%1&apos;:</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="214"/>
+        <location filename="../src/gui/folderwizard.cpp" line="212"/>
         <source>Folder was successfully created on %1.</source>
         <translation>Map is succesvol aangemaakt op %1.</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="225"/>
+        <location filename="../src/gui/folderwizard.cpp" line="223"/>
         <source>Authentication failed accessing %1</source>
         <translation>Authenticatie mislukt bij benaderen %1</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="227"/>
+        <location filename="../src/gui/folderwizard.cpp" line="225"/>
         <source>Failed to create the folder on %1. Please check manually.</source>
         <translation>Aanmaken van de map op %1 mislukt. Controleer handmatig.</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="236"/>
+        <location filename="../src/gui/folderwizard.cpp" line="234"/>
         <source>Failed to list a folder. Error: %1</source>
         <translation>Tonen mappenlijst mislukt. Fout: %1</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="317"/>
+        <location filename="../src/gui/folderwizard.cpp" line="315"/>
         <source>Choose this to sync the entire account</source>
         <translation>Kies dit om uw volledige account te synchroniseren</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="447"/>
+        <location filename="../src/gui/folderwizard.cpp" line="443"/>
         <source>This folder is already being synced.</source>
         <translation>Deze map is al gesynchroniseerd.</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderwizard.cpp" line="449"/>
+        <location filename="../src/gui/folderwizard.cpp" line="445"/>
         <source>You are already syncing &lt;i&gt;%1&lt;/i&gt;, which is a parent folder of &lt;i&gt;%2&lt;/i&gt;.</source>
         <translation>U synchroniseert &lt;i&gt;%1&lt;/i&gt; al, dat is de bovenliggende map van &lt;i&gt;%2&lt;/i&gt;.</translation>
     </message>
@@ -1395,48 +1415,58 @@ Doorgaan met deze synchronisatie overschrijft al je bestanden door een eerdere v
         <translation>Updates</translation>
     </message>
     <message>
-        <location filename="../src/gui/generalsettings.ui" line="124"/>
+        <location filename="../src/gui/generalsettings.ui" line="107"/>
+        <source>&amp;Automatically check for Updates</source>
+        <translation>&amp;Controleer automatisch op updates</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/generalsettings.ui" line="123"/>
+        <source>&amp;Check for Update now</source>
+        <translation>&amp;Controleer nu op update</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/generalsettings.ui" line="169"/>
         <source>&amp;Restart &amp;&amp; Update</source>
         <translation>&amp;Herstarten en &amp;Bijwerken</translation>
     </message>
     <message>
-        <location filename="../src/gui/generalsettings.ui" line="163"/>
+        <location filename="../src/gui/generalsettings.ui" line="210"/>
         <source>Advanced</source>
         <translation>Geavanceerd</translation>
     </message>
     <message>
-        <location filename="../src/gui/generalsettings.ui" line="171"/>
+        <location filename="../src/gui/generalsettings.ui" line="218"/>
         <source>Edit &amp;Ignored Files</source>
         <translation>Bewerken &amp;genegeerde bestanden</translation>
     </message>
     <message>
-        <location filename="../src/gui/generalsettings.ui" line="195"/>
+        <location filename="../src/gui/generalsettings.ui" line="242"/>
         <source>Ask for confirmation before synchronizing folders larger than</source>
         <translation>Vraag bevestiging voordat mappen worden gedownload groter dan</translation>
     </message>
     <message>
-        <location filename="../src/gui/generalsettings.ui" line="215"/>
+        <location filename="../src/gui/generalsettings.ui" line="262"/>
         <source>MB</source>
         <extracomment>Trailing part of &quot;Ask confirmation before syncing folder larger than&quot; </extracomment>
         <translation>MB</translation>
     </message>
     <message>
-        <location filename="../src/gui/generalsettings.ui" line="239"/>
+        <location filename="../src/gui/generalsettings.ui" line="286"/>
         <source>Ask for confirmation before synchronizing external storages</source>
         <translation>Vraag bevestiging voor synchronisatie van mappen op externe opslag</translation>
     </message>
     <message>
-        <location filename="../src/gui/generalsettings.ui" line="250"/>
+        <location filename="../src/gui/generalsettings.ui" line="297"/>
         <source>Show sync folders in &amp;Explorer&apos;s Navigation Pane</source>
         <translation>Toon sync-mappen in het &amp;Verkenner navigatievenster</translation>
     </message>
     <message>
-        <location filename="../src/gui/generalsettings.ui" line="267"/>
+        <location filename="../src/gui/generalsettings.ui" line="314"/>
         <source>S&amp;how crash reporter</source>
         <translation>T&amp;onen crash reporter</translation>
     </message>
     <message>
-        <location filename="../src/gui/generalsettings.cpp" line="56"/>
+        <location filename="../src/gui/generalsettings.cpp" line="59"/>
         <source>Server notifications that require attention.</source>
         <translation>Servermeldingen die aandacht nodig hebben.</translation>
     </message>
@@ -1583,22 +1613,23 @@ Onderdelen die gewist mogen worden, worden verwijderd als ze verhinderen dat een
 <context>
     <name>OCC::LegalNotice</name>
     <message>
-        <location filename="../src/gui/legalnotice.ui" line="26"/>
+        <location filename="../src/gui/legalnotice.ui" line="14"/>
+        <location filename="../src/gui/legalnotice.ui" line="25"/>
         <source>Legal notice</source>
         <translation>Juridische bepalingen</translation>
     </message>
     <message>
-        <location filename="../src/gui/legalnotice.ui" line="58"/>
+        <location filename="../src/gui/legalnotice.ui" line="57"/>
         <source>Close</source>
         <translation>Sluiten</translation>
     </message>
     <message>
-        <location filename="../src/gui/legalnotice.cpp" line="27"/>
+        <location filename="../src/gui/legalnotice.cpp" line="55"/>
         <source>&lt;p&gt;Copyright 2017-2020 Nextcloud GmbH&lt;br /&gt;Copyright 2012-2018 ownCloud GmbH&lt;/p&gt;</source>
         <translation>&lt;p&gt;Copyright 2017-2020 Nextcloud GmbH&lt;br /&gt;Copyright 2012-2018 ownCloud GmbH&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/legalnotice.cpp" line="30"/>
+        <location filename="../src/gui/legalnotice.cpp" line="58"/>
         <source>&lt;p&gt;Licensed under the GNU General Public License (GPL) Version 2.0 or any later version.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Gelicenseerd onder de GNU General Public License (GPL) Versie 2.0 of later&lt;/p&gt;</translation>
     </message>
@@ -1660,17 +1691,17 @@ Logs worden geschreven naar %1</translation>
         <translation>Sla het logbestand op om te debuggen.</translation>
     </message>
     <message>
-        <location filename="../src/gui/logbrowser.cpp" line="212"/>
+        <location filename="../src/gui/logbrowser.cpp" line="210"/>
         <source>Save log file</source>
         <translation>Opslaan logbestand</translation>
     </message>
     <message>
-        <location filename="../src/gui/logbrowser.cpp" line="222"/>
+        <location filename="../src/gui/logbrowser.cpp" line="220"/>
         <source>Error</source>
         <translation>Fout</translation>
     </message>
     <message>
-        <location filename="../src/gui/logbrowser.cpp" line="222"/>
+        <location filename="../src/gui/logbrowser.cpp" line="220"/>
         <source>Could not write to log file %1</source>
         <translation>Kon niet schrijven naar logbestand %1</translation>
     </message>
@@ -1678,12 +1709,12 @@ Logs worden geschreven naar %1</translation>
 <context>
     <name>OCC::Logger</name>
     <message>
-        <location filename="../src/libsync/logger.cpp" line="162"/>
+        <location filename="../src/libsync/logger.cpp" line="197"/>
         <source>Error</source>
         <translation>Fout</translation>
     </message>
     <message>
-        <location filename="../src/libsync/logger.cpp" line="163"/>
+        <location filename="../src/libsync/logger.cpp" line="198"/>
         <source>&lt;nobr&gt;File &apos;%1&apos;&lt;br/&gt;cannot be opened for writing.&lt;br/&gt;&lt;br/&gt;The log output can &lt;b&gt;not&lt;/b&gt; be saved!&lt;/nobr&gt;</source>
         <translation>&lt;nobr&gt;Bestand &apos;%1&apos;&lt;br/&gt;kan niet worden geopend voor schrijven.&lt;br/&gt;&lt;br/&gt;De logging output kan &lt;b&gt;niet&lt;/b&gt; worden weggeschreven!&lt;/nobr&gt;</translation>
     </message>
@@ -1691,27 +1722,27 @@ Logs worden geschreven naar %1</translation>
 <context>
     <name>OCC::NSISUpdater</name>
     <message>
-        <location filename="../src/gui/updater/ocupdater.cpp" line="332"/>
+        <location filename="../src/gui/updater/ocupdater.cpp" line="334"/>
         <source>New Version Available</source>
         <translation>Nieuwe versie beschikbaar</translation>
     </message>
     <message>
-        <location filename="../src/gui/updater/ocupdater.cpp" line="338"/>
+        <location filename="../src/gui/updater/ocupdater.cpp" line="340"/>
         <source>&lt;p&gt;A new version of the %1 Client is available.&lt;/p&gt;&lt;p&gt;&lt;b&gt;%2&lt;/b&gt; is available for download. The installed version is %3.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Er is een nieuwe versie van de %1 Client beschikbaar.&lt;/p&gt;&lt;p&gt;&lt;b&gt;%2&lt;/b&gt; is beschikbaar voor download. De geïnstalleerde versie is %3.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/updater/ocupdater.cpp" line="352"/>
+        <location filename="../src/gui/updater/ocupdater.cpp" line="354"/>
         <source>Skip this version</source>
         <translation>Deze versie overslaan.</translation>
     </message>
     <message>
-        <location filename="../src/gui/updater/ocupdater.cpp" line="353"/>
+        <location filename="../src/gui/updater/ocupdater.cpp" line="355"/>
         <source>Skip this time</source>
         <translation>Deze keer overslaan</translation>
     </message>
     <message>
-        <location filename="../src/gui/updater/ocupdater.cpp" line="354"/>
+        <location filename="../src/gui/updater/ocupdater.cpp" line="356"/>
         <source>Get update</source>
         <translation>Ophalen update</translation>
     </message>
@@ -1817,32 +1848,32 @@ Logs worden geschreven naar %1</translation>
 <context>
     <name>OCC::OAuth</name>
     <message>
-        <location filename="../src/gui/creds/oauth.cpp" line="112"/>
+        <location filename="../src/gui/creds/oauth.cpp" line="110"/>
         <source>Error returned from the server: &lt;em&gt;%1&lt;/em&gt;</source>
         <translation>Fout gemeld door de server: &lt;em&gt;%1&lt;/em&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/creds/oauth.cpp" line="115"/>
+        <location filename="../src/gui/creds/oauth.cpp" line="113"/>
         <source>There was an error accessing the &apos;token&apos; endpoint: &lt;br&gt;&lt;em&gt;%1&lt;/em&gt;</source>
         <translation>Er trad een fout op bij het benaderen van het &apos;token&apos; endpoint: &lt;br&gt;&lt;em&gt;%1&lt;/em&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/creds/oauth.cpp" line="118"/>
+        <location filename="../src/gui/creds/oauth.cpp" line="116"/>
         <source>Could not parse the JSON returned from the server: &lt;br&gt;&lt;em&gt;%1&lt;/em&gt;</source>
         <translation>Kon de van de server ontvangen JSON niet verklaren: &lt;br&gt;&lt;em&gt;%1&lt;/em&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/creds/oauth.cpp" line="121"/>
+        <location filename="../src/gui/creds/oauth.cpp" line="119"/>
         <source>The reply from the server did not contain all expected fields</source>
         <translation>Het antwoord van de server bevatte niet alle verwachte velden</translation>
     </message>
     <message>
-        <location filename="../src/gui/creds/oauth.cpp" line="125"/>
+        <location filename="../src/gui/creds/oauth.cpp" line="123"/>
         <source>&lt;h1&gt;Login Error&lt;/h1&gt;&lt;p&gt;%1&lt;/p&gt;</source>
         <translation>&lt;h1&gt;Inlog fout&lt;p&gt;%1&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/creds/oauth.cpp" line="131"/>
+        <location filename="../src/gui/creds/oauth.cpp" line="129"/>
         <source>&lt;h1&gt;Wrong user&lt;/h1&gt;&lt;p&gt;You logged-in with user &lt;em&gt;%1&lt;/em&gt;, but must login with user &lt;em&gt;%2&lt;/em&gt;.&lt;br&gt;Please log out of %3 in another tab, then &lt;a href=&apos;%4&apos;&gt;click here&lt;/a&gt; and log in as user %2&lt;/p&gt;</source>
         <translation>&lt;h1&gt;Verkeerde gebruiker&lt;/h1&gt;&lt;p&gt;Je bent ingelogd met gebruiker &lt;em&gt;%1&lt;/em&gt;, maar moest inloggen als gebruiker &lt;em&gt;%2&lt;/em&gt;.&lt;br&gt;Log uit van %3 in een andere tab en dan &lt;a href=&apos;%4&apos;&gt;klik hier&lt;/a&gt; en log in als gebruiker %2&lt;/p&gt;</translation>
     </message>
@@ -2093,144 +2124,139 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>&lt;font color=&quot;green&quot;&gt;Succesvol verbonden met %1: %2 versie %3 (%4)&lt;/font&gt;&lt;br/&gt;&lt;br/&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="278"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="277"/>
         <source>Invalid URL</source>
         <translation>Ongeldige URL</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="280"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="279"/>
         <source>Failed to connect to %1 at %2:&lt;br/&gt;%3</source>
         <translation>Kon geen verbinding maken met %1 op %2:&lt;br/&gt;%3</translation>
     </message>
     <message>
         <location filename="../src/gui/owncloudsetupwizard.cpp" line="297"/>
-        <source>The server reported the following error:</source>
-        <translation>De server gaf de volgende foutmelding:</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="315"/>
         <source>Timeout while trying to connect to %1 at %2.</source>
         <translation>Time-out bij verbinden met %1 om %2.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="334"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="316"/>
         <source>Trying to connect to %1 at %2 …</source>
         <translation>Probeer te verbinden met %1 om %2 ...</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="385"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="367"/>
         <source>The authenticated request to the server was redirected to &apos;%1&apos;. The URL is bad, the server is misconfigured.</source>
         <translation>De geauthentiseerde aanvraag voor de server werd omgeleid naar &apos;%1&apos;. De URL is onjuist, de server is verkeerd geconfigureerd.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="398"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="380"/>
         <source>Access forbidden by server. To verify that you have proper access, &lt;a href=&quot;%1&quot;&gt;click here&lt;/a&gt; to access the service with your browser.</source>
         <translation>Toegang door server verboden. Om te verifiëren dat je toegang mag hebben, &lt;a href=&quot;%1&quot;&gt;klik hier&lt;/a&gt; om met je browser toegang tot de service te krijgen.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="407"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="389"/>
         <source>There was an invalid response to an authenticated WebDAV request</source>
         <translation>Er was een ongeldig antwoord op een geauthenticeerde WebDAV opvraging</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="453"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="435"/>
         <source>Local sync folder %1 already exists, setting it up for sync.&lt;br/&gt;&lt;br/&gt;</source>
         <translation>Lokale synch map %1 bestaat al, deze wordt ingesteld voor synchronisatie.&lt;br/&gt;&lt;br/&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="456"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="438"/>
         <source>Creating local sync folder %1 …</source>
         <translation>Creëren lokale sync map %1 ...</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="460"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="442"/>
         <source>ok</source>
         <translation>ok</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="462"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="444"/>
         <source>failed.</source>
         <translation>mislukt.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="464"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="446"/>
         <source>Could not create local folder %1</source>
         <translation>Kon lokale map %1 niet aanmaken</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="524"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="506"/>
         <source>No remote folder specified!</source>
         <translation>Geen externe map opgegeven!</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="530"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="512"/>
         <source>Error: %1</source>
         <translation>Fout: %1</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="543"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="525"/>
         <source>creating folder on Nextcloud: %1</source>
         <translation>aanmaken map op Nextcloud: %1</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="559"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="541"/>
         <source>Remote folder %1 created successfully.</source>
         <translation>Externe map %1 succesvol gecreërd.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="561"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="543"/>
         <source>The remote folder %1 already exists. Connecting it for syncing.</source>
         <translation>De remote map %1 bestaat al. Verbinden voor synchroniseren.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="563"/>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="565"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="545"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="547"/>
         <source>The folder creation resulted in HTTP error code %1</source>
         <translation>Het aanmaken van de map resulteerde in HTTP foutcode %1</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="567"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="549"/>
         <source>The remote folder creation failed because the provided credentials are wrong!&lt;br/&gt;Please go back and check your credentials.&lt;/p&gt;</source>
         <translation>Het aanmaken van de remote map is mislukt, waarschijnlijk omdat uw inloggegevens fout waren.&lt;br/&gt;Ga terug en controleer uw inloggegevens.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="571"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="553"/>
         <source>&lt;p&gt;&lt;font color=&quot;red&quot;&gt;Remote folder creation failed probably because the provided credentials are wrong.&lt;/font&gt;&lt;br/&gt;Please go back and check your credentials.&lt;/p&gt;</source>
         <translation>&lt;p&gt;&lt;font color=&quot;red&quot;&gt;Het aanmaken van de externe map is mislukt, waarschijnlijk omdat je inloggegevens fout waren.&lt;/font&gt;&lt;br/&gt;ga terug en controleer je inloggevens.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="576"/>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="577"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="558"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="559"/>
         <source>Remote folder %1 creation failed with error &lt;tt&gt;%2&lt;/tt&gt;.</source>
         <translation>Aanmaken van remote map %1 mislukt met fout &lt;tt&gt;%2&lt;/tt&gt;.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="594"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="576"/>
         <source>A sync connection from %1 to remote directory %2 was set up.</source>
         <translation>Er is een sync verbinding van %1 naar remote directory %2 opgezet.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="599"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="581"/>
         <source>Successfully connected to %1!</source>
         <translation>Succesvol verbonden met %1!</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="606"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="588"/>
         <source>Connection to %1 could not be established. Please check again.</source>
         <translation>Verbinding met %1 niet geslaagd. Probeer het nog eens.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="620"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="602"/>
         <source>Folder rename failed</source>
         <translation>Hernoemen map mislukt</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="621"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="603"/>
         <source>Can&apos;t remove and back up the folder because the folder or a file in it is open in another program. Please close the folder or file and hit retry or cancel the setup.</source>
         <translation>Kan de map niet verwijderen en backuppen, omdat de map of een bestand daarin, geopend is in een ander programma. Sluit de map of het bestand en drup op Opnieuw of annuleer de installatie.</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudsetupwizard.cpp" line="668"/>
+        <location filename="../src/gui/owncloudsetupwizard.cpp" line="650"/>
         <source>&lt;font color=&quot;green&quot;&gt;&lt;b&gt;Local sync folder %1 successfully created!&lt;/b&gt;&lt;/font&gt;</source>
         <translation>&lt;font color=&quot;green&quot;&gt;&lt;b&gt;Lokale synch map %1 is succesvol aangemaakt!&lt;/b&gt;&lt;/font&gt;</translation>
     </message>
@@ -2277,7 +2303,7 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>OCC::PropagateDirectory</name>
     <message>
-        <location filename="../src/libsync/owncloudpropagator.cpp" line="973"/>
+        <location filename="../src/libsync/owncloudpropagator.cpp" line="971"/>
         <source>Error writing metadata to the database</source>
         <translation>Fout bij schrijven van Metadata naar de database</translation>
     </message>
@@ -2338,12 +2364,12 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>OCC::PropagateItemJob</name>
     <message>
-        <location filename="../src/libsync/owncloudpropagator.cpp" line="234"/>
+        <location filename="../src/libsync/owncloudpropagator.cpp" line="232"/>
         <source>; Restoration Failed: %1</source>
         <translation>; Herstel mislukte: %1</translation>
     </message>
     <message>
-        <location filename="../src/libsync/owncloudpropagator.cpp" line="302"/>
+        <location filename="../src/libsync/owncloudpropagator.cpp" line="300"/>
         <source>A file or folder was removed from a read only share, but restoring failed: %1</source>
         <translation>Er is een bestand of map verwijderd van een alleen-lezen share, maar herstellen is mislukt: %1</translation>
     </message>
@@ -2720,6 +2746,11 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>Bewerken toestaan</translation>
     </message>
     <message>
+        <location filename="../src/gui/sharelinkwidget.cpp" line="158"/>
+        <source>Allow editing</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../src/gui/sharelinkwidget.cpp" line="156"/>
         <source>Read only</source>
         <translation>Alleen lezen</translation>
@@ -2735,9 +2766,14 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>File drop (alleen uploaden)</translation>
     </message>
     <message>
-        <location filename="../src/gui/sharelinkwidget.cpp" line="189"/>
-        <source>Add note to recipient</source>
-        <translation>Notitie toevoegen aan ontvanger</translation>
+        <location filename="../src/gui/sharelinkwidget.cpp" line="170"/>
+        <source>Allow upload and editing</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../src/gui/sharelinkwidget.cpp" line="175"/>
+        <source>File drop (upload only)</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/sharelinkwidget.cpp" line="184"/>
@@ -2745,14 +2781,34 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>Wachtwoord beveiligen</translation>
     </message>
     <message>
+        <location filename="../src/gui/sharelinkwidget.cpp" line="190"/>
+        <source>Note to recipient</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../src/gui/sharelinkwidget.cpp" line="200"/>
+        <source>Password protect</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../src/gui/sharelinkwidget.cpp" line="201"/>
         <source>Expiration Date</source>
         <translation>Vervaldatum</translation>
     </message>
     <message>
+        <location filename="../src/gui/sharelinkwidget.cpp" line="217"/>
+        <source>Set expiration date</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
         <location filename="../src/gui/sharelinkwidget.cpp" line="220"/>
         <source>Unshare</source>
         <translation>Stop met delen</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/sharelinkwidget.cpp" line="236"/>
+        <source>Delete share link</source>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/sharelinkwidget.cpp" line="225"/>
@@ -2793,17 +2849,17 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>Deel met gebruikers of groepen ...</translation>
     </message>
     <message>
-        <location filename="../src/gui/shareusergroupwidget.cpp" line="267"/>
+        <location filename="../src/gui/shareusergroupwidget.cpp" line="268"/>
         <source>Copy link</source>
         <translation>Kopiëren link </translation>
     </message>
     <message>
-        <location filename="../src/gui/shareusergroupwidget.cpp" line="277"/>
+        <location filename="../src/gui/shareusergroupwidget.cpp" line="278"/>
         <source>No results for &apos;%1&apos;</source>
         <translation>Geen resultaten voor &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/gui/shareusergroupwidget.cpp" line="364"/>
+        <location filename="../src/gui/shareusergroupwidget.cpp" line="366"/>
         <source>I shared something with you</source>
         <translation>Ik deelde iets met u</translation>
     </message>
@@ -2821,27 +2877,27 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>kan wijzigen</translation>
     </message>
     <message>
-        <location filename="../src/gui/shareusergroupwidget.cpp" line="412"/>
+        <location filename="../src/gui/shareusergroupwidget.cpp" line="414"/>
         <source>Can reshare</source>
         <translation>Kan doordelen</translation>
     </message>
     <message>
-        <location filename="../src/gui/shareusergroupwidget.cpp" line="422"/>
+        <location filename="../src/gui/shareusergroupwidget.cpp" line="424"/>
         <source>Unshare</source>
         <translation>Stop met delen</translation>
     </message>
     <message>
-        <location filename="../src/gui/shareusergroupwidget.cpp" line="431"/>
+        <location filename="../src/gui/shareusergroupwidget.cpp" line="433"/>
         <source>Can create</source>
         <translation>Kan creëren</translation>
     </message>
     <message>
-        <location filename="../src/gui/shareusergroupwidget.cpp" line="437"/>
+        <location filename="../src/gui/shareusergroupwidget.cpp" line="439"/>
         <source>Can change</source>
         <translation>Kan wijzigen</translation>
     </message>
     <message>
-        <location filename="../src/gui/shareusergroupwidget.cpp" line="443"/>
+        <location filename="../src/gui/shareusergroupwidget.cpp" line="445"/>
         <source>Can delete</source>
         <translation>Kan verwijderen</translation>
     </message>
@@ -2902,7 +2958,7 @@ Het is niet te adviseren om het te gebruiken.</translation>
     </message>
     <message>
         <location filename="../src/gui/socketapi.cpp" line="671"/>
-        <location filename="../src/gui/socketapi.cpp" line="701"/>
+        <location filename="../src/gui/socketapi.cpp" line="702"/>
         <source>Share options</source>
         <translation>Deelopties</translation>
     </message>
@@ -2922,18 +2978,18 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>Verstuur privélink per e-mail ---</translation>
     </message>
     <message>
-        <location filename="../src/gui/socketapi.cpp" line="699"/>
+        <location filename="../src/gui/socketapi.cpp" line="700"/>
         <source>Resharing this file is not allowed</source>
         <translation>Verder delen van dit bestand is niet toegestaan</translation>
     </message>
     <message>
-        <location filename="../src/gui/socketapi.cpp" line="712"/>
-        <location filename="../src/gui/socketapi.cpp" line="714"/>
+        <location filename="../src/gui/socketapi.cpp" line="713"/>
+        <location filename="../src/gui/socketapi.cpp" line="715"/>
         <source>Copy public link</source>
         <translation>Kopieer openbare link</translation>
     </message>
     <message>
-        <location filename="../src/gui/socketapi.cpp" line="718"/>
+        <location filename="../src/gui/socketapi.cpp" line="719"/>
         <source>Copy internal link</source>
         <translation>Kopieer interne link</translation>
     </message>
@@ -2943,7 +2999,7 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>Bewerken</translation>
     </message>
     <message>
-        <location filename="../src/gui/socketapi.cpp" line="768"/>
+        <location filename="../src/gui/socketapi.cpp" line="769"/>
         <source>Open in browser</source>
         <translation>Openen in browser</translation>
     </message>
@@ -3347,74 +3403,74 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>Kan het sync transactielog niet openen</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1034"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1044"/>
         <source>File name contains at least one invalid character</source>
         <translation>De bestandsnaam bevat ten minste één ongeldig teken</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1276"/>
-        <location filename="../src/libsync/syncengine.cpp" line="1316"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1286"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1326"/>
         <source>Ignored because of the &quot;choose what to sync&quot; blacklist</source>
         <translation>Genegeerd vanwege de &quot;wat synchroniseren&quot; zwarte lijst</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1335"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1345"/>
         <source>Not allowed because you don&apos;t have permission to add subfolders to that folder</source>
         <translation>Niet toegestaan, omdat je geen permissies hebt om submappen aan die map toe te voegen</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1350"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1360"/>
         <source>Not allowed because you don&apos;t have permission to add parent folder</source>
         <translation>Niet toegestaan omdat u geen rechten hebt om een bovenliggende map toe te voegen</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1357"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1367"/>
         <source>Not allowed because you don&apos;t have permission to add files in that folder</source>
         <translation>Niet toegestaan omdat u geen rechten hebt om bestanden in die map toe te voegen</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1382"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1392"/>
         <source>Not allowed to upload this file because it is read-only on the server, restoring</source>
         <translation>Niet toegestaan om dit bestand te uploaden, omdat het alleen-lezen is op de server, herstellen</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1398"/>
-        <location filename="../src/libsync/syncengine.cpp" line="1417"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1408"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1427"/>
         <source>Not allowed to remove, restoring</source>
         <translation>Niet toegestaan om te verwijderen, herstellen</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1431"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1441"/>
         <source>Local files and share folder removed.</source>
         <translation>Lokale bestanden en share-map verwijderd. </translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1485"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1495"/>
         <source>Move not allowed, item restored</source>
         <translation>Verplaatsen niet toegestaan, object hersteld</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1496"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1506"/>
         <source>Move not allowed because %1 is read-only</source>
         <translation>Verplaatsen niet toegestaan, omdat %1 alleen-lezen is</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1496"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1506"/>
         <source>the destination</source>
         <translation>bestemming</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1496"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1506"/>
         <source>the source</source>
         <translation>bron</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1690"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1700"/>
         <source>Disk space is low: Downloads that would reduce free space below %1 were skipped.</source>
         <translation>Schijfruimte laa: Downloads die de vrije ruimte tot onder %1 zouden reduceren, zijn overgeslagen.</translation>
     </message>
     <message>
-        <location filename="../src/libsync/syncengine.cpp" line="1697"/>
+        <location filename="../src/libsync/syncengine.cpp" line="1707"/>
         <source>There is insufficient space available on the server for some uploads.</source>
         <translation>Onvoldoende schijfruimte op de server voor sommige uploads.</translation>
     </message>
@@ -3430,7 +3486,22 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>OCC::Systray</name>
     <message>
-        <location filename="../src/gui/systray.cpp" line="54"/>
+        <location filename="../src/gui/systray.cpp" line="85"/>
+        <source>Open main dialog</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../src/gui/systray.cpp" line="86"/>
+        <source>Settings</source>
+        <translation>Instellingen</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/systray.cpp" line="87"/>
+        <source>Exit %1</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../src/gui/systray.cpp" line="55"/>
         <source>%1: %2</source>
         <translation>%1: %2</translation>
     </message>
@@ -3438,12 +3509,19 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>OCC::Theme</name>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="352"/>
+        <location filename="../src/libsync/theme.cpp" line="355"/>
+        <source>&lt;p&gt;%1 Desktop Client&lt;/p&gt;</source>
+        <extracomment>Example text: &quot;&lt;p&gt;Nextcloud Desktop Client&lt;/p&gt;&quot; (%1 is the application name)</extracomment>
+        <translation>&lt;p&gt;%1 Desktop Client&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../src/libsync/theme.cpp" line="358"/>
+        <location filename="../src/libsync/theme.cpp" line="368"/>
         <source>&lt;p&gt;Version %1. For more information please click &lt;a href=&apos;%2&apos;&gt;here&lt;/a&gt;.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Versie %1. Voor meer informatie klik &lt;a href=&apos;%2&apos;&gt;hier&lt;/a&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="356"/>
+        <location filename="../src/libsync/theme.cpp" line="372"/>
         <source>&lt;p&gt;This release was supplied by %1&lt;/p&gt;</source>
         <translation>&lt;p&gt;Deze release is geleverd door %1&lt;/p&gt;</translation>
     </message>
@@ -3451,27 +3529,27 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>OCC::User</name>
     <message>
-        <location filename="../src/gui/tray/UserModel.cpp" line="319"/>
+        <location filename="../src/gui/tray/UserModel.cpp" line="323"/>
         <source>Retry all uploads</source>
         <translation>Probeer alle uploads opnieuw</translation>
     </message>
     <message>
-        <location filename="../src/gui/tray/UserModel.cpp" line="368"/>
+        <location filename="../src/gui/tray/UserModel.cpp" line="372"/>
         <source>You renamed</source>
         <translation>Je hernoemde</translation>
     </message>
     <message>
-        <location filename="../src/gui/tray/UserModel.cpp" line="370"/>
+        <location filename="../src/gui/tray/UserModel.cpp" line="374"/>
         <source>You deleted</source>
         <translation>Je verwijderde</translation>
     </message>
     <message>
-        <location filename="../src/gui/tray/UserModel.cpp" line="372"/>
+        <location filename="../src/gui/tray/UserModel.cpp" line="376"/>
         <source>You created</source>
         <translation>Je creëerde</translation>
     </message>
     <message>
-        <location filename="../src/gui/tray/UserModel.cpp" line="374"/>
+        <location filename="../src/gui/tray/UserModel.cpp" line="378"/>
         <source>You changed</source>
         <translation>Je wijzigde</translation>
     </message>
@@ -3479,22 +3557,22 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>OCC::UserModel</name>
     <message>
-        <location filename="../src/gui/tray/UserModel.cpp" line="690"/>
+        <location filename="../src/gui/tray/UserModel.cpp" line="707"/>
         <source>Confirm Account Removal</source>
         <translation>Bevestig verwijderen account</translation>
     </message>
     <message>
-        <location filename="../src/gui/tray/UserModel.cpp" line="691"/>
+        <location filename="../src/gui/tray/UserModel.cpp" line="708"/>
         <source>&lt;p&gt;Do you really want to remove the connection to the account &lt;i&gt;%1&lt;/i&gt;?&lt;/p&gt;&lt;p&gt;&lt;b&gt;Note:&lt;/b&gt; This will &lt;b&gt;not&lt;/b&gt; delete any files.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Wilt je echt de verbinding met het account &lt;i&gt;%1&lt;/i&gt; verbreken?&lt;/p&gt;&lt;p&gt;&lt;b&gt;Let op:&lt;/b&gt; Hierdoor verwijder je &lt;b&gt;geen&lt;/b&gt; bestanden.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/tray/UserModel.cpp" line="696"/>
+        <location filename="../src/gui/tray/UserModel.cpp" line="713"/>
         <source>Remove connection</source>
         <translation>Verwijderen verbinding</translation>
     </message>
     <message>
-        <location filename="../src/gui/tray/UserModel.cpp" line="697"/>
+        <location filename="../src/gui/tray/UserModel.cpp" line="714"/>
         <source>Cancel</source>
         <translation>Annuleren</translation>
     </message>
@@ -3502,12 +3580,12 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>OCC::WebEnginePage</name>
     <message>
-        <location filename="../src/gui/wizard/webview.cpp" line="208"/>
+        <location filename="../src/gui/wizard/webview.cpp" line="210"/>
         <source>Invalid certificate detected</source>
         <translation>Ongeldig certificaat gedetecteerd</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/webview.cpp" line="209"/>
+        <location filename="../src/gui/wizard/webview.cpp" line="211"/>
         <source>The host &quot;%1&quot; provided an invalid certificate. Continue?</source>
         <translation>De server &quot;%1&quot; heeft een ongeldig certificaat . Wilt u doorgaan?</translation>
     </message>
@@ -3515,12 +3593,12 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>OCC::WebFlowCredentials</name>
     <message>
-        <location filename="../src/gui/creds/webflowcredentials.cpp" line="169"/>
+        <location filename="../src/gui/creds/webflowcredentials.cpp" line="162"/>
         <source>You have been logged out of %1 as user %2. Please login again</source>
         <translation>Je bent uitgelogd van %1 als gebruiker %2. Log opnieuw in</translation>
     </message>
     <message>
-        <location filename="../src/gui/creds/webflowcredentials.cpp" line="193"/>
+        <location filename="../src/gui/creds/webflowcredentials.cpp" line="186"/>
         <source>Please login with the user: %1</source>
         <translation>Login met gebruiker: %1</translation>
     </message>
@@ -3657,14 +3735,14 @@ Het is niet te adviseren om het te gebruiken.</translation>
         <translation>Inloggen ...</translation>
     </message>
     <message>
-        <location filename="../src/gui/owncloudgui.cpp" line="937"/>
-        <source>Syncing %1 of %2 (%3 left)</source>
-        <translation>Sync %1 van %2  (%3 over)</translation>
-    </message>
-    <message>
         <location filename="../src/gui/owncloudgui.cpp" line="419"/>
         <source>Log out</source>
         <translation>Afmelden</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/owncloudgui.cpp" line="937"/>
+        <source>Syncing %1 of %2 (%3 left)</source>
+        <translation>Sync %1 van %2  (%3 over)</translation>
     </message>
     <message>
         <location filename="../src/gui/owncloudgui.cpp" line="942"/>
@@ -4022,12 +4100,12 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>main.cpp</name>
     <message>
-        <location filename="../src/gui/main.cpp" line="39"/>
+        <location filename="../src/gui/main.cpp" line="41"/>
         <source>System Tray not available</source>
         <translation>Systeemvak niet beschikbaar</translation>
     </message>
     <message>
-        <location filename="../src/gui/main.cpp" line="40"/>
+        <location filename="../src/gui/main.cpp" line="42"/>
         <source>%1 requires on a working system tray. If you are running XFCE, please follow &lt;a href=&quot;http://docs.xfce.org/xfce/xfce4-panel/systray&quot;&gt;these instructions&lt;/a&gt;. Otherwise, please install a system tray application such as &apos;trayer&apos; and try again.</source>
         <translation>%1 heeft een werkend systeemvak nodig. Als u XFCE draait volg &lt;a href=&quot;http://docs.xfce.org/xfce/xfce4-panel/systray&quot;&gt;deze instructies&lt;/a&gt;. Anders, installeer een systeemvak applicatie zoals &apos;trayer&apos; and probeer het opnieuw.</translation>
     </message>
@@ -4035,7 +4113,7 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>nextcloudTheme::about()</name>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="336"/>
+        <location filename="../src/libsync/theme.cpp" line="334"/>
         <source>&lt;p&gt;&lt;small&gt;Built from Git revision &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt; on %3, %4 using Qt %5, %6&lt;/small&gt;&lt;/p&gt;</source>
         <translation>&lt;p&gt;&lt;small&gt;Gebouwd vanaf Git revisie &lt;a href=&quot;%1&quot;&gt;%2&lt;/a&gt; op %3, %4 gebruik makend van Qt %5, %6&lt;/small&gt;&lt;/p&gt;</translation>
     </message>
@@ -4133,52 +4211,52 @@ Het is niet te adviseren om het te gebruiken.</translation>
 <context>
     <name>theme</name>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="62"/>
+        <location filename="../src/libsync/theme.cpp" line="60"/>
         <source>Status undefined</source>
         <translation>Ongedefinieerde status</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="65"/>
+        <location filename="../src/libsync/theme.cpp" line="63"/>
         <source>Waiting to start sync</source>
         <translation>In afwachting van synchronisatie</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="68"/>
+        <location filename="../src/libsync/theme.cpp" line="66"/>
         <source>Sync is running</source>
         <translation>Bezig met synchroniseren</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="71"/>
+        <location filename="../src/libsync/theme.cpp" line="69"/>
         <source>Sync Success</source>
         <translation>Synchronisatie geslaagd</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="74"/>
+        <location filename="../src/libsync/theme.cpp" line="72"/>
         <source>Sync Success, some files were ignored.</source>
         <translation>Synchronisatie geslaagd, sommige bestanden werden genegeerd.</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="77"/>
+        <location filename="../src/libsync/theme.cpp" line="75"/>
         <source>Sync Error</source>
         <translation>Synchronisatiefout</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="80"/>
+        <location filename="../src/libsync/theme.cpp" line="78"/>
         <source>Setup Error</source>
         <translation>Installatiefout</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="83"/>
+        <location filename="../src/libsync/theme.cpp" line="81"/>
         <source>Preparing to sync</source>
         <translation>Voorbereiden synchronisatie</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="86"/>
+        <location filename="../src/libsync/theme.cpp" line="84"/>
         <source>Aborting …</source>
         <translation>Afbreken …</translation>
     </message>
     <message>
-        <location filename="../src/libsync/theme.cpp" line="89"/>
+        <location filename="../src/libsync/theme.cpp" line="87"/>
         <source>Sync is paused</source>
         <translation>Synchronisatie is gepauzeerd</translation>
     </message>

@@ -49,9 +49,7 @@ Theme *Theme::instance()
     return _instance;
 }
 
-Theme::~Theme()
-{
-}
+Theme::~Theme() = default;
 
 QString Theme::statusHeaderText(SyncResult::Status status) const
 {
@@ -348,6 +346,24 @@ QString Theme::gitSHA1() const
 
 QString Theme::about() const
 {
+    // Shorten Qt's OS name: "macOS Mojave (10.14)" -> "macOS"
+    QStringList osStringList = Utility::platformName().split(QLatin1Char(' '));
+    QString osName = osStringList.at(0);
+
+    QString devString;
+    //: Example text: "<p>Nextcloud Desktop Client</p>"   (%1 is the application name)
+    devString = tr("<p>%1 Desktop Client</p>")
+              .arg(APPLICATION_NAME);
+
+    devString += tr("<p>Version %1. For more information please click <a href='%2'>here</a>.</p>")
+              .arg(QString::fromLatin1(MIRALL_STRINGIFY(MIRALL_VERSION)) + QString(" (%1)").arg(osName))
+              .arg(helpUrl());
+
+    return devString;
+}
+
+QString Theme::aboutDetails() const
+{
     QString devString;
     devString = tr("<p>Version %1. For more information please click <a href='%2'>here</a>.</p>")
               .arg(MIRALL_VERSION_STRING)
@@ -442,12 +458,12 @@ QIcon Theme::folderOfflineIcon(bool sysTray, bool sysTrayMenuVisible) const
 
 QColor Theme::wizardHeaderTitleColor() const
 {
-    return QColor(APPLICATION_WIZARD_HEADER_TITLE_COLOR);
+    return {APPLICATION_WIZARD_HEADER_TITLE_COLOR};
 }
 
 QColor Theme::wizardHeaderBackgroundColor() const
 {
-    return QColor(APPLICATION_WIZARD_HEADER_BACKGROUND_COLOR);
+    return {APPLICATION_WIZARD_HEADER_BACKGROUND_COLOR};
 }
 
 QPixmap Theme::wizardHeaderLogo() const
@@ -561,7 +577,12 @@ QString Theme::versionSwitchOutput() const
     stream << "Git revision " << GIT_SHA1 << endl;
 #endif
     stream << "Using Qt " << qVersion() << ", built against Qt " << QT_VERSION_STR << endl;
+
+    if(!QGuiApplication::platformName().isEmpty())
+        stream << "Using Qt platform plugin '" << QGuiApplication::platformName() << "'" << endl;
+
     stream << "Using '" << QSslSocket::sslLibraryVersionString() << "'" << endl;
+    stream << "Running on " << Utility::platformName() << ", " << QSysInfo::currentCpuArchitecture() << endl;
     return helpText;
 }
 
@@ -574,7 +595,7 @@ bool Theme::isDarkColor(const QColor &color)
 
 QColor Theme::getBackgroundAwareLinkColor(const QColor &backgroundColor)
 {
-    return QColor((isDarkColor(backgroundColor) ? QColor("#6193dc") : QGuiApplication::palette().color(QPalette::Link)));
+    return {(isDarkColor(backgroundColor) ? QColor("#6193dc") : QGuiApplication::palette().color(QPalette::Link))};
 }
 
 QColor Theme::getBackgroundAwareLinkColor()

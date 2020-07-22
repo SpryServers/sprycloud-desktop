@@ -89,7 +89,10 @@ NetworkSettings::~NetworkSettings()
 
 QSize NetworkSettings::sizeHint() const
 {
-    return QSize(ownCloudGui::settingsDialogSize().width(), QWidget::sizeHint().height());
+    return {
+        ownCloudGui::settingsDialogSize().width(),
+        QWidget::sizeHint().height()
+    };
 }
 
 void NetworkSettings::loadProxySettings()
@@ -182,7 +185,8 @@ void NetworkSettings::saveProxySettings()
     // start the sync.
     FolderMan::instance()->setDirtyProxy();
 
-    for (auto account : AccountManager::instance()->accounts()) {
+    const auto accounts = AccountManager::instance()->accounts();
+    for (auto account : accounts) {
         account->freshConnectionAttempt();
     }
 }

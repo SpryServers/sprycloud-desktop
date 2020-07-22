@@ -25,6 +25,8 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+#include <memory>
+
 #include "windows.h"
 
 #include "c_private.h"
@@ -35,7 +37,7 @@
 
 #include "vio/csync_vio_local.h"
 
-Q_LOGGING_CATEGORY(lcCSyncVIOLocal, "sync.csync.vio_local", QtInfoMsg)
+Q_LOGGING_CATEGORY(lcCSyncVIOLocal, "nextcloud.sync.csync.vio_local", QtInfoMsg)
 
 /*
  * directory functions
@@ -51,15 +53,15 @@ typedef struct dhandle_s {
 static int _csync_vio_local_stat_mb(const mbchar_t *uri, csync_file_stat_t *buf);
 
 csync_vio_handle_t *csync_vio_local_opendir(const char *name) {
-  dhandle_t *handle = NULL;
-  mbchar_t *dirname = NULL;
+  dhandle_t *handle = nullptr;
+  mbchar_t *dirname = nullptr;
 
   handle = (dhandle_t*)c_malloc(sizeof(dhandle_t));
 
   // the file wildcard has to be attached
   size_t len_name = strlen(name);
   if( len_name ) {
-      char *h = NULL;
+      char *h = nullptr;
 
       // alloc an enough large buffer to take the name + '/*' + the closing zero.
       h = (char*)c_malloc(len_name+3);
@@ -83,7 +85,7 @@ csync_vio_handle_t *csync_vio_local_opendir(const char *name) {
           errno = EACCES;
       }
       SAFE_FREE(handle);
-      return NULL;
+      return nullptr;
   }
 
   handle->firstFind = 1; // Set a flag that there first fileinfo is available.
@@ -95,10 +97,10 @@ csync_vio_handle_t *csync_vio_local_opendir(const char *name) {
 }
 
 int csync_vio_local_closedir(csync_vio_handle_t *dhandle) {
-  dhandle_t *handle = NULL;
+  dhandle_t *handle = nullptr;
   int rc = -1;
 
-  if (dhandle == NULL) {
+  if (!dhandle) {
     errno = EBADF;
     return -1;
   }
@@ -139,7 +141,7 @@ static time_t FileTimeToUnixTime(FILETIME *filetime, DWORD *remainder)
 
 std::unique_ptr<csync_file_stat_t> csync_vio_local_readdir(csync_vio_handle_t *dhandle) {
 
-  dhandle_t *handle = NULL;
+  dhandle_t *handle = nullptr;
   std::unique_ptr<csync_file_stat_t> file_stat;
   DWORD rem;
 
@@ -166,7 +168,7 @@ std::unique_ptr<csync_file_stat_t> csync_vio_local_readdir(csync_vio_handle_t *d
   if (path == "." || path == "..")
       return csync_vio_local_readdir(dhandle);
 
-  file_stat.reset(new csync_file_stat_t);
+  file_stat = std::make_unique<csync_file_stat_t>();
   file_stat->path = path;
 
   if (handle->ffd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
@@ -232,9 +234,9 @@ static int _csync_vio_local_stat_mb(const mbchar_t *wuri, csync_file_stat_t *buf
     ULARGE_INTEGER FileIndex;
 
     h = CreateFileW( wuri, 0, FILE_SHARE_WRITE | FILE_SHARE_READ | FILE_SHARE_DELETE,
-                     NULL, OPEN_EXISTING,
+                     nullptr, OPEN_EXISTING,
                      FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
-                     NULL );
+                     nullptr );
     if( h == INVALID_HANDLE_VALUE ) {
         qCCritical(lcCSyncVIOLocal, "CreateFileW failed on %ls", wuri);
         errno = GetLastError();

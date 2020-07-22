@@ -87,9 +87,7 @@ BandwidthManager::BandwidthManager(OwncloudPropagator *p)
     _relativeDownloadDelayTimer.setSingleShot(true); // will be restarted from the measuring timer
 }
 
-BandwidthManager::~BandwidthManager()
-{
-}
+BandwidthManager::~BandwidthManager() = default;
 
 void BandwidthManager::registerUploadDevice(UploadDevice *p)
 {
@@ -155,7 +153,7 @@ void BandwidthManager::relativeUploadMeasuringTimerExpired()
         _relativeUploadDelayTimer.start();
         return;
     }
-    if (_relativeLimitCurrentMeasuredDevice == nullptr) {
+    if (!_relativeLimitCurrentMeasuredDevice) {
         qCDebug(lcBandwidthManager) << "No device set, just waiting 1 sec";
         _relativeUploadDelayTimer.setInterval(1000);
         _relativeUploadDelayTimer.start();
@@ -249,7 +247,7 @@ void BandwidthManager::relativeDownloadMeasuringTimerExpired()
         _relativeDownloadDelayTimer.start();
         return;
     }
-    if (_relativeLimitCurrentMeasuredJob == nullptr) {
+    if (!_relativeLimitCurrentMeasuredJob) {
         qCDebug(lcBandwidthManager) << "No job set, just waiting 1 sec";
         _relativeDownloadDelayTimer.setInterval(1000);
         _relativeDownloadDelayTimer.start();

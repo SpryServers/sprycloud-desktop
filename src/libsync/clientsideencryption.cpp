@@ -73,7 +73,7 @@ namespace {
         return res;
     }
 
-    QByteArray handleErrors(void)
+    QByteArray handleErrors()
     {
         auto *bioErrors = BIO_new(BIO_s_mem());
         ERR_print_errors(bioErrors); // This line is not printing anything.
@@ -589,7 +589,7 @@ QByteArray encryptStringAsymmetric(EVP_PKEY *publicKey, const QByteArray& data) 
         qCInfo(lcCse()) << "Error retrieving the size of the encrypted data";
         exit(1);
     } else {
-        qCInfo(lcCse()) << "Encrption Length:" << outLen;
+        qCInfo(lcCse()) << "Encryption Length:" << outLen;
     }
 
     unsigned char *out = (uchar*) OPENSSL_malloc(outLen);
@@ -610,9 +610,7 @@ QByteArray encryptStringAsymmetric(EVP_PKEY *publicKey, const QByteArray& data) 
 }
 
 }
-ClientSideEncryption::ClientSideEncryption()
-{
-}
+ClientSideEncryption::ClientSideEncryption() = default;
 
 void ClientSideEncryption::setAccount(AccountPtr account)
 {
@@ -623,7 +621,7 @@ void ClientSideEncryption::initialize()
 {
     qCInfo(lcCse()) << "Initializing";
     if (!_account->capabilities().clientSideEncryptionAvaliable()) {
-        qCInfo(lcCse()) << "No Client side encryption avaliable on server.";
+        qCInfo(lcCse()) << "No Client side encryption available on server.";
         emit initializationFinished();
         return;
     }
@@ -1376,7 +1374,7 @@ bool EncryptionHelper::fileEncryption(const QByteArray &key, const QByteArray &i
       qCDebug(lcCse) << "Could not open input file for reading" << input->errorString();
     }
     if (!output->open(QIODevice::WriteOnly)) {
-      qCDebug(lcCse) << "Could not oppen output file for writting" << output->errorString();
+      qCDebug(lcCse) << "Could not oppen output file for writing" << output->errorString();
     }
 
     // Init

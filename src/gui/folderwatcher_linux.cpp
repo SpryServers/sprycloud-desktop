@@ -42,9 +42,7 @@ FolderWatcherPrivate::FolderWatcherPrivate(FolderWatcher *p, const QString &path
     QMetaObject::invokeMethod(this, "slotAddFolderRecursive", Q_ARG(QString, path));
 }
 
-FolderWatcherPrivate::~FolderWatcherPrivate()
-{
-}
+FolderWatcherPrivate::~FolderWatcherPrivate() = default;
 
 // attention: result list passed by reference!
 bool FolderWatcherPrivate::findFoldersBelow(const QDir &dir, QStringList &fullList)
@@ -160,7 +158,7 @@ void FolderWatcherPrivate::slotReceivedNotification(int fd)
     while (i + sizeof(struct inotify_event) < static_cast<unsigned int>(len)) {
         // cast an inotify_event
         event = (struct inotify_event *)&buffer[i];
-        if (event == nullptr) {
+        if (!event) {
             qCDebug(lcFolderWatcher) << "NULL event";
             i += sizeof(struct inotify_event);
             continue;

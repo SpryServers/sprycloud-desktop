@@ -26,6 +26,8 @@
 #include <dirent.h>
 #include <stdio.h>
 
+#include <memory>
+
 #include "c_private.h"
 #include "c_lib.h"
 #include "c_string.h"
@@ -35,7 +37,7 @@
 
 #include "vio/csync_vio_local.h"
 
-Q_LOGGING_CATEGORY(lcCSyncVIOLocal, "sync.csync.vio_local", QtInfoMsg)
+Q_LOGGING_CATEGORY(lcCSyncVIOLocal, "nextcloud.sync.csync.vio_local", QtInfoMsg)
 
 /*
  * directory functions
@@ -49,18 +51,18 @@ typedef struct dhandle_s {
 static int _csync_vio_local_stat_mb(const mbchar_t *wuri, csync_file_stat_t *buf);
 
 csync_vio_handle_t *csync_vio_local_opendir(const char *name) {
-  dhandle_t *handle = NULL;
-  mbchar_t *dirname = NULL;
+  dhandle_t *handle = nullptr;
+  mbchar_t *dirname = nullptr;
 
   handle = (dhandle_t*)c_malloc(sizeof(dhandle_t));
 
   dirname = c_utf8_path_to_locale(name);
 
   handle->dh = _topendir( dirname );
-  if (handle->dh == NULL) {
+  if (!handle->dh) {
     c_free_locale_string(dirname);
     SAFE_FREE(handle);
-    return NULL;
+    return nullptr;
   }
 
   handle->path = c_strdup(name);
@@ -70,10 +72,10 @@ csync_vio_handle_t *csync_vio_local_opendir(const char *name) {
 }
 
 int csync_vio_local_closedir(csync_vio_handle_t *dhandle) {
-  dhandle_t *handle = NULL;
+  dhandle_t *handle = nullptr;
   int rc = -1;
 
-  if (dhandle == NULL) {
+  if (!dhandle) {
     errno = EBADF;
     return -1;
   }
@@ -89,19 +91,19 @@ int csync_vio_local_closedir(csync_vio_handle_t *dhandle) {
 
 std::unique_ptr<csync_file_stat_t> csync_vio_local_readdir(csync_vio_handle_t *dhandle) {
 
-  dhandle_t *handle = NULL;
+  dhandle_t *handle = nullptr;
 
   handle = (dhandle_t *) dhandle;
-  struct _tdirent *dirent = NULL;
+  struct _tdirent *dirent = nullptr;
   std::unique_ptr<csync_file_stat_t> file_stat;
 
   do {
       dirent = _treaddir(handle->dh);
-      if (dirent == NULL)
+      if (!dirent)
           return {};
   } while (qstrcmp(dirent->d_name, ".") == 0 || qstrcmp(dirent->d_name, "..") == 0);
 
-  file_stat.reset(new csync_file_stat_t);
+  file_stat = std::make_unique<csync_file_stat_t>();
   file_stat->path = c_utf8_from_locale(dirent->d_name);
   QByteArray fullPath = QByteArray() % const_cast<const char *>(handle->path) % '/' % QByteArray() % const_cast<const char *>(dirent->d_name);
   if (file_stat->path.isNull()) {

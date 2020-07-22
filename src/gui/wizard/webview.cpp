@@ -20,7 +20,7 @@
 
 namespace OCC {
 
-Q_LOGGING_CATEGORY(lcWizardWebiew, "gui.wizard.webview", QtInfoMsg)
+Q_LOGGING_CATEGORY(lcWizardWebiew, "nextcloud.gui.wizard.webview", QtInfoMsg)
 
 
 class WebViewPageUrlRequestInterceptor : public QWebEngineUrlRequestInterceptor
@@ -43,6 +43,7 @@ Q_SIGNALS:
 };
 
 class WebEnginePage : public QWebEnginePage {
+    Q_OBJECT
 public:
     WebEnginePage(QWebEngineProfile *profile, QObject* parent = nullptr);
     QWebEnginePage * createWindow(QWebEnginePage::WebWindowType type) override;
@@ -58,6 +59,7 @@ private:
 // We need a separate class here, since we cannot simply return the same WebEnginePage object
 // this leads to a strage segfault somewhere deep inside of the QWebEngine code
 class ExternalWebEnginePage : public QWebEnginePage {
+    Q_OBJECT
 public:
     ExternalWebEnginePage(QWebEngineProfile *profile, QObject* parent = nullptr);
     bool acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool isMainFrame) override;
@@ -142,8 +144,8 @@ WebViewPageUrlSchemeHandler::WebViewPageUrlSchemeHandler(QObject *parent)
 void WebViewPageUrlSchemeHandler::requestStarted(QWebEngineUrlRequestJob *request) {
     QUrl url = request->requestUrl();
 
-    QString path = url.path(0).mid(1); // get undecoded path
-    QStringList parts = path.split("&");
+    QString path = url.path().mid(1); // get undecoded path
+    const QStringList parts = path.split("&");
 
     QString server;
     QString user;

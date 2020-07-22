@@ -56,9 +56,29 @@ bool ClientProxy::isUsingSystemDefault()
     return true;
 }
 
-QString printQNetworkProxy(const QNetworkProxy &proxy)
+const char *ClientProxy::proxyTypeToCStr(QNetworkProxy::ProxyType type)
 {
-    return QString("%1://%2:%3").arg(proxy.type()).arg(proxy.hostName()).arg(proxy.port());
+    switch (type) {
+    case QNetworkProxy::NoProxy:
+        return "NoProxy";
+    case QNetworkProxy::DefaultProxy:
+        return "DefaultProxy";
+    case QNetworkProxy::Socks5Proxy:
+        return "Socks5Proxy";
+    case QNetworkProxy::HttpProxy:
+        return "HttpProxy";
+    case QNetworkProxy::HttpCachingProxy:
+        return "HttpCachingProxy";
+    case QNetworkProxy::FtpCachingProxy:
+        return "FtpCachingProxy";
+    default:
+        return "NoProxy";
+    }
+}
+
+QString ClientProxy::printQNetworkProxy(const QNetworkProxy &proxy)
+{
+    return QString("%1://%2:%3").arg(proxyTypeToCStr(proxy.type())).arg(proxy.hostName()).arg(proxy.port());
 }
 
 void ClientProxy::setupQtProxyFromConfig()
@@ -80,7 +100,7 @@ void ClientProxy::setupQtProxyFromConfig()
             QNetworkProxy::setApplicationProxy(QNetworkProxy::NoProxy);
             break;
         case QNetworkProxy::DefaultProxy:
-            qCInfo(lcClientProxy) << "Set proxy configuration to use the prefered system proxy for http tcp connections";
+            qCInfo(lcClientProxy) << "Set proxy configuration to use the preferred system proxy for http tcp connections";
             {
                 QNetworkProxyQuery query;
                 query.setProtocolTag("http");
@@ -105,26 +125,6 @@ void ClientProxy::setupQtProxyFromConfig()
             break;
         default:
             break;
-    }
-}
-
-const char *ClientProxy::proxyTypeToCStr(QNetworkProxy::ProxyType type)
-{
-    switch (type) {
-    case QNetworkProxy::NoProxy:
-        return "NoProxy";
-    case QNetworkProxy::DefaultProxy:
-        return "DefaultProxy";
-    case QNetworkProxy::Socks5Proxy:
-        return "Socks5Proxy";
-    case QNetworkProxy::HttpProxy:
-        return "HttpProxy";
-    case QNetworkProxy::HttpCachingProxy:
-        return "HttpCachingProxy";
-    case QNetworkProxy::FtpCachingProxy:
-        return "FtpCachingProxy";
-    default:
-        return "NoProxy";
     }
 }
 

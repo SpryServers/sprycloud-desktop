@@ -34,7 +34,7 @@
 #include "csync_util.h"
 #include "vio/csync_vio.h"
 
-Q_LOGGING_CATEGORY(lcCSyncUtils, "sync.csync.utils", QtInfoMsg)
+Q_LOGGING_CATEGORY(lcCSyncUtils, "nextcloud.sync.csync.utils", QtInfoMsg)
 
 
 typedef struct {
@@ -57,7 +57,7 @@ static const _instr_code_struct _instr[] =
   { "INSTRUCTION_ERROR", CSYNC_INSTRUCTION_ERROR },
   { "INSTRUCTION_TYPE_CHANGE", CSYNC_INSTRUCTION_TYPE_CHANGE },
   { "INSTRUCTION_UPDATE_METADATA", CSYNC_INSTRUCTION_UPDATE_METADATA },
-  { NULL, CSYNC_INSTRUCTION_ERROR }
+  { nullptr, CSYNC_INSTRUCTION_ERROR }
 };
 
 struct csync_memstat_s {
@@ -74,7 +74,7 @@ const char *csync_instruction_str(enum csync_instructions_e instr)
 {
   int idx = 0;
 
-  while (_instr[idx].instr_str != NULL) {
+  while (_instr[idx].instr_str) {
     if (_instr[idx].instr_code == instr) {
       return _instr[idx].instr_str;
     }
@@ -85,14 +85,14 @@ const char *csync_instruction_str(enum csync_instructions_e instr)
 }
 
 
-void csync_memstat_check(void) {
+void csync_memstat_check() {
   int s = 0;
   struct csync_memstat_s m;
   FILE* fp;
 
   /* get process memory stats */
   fp = fopen("/proc/self/statm","r");
-  if (fp == NULL) {
+  if (!fp) {
     return;
   }
   s = fscanf(fp, "%d%d%d%d%d%d%d", &m.size, &m.resident, &m.shared, &m.trs,

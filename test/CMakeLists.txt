@@ -15,7 +15,10 @@ include_directories(${CMAKE_SOURCE_DIR}/src
 include(nextcloud_add_test.cmake)
 
 nextcloud_add_test(NextcloudPropagator "")
-nextcloud_add_test(Updater "")
+
+IF(BUILD_UPDATER)
+    nextcloud_add_test(Updater "")
+endif()
 
 SET(FolderWatcher_SRC ../src/gui/folderwatcher.cpp)
 
@@ -66,7 +69,6 @@ list(APPEND FolderMan_SRC ../src/gui/guiutility.cpp )
 list(APPEND FolderMan_SRC ../src/gui/navigationpanehelper.cpp )
 list(APPEND FolderMan_SRC ../src/gui/userinfo.cpp )
 list(APPEND FolderMan_SRC ../src/gui/connectionvalidator.cpp )
-list(APPEND FolderMan_SRC ../src/gui/clientproxy.cpp )
 list(APPEND FolderMan_SRC ../src/gui/accountstate.cpp )
 list(APPEND FolderMan_SRC ../src/gui/remotewipe.cpp )
 list(APPEND FolderMan_SRC ${FolderWatcher_SRC})
@@ -74,7 +76,6 @@ list(APPEND FolderMan_SRC stubfolderman.cpp )
 nextcloud_add_test(FolderMan "${FolderMan_SRC}")
 
 SET(RemoteWipe_SRC ../src/gui/remotewipe.cpp)
-list(APPEND RemoteWipe_SRC ../src/gui/clientproxy.cpp )
 list(APPEND RemoteWipe_SRC ../src/gui/guiutility.cpp )
 list(APPEND RemoteWipe_SRC ../src/gui/userinfo.cpp )
 list(APPEND RemoteWipe_SRC ../src/gui/connectionvalidator.cpp )

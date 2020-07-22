@@ -3,7 +3,10 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets)
 set(CMAKE_AUTOMOC TRUE)
 set(CMAKE_AUTOUIC TRUE)
 set(CMAKE_AUTORCC TRUE)
-add_subdirectory(updater)
+
+IF(BUILD_UPDATER)
+    add_subdirectory(updater)
+endif()
 
 #TODO Move resources files
 set(MIRALL_RC_SRC ../../client.qrc)
@@ -49,7 +52,6 @@ set(client_SRCS
     accountmanager.cpp
     accountsettings.cpp
     application.cpp
-    clientproxy.cpp
     connectionvalidator.cpp
     folder.cpp
     folderman.cpp
@@ -109,7 +111,6 @@ set(client_SRCS
     creds/httpcredentialsgui.cpp
     creds/oauth.cpp
     creds/flow2auth.cpp
-    creds/keychainchunk.cpp
     creds/webflowcredentials.cpp
     creds/webflowcredentialsdialog.cpp
     wizard/postfixlineedit.cpp
@@ -138,18 +139,20 @@ IF(NOT NO_SHIBBOLETH)
     )
 endif()
 
-set(updater_SRCS
-    updater/ocupdater.cpp
-    updater/updateinfo.cpp
-    updater/updater.cpp
-)
+IF(BUILD_UPDATER)
+    set(updater_SRCS
+        updater/ocupdater.cpp
+        updater/updateinfo.cpp
+        updater/updater.cpp
+    )
+endif()
 
 IF( APPLE )
     list(APPEND client_SRCS cocoainitializer_mac.mm)
     list(APPEND client_SRCS socketapisocket_mac.mm)
     list(APPEND client_SRCS systray.mm)
 
-    if(SPARKLE_FOUND)
+    if(SPARKLE_FOUND AND BUILD_UPDATER)
        # Define this, we need to check in updater.cpp
        add_definitions( -DHAVE_SPARKLE )
        list(APPEND updater_SRCS updater/sparkleupdater_mac.mm)
@@ -297,9 +300,11 @@ else()
     install(FILES ${qtkeychain_I18N} DESTINATION ${QM_DIR})
 endif()
 
-add_library(updater STATIC ${updater_SRCS})
-target_link_libraries(updater ${synclib_NAME} Qt5::Widgets Qt5::Network Qt5::Xml Qt5::WebEngineWidgets)
-target_include_directories(updater PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+IF(BUILD_UPDATER)
+    add_library(updater STATIC ${updater_SRCS})
+    target_link_libraries(updater ${synclib_NAME} Qt5::Widgets Qt5::Network Qt5::Xml)
+    target_include_directories(updater PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
 
 set_target_properties( ${APPLICATION_EXECUTABLE} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY  ${BIN_OUTPUT_DIRECTORY}
@@ -308,9 +313,11 @@ set_target_properties( ${APPLICATION_EXECUTABLE} PROPERTIES
 set_target_properties( ${APPLICATION_EXECUTABLE} PROPERTIES
         INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}/${APPLICATION_EXECUTABLE};${CMAKE_INSTALL_RPATH}" )
 
-target_link_libraries( ${APPLICATION_EXECUTABLE} Qt5::Widgets Qt5::Network Qt5::Xml)
+target_link_libraries( ${APPLICATION_EXECUTABLE} Qt5::Widgets Qt5::Network Qt5::Xml Qt5::WebEngineWidgets)
 target_link_libraries( ${APPLICATION_EXECUTABLE} ${synclib_NAME} )
-target_link_libraries( ${APPLICATION_EXECUTABLE} updater )
+IF(BUILD_UPDATER)
+    target_link_libraries( ${APPLICATION_EXECUTABLE} updater )
+endif()
 target_link_libraries( ${APPLICATION_EXECUTABLE} ${OS_SPECIFIC_LINK_LIBRARIES} )
 IF( LIBCLOUDPROVIDERS_FOUND )
     string(TOLOWER "${APPLICATION_VENDOR}" DBUS_VENDOR)
@@ -333,6 +340,7 @@ target_include_directories(${APPLICATION_EXECUTABLE} PRIVATE
     ${CMAKE_SOURCE_DIR}/src/3rdparty/qtsingleapplication
     ${CMAKE_SOURCE_DIR}/src/3rdparty/kmessagewidget
     ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 ## handle DBUS for Fdo notifications
@@ -377,18 +385,27 @@ install(TARGETS ${APPLICATION_EXECUTABLE}
 #FIXME: find a nice solution to make the second if(BUILD_OWNCLOUD_OSX_BUNDLE) unnecessary
 # currently it needs to be done because the code right above needs to be executed no matter
 # if building a bundle or not and the install_qt4_executable needs to be called afterwards
+#
+# OSX: Run macdeployqt for src/gui and for src/cmd using the -executable option
 if(BUILD_OWNCLOUD_OSX_BUNDLE AND NOT BUILD_LIBRARIES_ONLY)
-   get_target_property (QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
-   install(CODE "
-    message(STATUS \"Deploying (Qt) dependencies and fixing library paths...\")
-    execute_process(COMMAND \"${CMAKE_SOURCE_DIR}/admin/osx/macdeployqt.py\" ${CMAKE_INSTALL_PREFIX}/${OWNCLOUD_OSX_BUNDLE} ${QT_QMAKE_EXECUTABLE})
-    execute_process(COMMAND \"${CMAKE_SOURCE_DIR}/admin/osx/macdeployqt.py\" ${CMAKE_INSTALL_PREFIX}/${OWNCLOUD_OSX_BUNDLE}/Contents/Frameworks/QtWebEngineCore.framework/Helpers/QtWebEngineProcess.app ${QT_QMAKE_EXECUTABLE})
-    " COMPONENT RUNTIME)
+    get_target_property (QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+    get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
+    find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${QT_BIN_DIR}")
+
+    set(cmd_NAME ${APPLICATION_EXECUTABLE}cmd)
+
+    add_custom_command(TARGET ${APPLICATION_EXECUTABLE} POST_BUILD
+        COMMAND "${MACDEPLOYQT_EXECUTABLE}"
+            "$<TARGET_FILE_DIR:${APPLICATION_EXECUTABLE}>/../.."
+            -always-overwrite
+            -executable="$<TARGET_FILE_DIR:${APPLICATION_EXECUTABLE}>/${cmd_NAME}"
+        COMMENT "Running macdeployqt..."
+    )
 endif()
 
 if(NOT BUILD_OWNCLOUD_OSX_BUNDLE AND NOT WIN32)
     configure_file(${CMAKE_SOURCE_DIR}/mirall.desktop.in
-                   ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_EXECUTABLE}.desktop)
-    install(FILES  ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_EXECUTABLE}.desktop DESTINATION ${DATADIR}/applications )
+                   ${CMAKE_CURRENT_BINARY_DIR}/${LINUX_APPLICATION_ID}.desktop)
+    install(FILES  ${CMAKE_CURRENT_BINARY_DIR}/${LINUX_APPLICATION_ID}.desktop DESTINATION ${DATADIR}/applications )
 endif()
 

@@ -133,7 +133,7 @@ bool csync_is_windows_reserved_word(const char *filename)
 
 static CSYNC_EXCLUDE_TYPE _csync_excluded_common(const char *path, bool excludeConflictFiles)
 {
-    const char *bname = NULL;
+    const char *bname = nullptr;
     size_t blen = 0;
     int rc = -1;
     CSYNC_EXCLUDE_TYPE match = CSYNC_NOT_EXCLUDED;
@@ -261,9 +261,7 @@ ExcludedFiles::ExcludedFiles(QString localPath)
         addInTreeExcludeFilePath(fi.absoluteFilePath());
 }
 
-ExcludedFiles::~ExcludedFiles()
-{
-}
+ExcludedFiles::~ExcludedFiles() = default;
 
 void ExcludedFiles::addExcludeFilePath(const QString &path)
 {
@@ -346,7 +344,8 @@ bool ExcludedFiles::reloadExcludeFiles()
     _fullRegexDir.clear();
 
     bool success = true;
-    for (const auto& basePath : _excludeFiles.keys()) {
+    const auto keys = _excludeFiles.keys();
+    for (const auto& basePath : keys) {
         for (const auto& file : _excludeFiles.value(basePath)) {
             success = loadExcludeFile(basePath, file);
         }
@@ -667,7 +666,8 @@ void ExcludedFiles::prepare()
     _fullRegexFile.clear();
     _fullRegexDir.clear();
 
-    for (auto const & basePath : _allExcludes.keys())
+    const auto keys = _allExcludes.keys();
+    for (auto const & basePath : keys)
         prepare(basePath);
 }
 

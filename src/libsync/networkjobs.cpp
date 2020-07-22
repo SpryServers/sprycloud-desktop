@@ -31,6 +31,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QPainter>
+#include <QPainterPath>
 
 #include "networkjobs.h"
 #include "account.h"
@@ -109,7 +110,7 @@ bool RequestEtagJob::finished()
                 }
             }
         }
-        emit etagRetreived(etag);
+        emit etagRetrieved(etag);
     }
     return true;
 }
@@ -182,9 +183,7 @@ static QString readContentsAsString(QXmlStreamReader &reader)
 }
 
 
-LsColXMLParser::LsColXMLParser()
-{
-}
+LsColXMLParser::LsColXMLParser() = default;
 
 bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo> *fileInfo, const QString &expectedPath)
 {
@@ -209,7 +208,9 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
             if (name == QLatin1String("href")) {
                 // We don't use URL encoding in our request URL (which is the expected path) (QNAM will do it for us)
                 // but the result will have URL encoding..
-                QString hrefString = QString::fromUtf8(QByteArray::fromPercentEncoding(reader.readElementText().toUtf8()));
+                QString hrefString = QUrl::fromLocalFile(QUrl::fromPercentEncoding(reader.readElementText().toUtf8()))
+                        .adjusted(QUrl::NormalizePathSegments)
+                        .path();
                 if (!hrefString.startsWith(expectedPath)) {
                     qCWarning(lcLsColJob) << "Invalid href" << hrefString << "expected starting with" << expectedPath;
                     return false;
@@ -1026,7 +1027,7 @@ bool DeleteApiJob::finished()
     const auto replyData = QString::fromUtf8(reply()->readAll());
     qCInfo(lcJsonApiJob()) << "TMX Delete Job" << replyData;
     emit result(httpStatus);
-		return true;
+    return true;
 }
 
 void fetchPrivateLinkUrl(AccountPtr account, const QString &remotePath,
@@ -1062,4 +1063,3 @@ void fetchPrivateLinkUrl(AccountPtr account, const QString &remotePath,
 }
 
 } // namespace OCC
-

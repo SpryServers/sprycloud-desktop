@@ -92,6 +92,18 @@ public:
     bool automaticLogDir() const;
     void setAutomaticLogDir(bool enabled);
 
+    QString logDir() const;
+    void setLogDir(const QString &dir);
+
+    bool logDebug() const;
+    void setLogDebug(bool enabled);
+
+    int logExpire() const;
+    void setLogExpire(int hours);
+
+    bool logFlush() const;
+    void setLogFlush(bool enabled);
+
     // proxy settings
     void setProxyType(int proxyType,
         const QString &host = QString(),
@@ -146,8 +158,13 @@ public:
     // how often the check about new versions runs
     std::chrono::milliseconds updateCheckInterval(const QString &connection = QString()) const;
 
+    // skipUpdateCheck completely disables the updater and hides its UI
     bool skipUpdateCheck(const QString &connection = QString()) const;
     void setSkipUpdateCheck(bool, const QString &);
+
+    // autoUpdateCheck allows the user to make the choice in the UI
+    bool autoUpdateCheck(const QString &connection = QString()) const;
+    void setAutoUpdateCheck(bool, const QString &);
 
     /** Query-parameter 'updatesegment' for the update check, value between 0 and 99.
         Used to throttle down desktop release rollout in order to keep the update servers alive at peak times.
@@ -180,6 +197,8 @@ private:
     QVariant getValue(const QString &param, const QString &group = QString(),
         const QVariant &defaultValue = QVariant()) const;
     void setValue(const QString &key, const QVariant &value);
+
+    QString keychainProxyPasswordKey() const;
 
 private:
     typedef QSharedPointer<AbstractCredentials> SharedCreds;

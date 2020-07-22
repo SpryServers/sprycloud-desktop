@@ -47,14 +47,18 @@ QString getUserAutostartDir_private()
 
 bool hasLaunchOnStartup_private(const QString &appName)
 {
-    QString desktopFileLocation = getUserAutostartDir_private() + appName + QLatin1String(".desktop");
+    QString desktopFileLocation = getUserAutostartDir_private()
+                                    + QLatin1String(LINUX_APPLICATION_ID)
+                                    + QLatin1String(".desktop");
     return QFile::exists(desktopFileLocation);
 }
 
 void setLaunchOnStartup_private(const QString &appName, const QString &guiName, bool enable)
 {
     QString userAutoStartPath = getUserAutostartDir_private();
-    QString desktopFileLocation = userAutoStartPath + appName + QLatin1String(".desktop");
+    QString desktopFileLocation = userAutoStartPath
+                                    + QLatin1String(LINUX_APPLICATION_ID)
+                                    + QLatin1String(".desktop");
     if (enable) {
         if (!QDir().exists(userAutoStartPath) && !QDir().mkpath(userAutoStartPath)) {
             qCWarning(lcUtility) << "Could not create autostart folder" << userAutoStartPath;
@@ -72,7 +76,7 @@ void setLaunchOnStartup_private(const QString &appName, const QString &guiName, 
            << QLatin1String("GenericName=") << QLatin1String("File Synchronizer") << endl
            << QLatin1String("Exec=") << QCoreApplication::applicationFilePath() << endl
            << QLatin1String("Terminal=") << "false" << endl
-           << QLatin1String("Icon=") << appName.toLower() << endl // always use lowercase for icons
+           << QLatin1String("Icon=") << APPLICATION_ICON_NAME << endl
            << QLatin1String("Categories=") << QLatin1String("Network") << endl
            << QLatin1String("Type=") << QLatin1String("Application") << endl
            << QLatin1String("StartupNotify=") << "false" << endl

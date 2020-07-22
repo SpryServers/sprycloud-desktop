@@ -20,6 +20,7 @@
 #include "common/asserts.h"
 
 #include "creds/abstractcredentials.h"
+#include "creds/keychainchunk.h"
 
 #include "csync_exclude.h"
 
@@ -50,7 +51,7 @@ namespace OCC {
 
 namespace chrono = std::chrono;
 
-Q_LOGGING_CATEGORY(lcConfigFile, "sync.configfile", QtInfoMsg)
+Q_LOGGING_CATEGORY(lcConfigFile, "nextcloud.sync.configfile", QtInfoMsg)
 
 //static const char caCertsKeyC[] = "CaCertificates"; only used from account.cpp
 static const char remotePollIntervalC[] = "remotePollInterval";
@@ -63,6 +64,7 @@ static const char crashReporterC[] = "crashReporter";
 static const char optionalServerNotificationsC[] = "optionalServerNotifications";
 static const char showInExplorerNavigationPaneC[] = "showInExplorerNavigationPane";
 static const char skipUpdateCheckC[] = "skipUpdateCheck";
+static const char autoUpdateCheckC[] = "autoUpdateCheck";
 static const char updateCheckIntervalC[] = "updateCheckInterval";
 static const char updateSegmentC[] = "updateSegment";
 static const char geometryC[] = "geometry";
@@ -72,6 +74,10 @@ static const char minChunkSizeC[] = "minChunkSize";
 static const char maxChunkSizeC[] = "maxChunkSize";
 static const char targetChunkUploadDurationC[] = "targetChunkUploadDuration";
 static const char automaticLogDirC[] = "logToTemporaryLogDir";
+static const char logDirC[] = "logDir";
+static const char logDebugC[] = "logDebug";
+static const char logExpireC[] = "logExpire";
+static const char logFlushC[] = "logFlush";
 
 static const char proxyHostC[] = "Proxy/host";
 static const char proxyTypeC[] = "Proxy/type";
@@ -577,6 +583,32 @@ void ConfigFile::setSkipUpdateCheck(bool skip, const QString &connection)
     settings.sync();
 }
 
+bool ConfigFile::autoUpdateCheck(const QString &connection) const
+{
+    QString con(connection);
+    if (connection.isEmpty())
+        con = defaultConnection();
+
+    QVariant fallback = getValue(QLatin1String(autoUpdateCheckC), con, true);
+    fallback = getValue(QLatin1String(autoUpdateCheckC), QString(), fallback);
+
+    QVariant value = getPolicySetting(QLatin1String(autoUpdateCheckC), fallback);
+    return value.toBool();
+}
+
+void ConfigFile::setAutoUpdateCheck(bool autoCheck, const QString &connection)
+{
+    QString con(connection);
+    if (connection.isEmpty())
+        con = defaultConnection();
+
+    QSettings settings(configFile(), QSettings::IniFormat);
+    settings.beginGroup(con);
+
+    settings.setValue(QLatin1String(autoUpdateCheckC), QVariant(autoCheck));
+    settings.sync();
+}
+
 int ConfigFile::updateSegment() const
 {
     QSettings settings(configFile(), QSettings::IniFormat);
@@ -620,7 +652,22 @@ void ConfigFile::setProxyType(int proxyType,
         settings.setValue(QLatin1String(proxyPortC), port);
         settings.setValue(QLatin1String(proxyNeedsAuthC), needsAuth);
         settings.setValue(QLatin1String(proxyUserC), user);
-        settings.setValue(QLatin1String(proxyPassC), pass.toUtf8().toBase64());
+
+        if (pass.isEmpty()) {
+            // Security: Don't keep password in config file
+            settings.remove(QLatin1String(proxyPassC));
+
+            // Delete password from keychain
+            auto job = new KeychainChunk::DeleteJob(keychainProxyPasswordKey());
+            job->exec();
+        } else {
+            // Write password to keychain
+            auto job = new KeychainChunk::WriteJob(keychainProxyPasswordKey(), pass.toUtf8());
+            if (job->exec()) {
+                // Security: Don't keep password in config file
+                settings.remove(QLatin1String(proxyPassC));
+            }
+        }
     }
     settings.sync();
 }
@@ -695,8 +742,34 @@ QString ConfigFile::proxyUser() const
 
 QString ConfigFile::proxyPassword() const
 {
-    QByteArray pass = getValue(proxyPassC).toByteArray();
-    return QString::fromUtf8(QByteArray::fromBase64(pass));
+    QByteArray passEncoded = getValue(proxyPassC).toByteArray();
+    auto pass = QString::fromUtf8(QByteArray::fromBase64(passEncoded));
+    passEncoded.clear();
+
+    const auto key = keychainProxyPasswordKey();
+
+    if (!pass.isEmpty()) {
+        // Security: Migrate password from config file to keychain
+        auto job = new KeychainChunk::WriteJob(key, pass.toUtf8());
+        if (job->exec()) {
+            QSettings settings(configFile(), QSettings::IniFormat);
+            settings.remove(QLatin1String(proxyPassC));
+            qCInfo(lcConfigFile()) << "Migrated proxy password to keychain";
+        }
+    } else {
+        // Read password from keychain
+        auto job = new KeychainChunk::ReadJob(key);
+        if (job->exec()) {
+            pass = job->textData();
+        }
+    }
+
+    return pass;
+}
+
+QString ConfigFile::keychainProxyPasswordKey() const
+{
+    return QString::fromLatin1("proxy-password");
 }
 
 int ConfigFile::useUploadLimit() const
@@ -824,6 +897,54 @@ void ConfigFile::setAutomaticLogDir(bool enabled)
 {
     QSettings settings(configFile(), QSettings::IniFormat);
     settings.setValue(QLatin1String(automaticLogDirC), enabled);
+}
+
+QString ConfigFile::logDir() const
+{
+    QSettings settings(configFile(), QSettings::IniFormat);
+    return settings.value(QLatin1String(logDirC), QString()).toString();
+}
+
+void ConfigFile::setLogDir(const QString &dir)
+{
+    QSettings settings(configFile(), QSettings::IniFormat);
+    settings.setValue(QLatin1String(logDirC), dir);
+}
+
+bool ConfigFile::logDebug() const
+{
+    QSettings settings(configFile(), QSettings::IniFormat);
+    return settings.value(QLatin1String(logDebugC), false).toBool();
+}
+
+void ConfigFile::setLogDebug(bool enabled)
+{
+    QSettings settings(configFile(), QSettings::IniFormat);
+    settings.setValue(QLatin1String(logDebugC), enabled);
+}
+
+int ConfigFile::logExpire() const
+{
+    QSettings settings(configFile(), QSettings::IniFormat);
+    return settings.value(QLatin1String(logExpireC), 0).toBool();
+}
+
+void ConfigFile::setLogExpire(int hours)
+{
+    QSettings settings(configFile(), QSettings::IniFormat);
+    settings.setValue(QLatin1String(logExpireC), hours);
+}
+
+bool ConfigFile::logFlush() const
+{
+    QSettings settings(configFile(), QSettings::IniFormat);
+    return settings.value(QLatin1String(logFlushC), false).toBool();
+}
+
+void ConfigFile::setLogFlush(bool enabled)
+{
+    QSettings settings(configFile(), QSettings::IniFormat);
+    settings.setValue(QLatin1String(logFlushC), enabled);
 }
 
 QString ConfigFile::certificatePath() const

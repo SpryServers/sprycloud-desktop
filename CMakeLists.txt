@@ -123,6 +123,15 @@ if(NO_MSG_HANDLER)
    add_definitions(-DNO_MSG_HANDLER=1)
 endif()
 
+# this option builds the updater
+option(BUILD_UPDATER "BUILD_UPDATER" OFF)
+if(BUILD_UPDATER)
+   message("Compiling with updater")
+   add_definitions(-DBUILD_UPDATER=1)
+else()
+   message("Compiling without updater")
+endif()
+
 # this option builds the shell integration
 option(BUILD_SHELL_INTEGRATION "BUILD_SHELL_INTEGRATION" ON)
 
@@ -172,9 +181,9 @@ if(APPLE)
 endif()
 
 if(BUILD_CLIENT)
-    if(APPLE)
+    if(APPLE AND BUILD_UPDATER)
         find_package(Sparkle)
-    endif(APPLE)
+    endif()
 
     if(UNIX)
         find_package(INotify REQUIRED)
@@ -218,6 +227,8 @@ endif( WIN32 )
 if (APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 endif()
+
+include(SanitizerFlags)
 
 # Handle Translations, pick all client_* files from trans directory.
 file( GLOB TRANS_FILES ${CMAKE_SOURCE_DIR}/translations/client_*.ts)

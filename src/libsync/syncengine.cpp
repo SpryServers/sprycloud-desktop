@@ -331,7 +331,7 @@ void SyncEngine::conflictRecordMaintenance()
     // Remove stale conflict entries from the database
     // by checking which files still exist and removing the
     // missing ones.
-    auto conflictRecordPaths = _journal->conflictRecordPaths();
+    const auto conflictRecordPaths = _journal->conflictRecordPaths();
     for (const auto &path : conflictRecordPaths) {
         auto fsPath = _propagator->getFilePath(QString::fromUtf8(path));
         if (!QFileInfo(fsPath).exists()) {
@@ -344,7 +344,7 @@ void SyncEngine::conflictRecordMaintenance()
     //
     // This happens when the conflicts table is new or when conflict files
     // are downlaoded but the server doesn't send conflict headers.
-    for (const auto &path : _seenFiles) {
+    for (const auto &path : qAsConst(_seenFiles)) {
         if (!Utility::isConflictFile(path))
             continue;
 
@@ -973,6 +973,16 @@ void SyncEngine::slotDiscoveryJobFinished(int discoveryResult)
         _journal->commitIfNeededAndStartNewTransaction("Post discovery");
     }
 
+    // FIXME: This is a reasonable safety check, but specifically just a hotfix.
+    // See: https://github.com/nextcloud/desktop/issues/1433
+    // It's still unclear why we can get an empty FileMap even though folder isn't empty
+    // For now: Re-check if folder is really empty, if not bail out
+    if (_csync_ctx.data()->local.files.empty() && QDir(_localPath).entryInfoList(QDir::NoDotAndDotDot).count() > 0) {
+        qCWarning(lcEngine) << "Received local tree with empty FileMap but sync folder isn't empty. Won't reconcile.";
+        finalize(false);
+        return;
+    }
+
     _progressInfo->_currentDiscoveredRemoteFolder.clear();
     _progressInfo->_currentDiscoveredLocalFolder.clear();
     _progressInfo->_status = ProgressInfo::Reconcile;
@@ -1545,7 +1555,7 @@ RemotePermissions SyncEngine::getPermissions(const QString &file) const
     if (it != _csync_ctx->remote.files.end()) {
         return it->second->remotePerm;
     }
-    return RemotePermissions();
+    return {};
 }
 
 void SyncEngine::restoreOldFiles(SyncFileItemVector &syncItems)

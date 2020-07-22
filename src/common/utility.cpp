@@ -215,7 +215,7 @@ qint64 Utility::freeDiskSpace(const QString &path)
 #elif defined(Q_OS_WIN)
     ULARGE_INTEGER freeBytes;
     freeBytes.QuadPart = 0L;
-    if (GetDiskFreeSpaceEx(reinterpret_cast<const wchar_t *>(path.utf16()), &freeBytes, NULL, NULL)) {
+    if (GetDiskFreeSpaceEx(reinterpret_cast<const wchar_t *>(path.utf16()), &freeBytes, nullptr, nullptr)) {
         return freeBytes.QuadPart;
     }
 #endif
@@ -298,7 +298,7 @@ namespace {
 
         QString description(quint64 value) const
         {
-            return QCoreApplication::translate("Utility", name, 0, value);
+            return QCoreApplication::translate("Utility", name, nullptr, value);
         }
     };
 // QTBUG-3945 and issue #4855: QT_TRANSLATE_NOOP does not work with plural form because lupdate
@@ -313,7 +313,7 @@ namespace {
         { QT_TRANSLATE_NOOP("Utility", "%n hour(s)", 0, _), 3600 * 1000LL },
         { QT_TRANSLATE_NOOP("Utility", "%n minute(s)", 0, _), 60 * 1000LL },
         { QT_TRANSLATE_NOOP("Utility", "%n second(s)", 0, _), 1000LL },
-        { 0, 0 }
+        { nullptr, 0 }
     };
 } // anonymous namespace
 
@@ -392,7 +392,7 @@ QString Utility::platformName()
 
 void Utility::crash()
 {
-    volatile int *a = (int *)(NULL);
+    volatile int *a = (int *)nullptr;
     *a = 1;
 }
 

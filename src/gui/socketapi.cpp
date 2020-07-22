@@ -87,8 +87,8 @@ static QString buildMessage(const QString &verb, const QString &path, const QStr
 
 namespace OCC {
 
-Q_LOGGING_CATEGORY(lcSocketApi, "gui.socketapi", QtInfoMsg)
-Q_LOGGING_CATEGORY(lcPublicLink, "gui.socketapi.publiclink", QtInfoMsg)
+Q_LOGGING_CATEGORY(lcSocketApi, "nextcloud.gui.socketapi", QtInfoMsg)
+Q_LOGGING_CATEGORY(lcPublicLink, "nextcloud.gui.socketapi.publiclink", QtInfoMsg)
 
 
 class BloomFilter
@@ -672,6 +672,7 @@ void SocketApi::command_GET_STRINGS(const QString &argument, SocketListener *lis
         { "CONTEXT_MENU_TITLE", tr("Share via %1").arg(Theme::instance()->appNameGUI())},
         { "COPY_PRIVATE_LINK_MENU_TITLE", tr("Copy private link to clipboard") },
         { "EMAIL_PRIVATE_LINK_MENU_TITLE", tr("Send private link by email …") },
+        { "CONTEXT_MENU_ICON", APPLICATION_ICON_NAME},
     } };
     listener->sendMessage(QString("GET_STRINGS:BEGIN"));
     for (const auto& key_value : strings) {

@@ -32,7 +32,7 @@ class ConfigFile;
  * @brief The ClientProxy class
  * @ingroup libsync
  */
-class ClientProxy : public QObject
+class OWNCLOUDSYNC_EXPORT ClientProxy : public QObject
 {
     Q_OBJECT
 public:
@@ -41,14 +41,14 @@ public:
     static bool isUsingSystemDefault();
     static void lookupSystemProxyAsync(const QUrl &url, QObject *dst, const char *slot);
 
+    static QString printQNetworkProxy(const QNetworkProxy &proxy);
+    static const char *proxyTypeToCStr(QNetworkProxy::ProxyType type);
+
 public slots:
     void setupQtProxyFromConfig();
-
-private:
-    const char *proxyTypeToCStr(QNetworkProxy::ProxyType type);
 };
 
-class SystemProxyRunnable : public QObject, public QRunnable
+class OWNCLOUDSYNC_EXPORT SystemProxyRunnable : public QObject, public QRunnable
 {
     Q_OBJECT
 public:
@@ -61,7 +61,6 @@ private:
     QUrl _url;
 };
 
-QString printQNetworkProxy(const QNetworkProxy &proxy);
 }
 
 #endif // CLIENTPROXY_H

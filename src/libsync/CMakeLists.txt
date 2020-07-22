@@ -24,6 +24,7 @@ set(libsync_SRCS
     wordlist.cpp
     bandwidthmanager.cpp
     capabilities.cpp
+    clientproxy.cpp
     cookiejar.cpp
     discoveryphase.cpp
     filesystem.cpp
@@ -57,6 +58,7 @@ set(libsync_SRCS
     creds/dummycredentials.cpp
     creds/abstractcredentials.cpp
     creds/credentialscommon.cpp
+    creds/keychainchunk.cpp
 )
 
 if(TOKEN_AUTH_ONLY)
