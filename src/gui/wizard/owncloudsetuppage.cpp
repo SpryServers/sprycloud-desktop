@@ -73,7 +73,6 @@ OwncloudSetupPage::OwncloudSetupPage(QWidget *parent)
     connect(_ui.loginButton, &QPushButton::clicked, this, &OwncloudSetupPage::slotLogin);
     connect(_ui.createAccountButton, &QPushButton::clicked, this, &OwncloudSetupPage::slotGotoProviderList);
 
-    _ui.installLink->hide();
     _ui.login->hide();
     _ui.slideShow->addSlide(Theme::hidpiFileName(":/client/theme/colored/wizard-nextcloud.png"), tr("Keep your data secure and under your control"));
     _ui.slideShow->addSlide(Theme::hidpiFileName(":/client/theme/colored/wizard-files.png"), tr("Secure collaboration & file exchange"));
@@ -134,15 +133,8 @@ void OwncloudSetupPage::slotLogin()
     animation->setEndValue(500);
     _ui.login->show();
     _ui.loginButton->hide();
-    _ui.createAccountButton->hide();
     wizard()->resize(wizard()->sizeHint());
     animation->start();
-    setCommitPage(true);
-    // Hack: setCommitPage() changes caption, but after an error this page could still be visible
-    setButtonText(QWizard::CommitButton, tr("&Next >"));
-    validatePage();
-    wizard()->next();
-    setVisible(false);
 }
 void OwncloudSetupPage::slotGotoProviderList()
 {
@@ -228,10 +220,10 @@ void OwncloudSetupPage::initializePage()
     } else {
         setCommitPage(true);
         // Hack: setCommitPage() changes caption, but after an error this page could still be visible
-//        setButtonText(QWizard::CommitButton, tr("&Next >"));
-//        validatePage();
-//        setVisible(false);
-//    }
+        setButtonText(QWizard::CommitButton, tr("&Next >"));
+        validatePage();
+        setVisible(false);
+    }
     wizard()->resize(wizard()->sizeHint());
 }
 
