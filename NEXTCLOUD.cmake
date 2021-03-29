@@ -6,7 +6,7 @@ set( APPLICATION_VENDOR     "Spry Servers, LLC" )
 set( APPLICATION_UPDATE_URL "https://updates.cloud.spryservers.net/" CACHE string "URL for updater" )
 set( APPLICATION_HELP_URL   "" CACHE STRING "URL for the help menu" )
 set( APPLICATION_ICON_NAME  "spryCloud" )
-set( APPLICATION_SERVER_URL "" CACHE STRING "URL for the server to use. If entered the server can only connect to this instance" )
+set( APPLICATION_SERVER_URL "https://cloud.spryservers.net" CACHE STRING "URL for the server to use. If entered the server can only connect to this instance" )
 set( APPLICATION_SERVER_URL_ENFORCE ON ) # If set and APPLICATION_SERVER_URL is defined, the server can only connect to the pre-defined URL
 set( APPLICATION_REV_DOMAIN "net.spryservers.sprycloudclient" )
 
