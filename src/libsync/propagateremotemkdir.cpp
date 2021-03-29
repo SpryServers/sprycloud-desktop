@@ -16,8 +16,10 @@
 #include "owncloudpropagator_p.h"
 #include "account.h"
 #include "common/syncjournalfilerecord.h"
+#include "propagateuploadencrypted.h"
 #include "propagateremotedelete.h"
 #include "common/asserts.h"
+#include "encryptfolderjob.h"
 
 #include <QFile>
 #include <QLoggingCategory>
@@ -25,6 +27,46 @@
 namespace OCC {
 
 Q_LOGGING_CATEGORY(lcPropagateRemoteMkdir, "nextcloud.sync.propagator.remotemkdir", QtInfoMsg)
+
+PropagateRemoteMkdir::PropagateRemoteMkdir(OwncloudPropagator *propagator, const SyncFileItemPtr &item)
+    : PropagateItemJob(propagator, item)
+    , _deleteExisting(false)
+    , _uploadEncryptedHelper(nullptr)
+    , _parallelism(FullParallelism)
+{
+    const auto rootPath = [=]() {
+        const auto result = propagator->_remoteFolder;
+        if (result.startsWith('/')) {
+            return result.mid(1);
+        } else {
+            return result;
+        }
+    }();
+    const auto path = _item->_file;
+    const auto slashPosition = path.lastIndexOf('/');
+    const auto parentPath = slashPosition >= 0 ? path.left(slashPosition) : QString();
+
+    SyncJournalFileRecord parentRec;
+    bool ok = propagator->_journal->getFileRecord(parentPath, &parentRec);
+    if (!ok) {
+        done(SyncFileItem::NormalError);
+        return;
+    }
+
+    const auto remoteParentPath = parentRec._e2eMangledName.isEmpty() ? parentPath : parentRec._e2eMangledName;
+    const auto absoluteRemoteParentPath = remoteParentPath.isEmpty() ? rootPath : rootPath + remoteParentPath + '/';
+    const auto account = propagator->account();
+
+    if (account->capabilities().clientSideEncryptionAvailable() &&
+        account->e2e()->isFolderEncrypted(absoluteRemoteParentPath)) {
+        _parallelism = WaitForFinished;
+    }
+}
+
+PropagatorJob::JobParallelism PropagateRemoteMkdir::parallelism()
+{
+    return _parallelism;
+}
 
 void PropagateRemoteMkdir::start()
 {
@@ -36,13 +78,15 @@ void PropagateRemoteMkdir::start()
     propagator()->_activeJobList.append(this);
 
     if (!_deleteExisting) {
-        return slotStartMkcolJob();
+        slotMkdir();
+        return;
     }
 
     _job = new DeleteJob(propagator()->account(),
         propagator()->_remoteFolder + _item->_file,
         this);
-    connect(_job, SIGNAL(finishedSignal()), SLOT(slotStartMkcolJob()));
+    connect(static_cast<DeleteJob*>(_job.data()), &DeleteJob::finishedSignal,
+            this, &PropagateRemoteMkdir::slotMkdir);
     _job->start();
 }
 
@@ -60,6 +104,29 @@ void PropagateRemoteMkdir::slotStartMkcolJob()
     _job->start();
 }
 
+void PropagateRemoteMkdir::slotStartEncryptedMkcolJob(const QString &path, const QString &filename, quint64 size)
+{
+    Q_UNUSED(path)
+    Q_UNUSED(size)
+
+    if (propagator()->_abortRequested.fetchAndAddRelaxed(0))
+        return;
+
+    qDebug() << filename;
+    qCDebug(lcPropagateRemoteMkdir) << filename;
+
+    auto job = new MkColJob(propagator()->account(),
+                            propagator()->_remoteFolder + filename,
+                            {{"e2e-token", _uploadEncryptedHelper->_folderToken }},
+                            this);
+    connect(job, qOverload<QNetworkReply::NetworkError>(&MkColJob::finished),
+            _uploadEncryptedHelper, &PropagateUploadEncrypted::unlockFolder);
+    connect(job, qOverload<QNetworkReply::NetworkError>(&MkColJob::finished),
+            this, &PropagateRemoteMkdir::slotMkcolJobFinished);
+    _job = job;
+    _job->start();
+}
+
 void PropagateRemoteMkdir::abort(PropagatorJob::AbortType abortType)
 {
     if (_job && _job->reply())
@@ -73,6 +140,49 @@ void PropagateRemoteMkdir::abort(PropagatorJob::AbortType abortType)
 void PropagateRemoteMkdir::setDeleteExisting(bool enabled)
 {
     _deleteExisting = enabled;
+}
+
+void PropagateRemoteMkdir::slotMkdir()
+{
+    const auto rootPath = [=]() {
+        const auto result = propagator()->_remoteFolder;
+        if (result.startsWith('/')) {
+            return result.mid(1);
+        } else {
+            return result;
+        }
+    }();
+    const auto path = _item->_file;
+    const auto slashPosition = path.lastIndexOf('/');
+    const auto parentPath = slashPosition >= 0 ? path.left(slashPosition) : QString();
+
+    SyncJournalFileRecord parentRec;
+    bool ok = propagator()->_journal->getFileRecord(parentPath, &parentRec);
+    if (!ok) {
+        done(SyncFileItem::NormalError);
+        return;
+    }
+
+    const auto remoteParentPath = parentRec._e2eMangledName.isEmpty() ? parentPath : parentRec._e2eMangledName;
+    const auto absoluteRemoteParentPath = remoteParentPath.isEmpty() ? rootPath : rootPath + remoteParentPath + '/';
+    const auto account = propagator()->account();
+
+    if (!account->capabilities().clientSideEncryptionAvailable() ||
+        (!account->e2e()->isFolderEncrypted(absoluteRemoteParentPath) &&
+         !account->e2e()->isAnyParentFolderEncrypted(absoluteRemoteParentPath))) {
+        slotStartMkcolJob();
+        return;
+    }
+
+    // We should be encrypted as well since our parent is
+    _uploadEncryptedHelper = new PropagateUploadEncrypted(propagator(), remoteParentPath, _item, this);
+    connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::folderNotEncrypted,
+      this, &PropagateRemoteMkdir::slotStartMkcolJob);
+    connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::finalized,
+      this, &PropagateRemoteMkdir::slotStartEncryptedMkcolJob);
+    connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::error,
+      []{ qCDebug(lcPropagateRemoteMkdir) << "Error setting up encryption."; });
+    _uploadEncryptedHelper->start();
 }
 
 void PropagateRemoteMkdir::slotMkcolJobFinished()
@@ -121,6 +231,29 @@ void PropagateRemoteMkdir::slotMkcolJobFinished()
         _job = propfindJob;
         return;
     }
+
+    if (!_uploadEncryptedHelper) {
+        success();
+    } else {
+        // We still need to mark that folder encrypted
+        propagator()->_activeJobList.append(this);
+
+        // We're expecting directory path in /Foo/Bar convention...
+        Q_ASSERT(_job->path().startsWith('/') && !_job->path().endsWith('/'));
+        // But encryption job expect it in Foo/Bar/ convention
+        // (otherwise we won't store the right string in the e2e object)
+        const auto path = QString(_job->path().mid(1) + '/');
+
+        auto job = new OCC::EncryptFolderJob(propagator()->account(), path, _item->_fileId, this);
+        connect(job, &OCC::EncryptFolderJob::finished, this, &PropagateRemoteMkdir::slotEncryptFolderFinished);
+        job->start();
+    }
+}
+
+void PropagateRemoteMkdir::slotEncryptFolderFinished()
+{
+    qCDebug(lcPropagateRemoteMkdir) << "Success making the new folder encrypted";
+    propagator()->_activeJobList.removeOne(this);
     success();
 }
 

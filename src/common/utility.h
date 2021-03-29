@@ -20,6 +20,7 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 
+
 #include "ocsynclib.h"
 #include <QString>
 #include <QByteArray>
@@ -29,6 +30,7 @@
 #include <QMap>
 #include <QUrl>
 #include <QUrlQuery>
+#include <QtQuick/QQuickImageProvider>
 #include <functional>
 #include <memory>
 
@@ -227,6 +229,7 @@ namespace Utility {
     OCSYNC_EXPORT bool registryDeleteKeyTree(HKEY hRootKey, const QString &subKey);
     OCSYNC_EXPORT bool registryDeleteKeyValue(HKEY hRootKey, const QString &subKey, const QString &valueName);
     OCSYNC_EXPORT bool registryWalkSubKeys(HKEY hRootKey, const QString &subKey, const std::function<void(HKEY, const QString &)> &callback);
+    OCSYNC_EXPORT QRect getTaskbarDimensions();
 #endif
 }
 /** @} */ // \addtogroup

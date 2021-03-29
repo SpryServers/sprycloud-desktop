@@ -19,6 +19,7 @@
 
 
 #include <cerrno>
+#include <QDirIterator>
 #include <QStringList>
 
 
@@ -71,7 +72,7 @@ static void callback(
         QString fn = qstring.normalized(QString::NormalizationForm_C);
 
         if (!(eventFlags[i] & c_interestingFlags)) {
-            qCDebug(lcFolderWatcher) << "Ignoring non-content changes for" << fn;
+            qCDebug(lcFolderWatcher) << "Ignoring non-content changes for" << fn << eventFlags[i];
             continue;
         }
 
@@ -90,8 +91,6 @@ void FolderWatcherPrivate::startWatching()
 
     FSEventStreamContext ctx = { 0, this, nullptr, nullptr, nullptr };
 
-    // TODO: Add kFSEventStreamCreateFlagFileEvents ?
-
     _stream = FSEventStreamCreate(nullptr,
         &callback,
         &ctx,
@@ -106,9 +105,27 @@ void FolderWatcherPrivate::startWatching()
     FSEventStreamStart(_stream);
 }
 
+QStringList FolderWatcherPrivate::addCoalescedPaths(const QStringList &paths) const
+{
+    QStringList coalescedPaths;
+    for (const auto &eventPath : paths) {
+        if (QDir(eventPath).exists()) {
+            QDirIterator it(eventPath, QDir::AllDirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+            while (it.hasNext()) {
+                auto subfolder = it.next();
+                if (!paths.contains(subfolder)) {
+                    coalescedPaths.append(subfolder);
+                }
+            }
+        }
+    }
+    return (paths + coalescedPaths);
+}
+
 void FolderWatcherPrivate::doNotifyParent(const QStringList &paths)
 {
-    _parent->changeDetected(paths);
+    const QStringList totalPaths = addCoalescedPaths(paths);
+    _parent->changeDetected(totalPaths);
 }
 
 

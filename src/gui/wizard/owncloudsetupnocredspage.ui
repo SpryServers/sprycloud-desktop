@@ -79,7 +79,10 @@
          <width>40</width>
          <height>16777215</height>
         </size>
-      </property>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
        <property name="flat">
         <bool>true</bool>
        </property>

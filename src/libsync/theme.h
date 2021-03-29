@@ -15,10 +15,10 @@
 #ifndef _THEME_H
 #define _THEME_H
 
+#include <QIcon>
 #include <QObject>
 #include "syncresult.h"
 
-class QIcon;
 class QString;
 class QObject;
 class QPixmap;
@@ -37,6 +37,24 @@ class SyncResult;
 class OWNCLOUDSYNC_EXPORT Theme : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool branded READ isBranded CONSTANT)
+    Q_PROPERTY(QString appNameGUI READ appNameGUI CONSTANT)
+    Q_PROPERTY(QString appName READ appName CONSTANT)
+#ifndef TOKEN_AUTH_ONLY
+    Q_PROPERTY(QIcon folderDisabledIcon READ folderDisabledIcon CONSTANT)
+    Q_PROPERTY(QIcon folderOfflineIcon READ folderOfflineIcon CONSTANT)
+    Q_PROPERTY(QIcon applicationIcon READ applicationIcon CONSTANT)
+#endif
+    Q_PROPERTY(QString version READ version CONSTANT)
+    Q_PROPERTY(QString helpUrl READ helpUrl CONSTANT)
+    Q_PROPERTY(QString conflictHelpUrl READ conflictHelpUrl CONSTANT)
+    Q_PROPERTY(QString overrideServerUrl READ overrideServerUrl)
+    Q_PROPERTY(bool forceOverrideServerUrl READ forceOverrideServerUrl)
+#ifndef TOKEN_AUTH_ONLY
+    Q_PROPERTY(QColor wizardHeaderTitleColor READ wizardHeaderTitleColor CONSTANT)
+    Q_PROPERTY(QColor wizardHeaderBackgroundColor READ wizardHeaderBackgroundColor CONSTANT)
+#endif
+    Q_PROPERTY(QString updateCheckUrl READ updateCheckUrl CONSTANT)
 public:
     enum CustomMediaType {
         oCSetupTop, // ownCloud connect page
@@ -49,6 +67,16 @@ public:
     static Theme *instance();
 
     ~Theme();
+
+    /**
+     * @brief isBranded indicates if the current application is branded
+     *
+     * By default, it is considered branded if the APPLICATION_NAME is
+     * different from "Nextcloud".
+     *
+     * @return true if branded, false otherwise
+     */
+    virtual bool isBranded() const;
 
     /**
      * @brief appNameGUI - Human readable application name.
@@ -93,10 +121,10 @@ public:
     /**
       * get an sync state icon
       */
-    virtual QIcon syncStateIcon(SyncResult::Status, bool sysTray = false, bool sysTrayMenuVisible = false) const;
+    virtual QIcon syncStateIcon(SyncResult::Status, bool sysTray = false) const;
 
     virtual QIcon folderDisabledIcon() const;
-    virtual QIcon folderOfflineIcon(bool sysTray = false, bool sysTrayMenuVisible = false) const;
+    virtual QIcon folderOfflineIcon(bool sysTray = false) const;
     virtual QIcon applicationIcon() const;
 #endif
 
@@ -139,9 +167,16 @@ public:
     /**
      * Setting a value here will pre-define the server url.
      *
-     * The respective UI controls will be disabled
+     * The respective UI controls will be disabled only if forceOverrideServerUrl() is true
      */
     virtual QString overrideServerUrl() const;
+
+    /**
+     * Enforce a pre-defined server url.
+     *
+     * When true, the respective UI controls will be disabled
+     */
+    virtual bool forceOverrideServerUrl() const;
 
     /**
      * This is only usefull when previous version had a different overrideServerUrl
@@ -166,7 +201,7 @@ public:
     virtual QString enforcedLocale() const { return QString(); }
 
     /** colored, white or black */
-    QString systrayIconFlavor(bool mono, bool sysTrayMenuVisible = false) const;
+    QString systrayIconFlavor(bool mono) const;
 
 #ifndef TOKEN_AUTH_ONLY
     /**
@@ -454,7 +489,7 @@ public:
 
 protected:
 #ifndef TOKEN_AUTH_ONLY
-    QIcon themeIcon(const QString &name, bool sysTray = false, bool sysTrayMenuVisible = false) const;
+    QIcon themeIcon(const QString &name, bool sysTray = false) const;
 #endif
     Theme();
 
@@ -466,7 +501,7 @@ private:
     Theme &operator=(Theme const &);
 
     static Theme *_instance;
-    bool _mono;
+    bool _mono = false;
 #ifndef TOKEN_AUTH_ONLY
     mutable QHash<QString, QIcon> _iconCache;
 #endif

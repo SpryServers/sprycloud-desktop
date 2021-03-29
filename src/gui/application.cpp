@@ -262,7 +262,7 @@ Application::Application(int &argc, char **argv)
 
 #if defined(BUILD_UPDATER)
     // Update checks
-    UpdaterScheduler *updaterScheduler = new UpdaterScheduler(this);
+    auto *updaterScheduler = new UpdaterScheduler(this);
     connect(updaterScheduler, &UpdaterScheduler::updaterAnnouncement,
         _gui.data(), &ownCloudGui::slotShowTrayMessage);
     connect(updaterScheduler, &UpdaterScheduler::requestRestart,
@@ -274,6 +274,8 @@ Application::Application(int &argc, char **argv)
 
     // Allow other classes to hook into isShowingSettingsDialog() signals (re-auth widgets, for example)
     connect(_gui.data(), &ownCloudGui::isShowingSettingsDialog, this, &Application::slotGuiIsShowingSettings);
+
+    _gui->createTray();
 }
 
 Application::~Application()
@@ -400,7 +402,7 @@ void Application::slotownCloudWizardDone(int res)
             Utility::setLaunchOnStartup(_theme->appName(), _theme->appNameGUI(), true);
         }
 
-        _gui->slotShowSettings();
+        Systray::instance()->showWindow();
     }
 }
 
@@ -434,14 +436,14 @@ void Application::slotParseMessage(const QString &msg, QObject *)
         QStringList options = msg.mid(lengthOfMsgPrefix).split(QLatin1Char('|'));
         parseOptions(options);
         setupLogging();
-    } else if (msg.startsWith(QLatin1String("MSG_SHOWSETTINGS"))) {
+    } else if (msg.startsWith(QLatin1String("MSG_SHOWMAINDIALOG"))) {
         qCInfo(lcApplication) << "Running for" << _startedAt.elapsed() / 1000.0 << "sec";
         if (_startedAt.elapsed() < 10 * 1000) {
             // This call is mirrored with the one in int main()
-            qCWarning(lcApplication) << "Ignoring MSG_SHOWSETTINGS, possibly double-invocation of client via session restore and auto start";
+            qCWarning(lcApplication) << "Ignoring MSG_SHOWMAINDIALOG, possibly double-invocation of client via session restore and auto start";
             return;
         }
-        showSettingsDialog();
+        showMainDialog();
     }
 }
 
@@ -609,9 +611,9 @@ void Application::setupTranslations()
     if (!enforcedLocale.isEmpty())
         uiLanguages.prepend(enforcedLocale);
 
-    QTranslator *translator = new QTranslator(this);
-    QTranslator *qtTranslator = new QTranslator(this);
-    QTranslator *qtkeychainTranslator = new QTranslator(this);
+    auto *translator = new QTranslator(this);
+    auto *qtTranslator = new QTranslator(this);
+    auto *qtkeychainTranslator = new QTranslator(this);
 
     foreach (QString lang, uiLanguages) {
         lang.replace(QLatin1Char('-'), QLatin1Char('_')); // work around QTBUG-25973
@@ -663,9 +665,9 @@ bool Application::versionOnly()
     return _versionOnly;
 }
 
-void Application::showSettingsDialog()
+void Application::showMainDialog()
 {
-    _gui->slotShowSettings();
+    _gui->slotOpenMainDialog();
 }
 
 void Application::slotGuiIsShowingSettings()

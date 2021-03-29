@@ -195,7 +195,7 @@ void OwncloudSetupWizard::slotFindServer()
     // 3. Check redirected-url/status.php with CheckServerJob
 
     // Step 1: Check url/status.php
-    CheckServerJob *job = new CheckServerJob(account, this);
+    auto *job = new CheckServerJob(account, this);
     job->setIgnoreCredentialFailure(true);
     connect(job, &CheckServerJob::instanceFound, this, &OwncloudSetupWizard::slotFoundServer);
     connect(job, &CheckServerJob::instanceNotFound, this, &OwncloudSetupWizard::slotFindServerBehindRedirect);
@@ -233,7 +233,7 @@ void OwncloudSetupWizard::slotFindServerBehindRedirect()
     // Step 3: When done, start checking status.php.
     connect(redirectCheckJob, &SimpleNetworkJob::finishedSignal, this,
         [this, account]() {
-            CheckServerJob *job = new CheckServerJob(account, this);
+            auto *job = new CheckServerJob(account, this);
             job->setIgnoreCredentialFailure(true);
             connect(job, &CheckServerJob::instanceFound, this, &OwncloudSetupWizard::slotFoundServer);
             connect(job, &CheckServerJob::instanceNotFound, this, &OwncloudSetupWizard::slotNoServerFound);
@@ -301,7 +301,7 @@ void OwncloudSetupWizard::slotNoServerFoundTimeout(const QUrl &url)
 
 void OwncloudSetupWizard::slotDetermineAuthType()
 {
-    DetermineAuthTypeJob *job = new DetermineAuthTypeJob(_ocWizard->account(), this);
+    auto *job = new DetermineAuthTypeJob(_ocWizard->account(), this);
     connect(job, &DetermineAuthTypeJob::authType,
         _ocWizard, &OwncloudWizard::setAuthType);
     job->start();
@@ -339,7 +339,7 @@ void OwncloudSetupWizard::slotAuthError()
 {
     QString errorMsg;
 
-    PropfindJob *job = qobject_cast<PropfindJob *>(sender());
+    auto *job = qobject_cast<PropfindJob *>(sender());
     if (!job) {
         qCWarning(lcWizard) << "Can't check for authed redirects. This slot should be invoked from PropfindJob!";
         return;
@@ -483,7 +483,7 @@ void OwncloudSetupWizard::slotCreateLocalAndRemoteFolders(const QString &localFo
          * END - Sanitize URL paths to eliminate double-slashes
         */
 
-        EntityExistsJob *job = new EntityExistsJob(_ocWizard->account(), newUrlPath, this);
+        auto *job = new EntityExistsJob(_ocWizard->account(), newUrlPath, this);
         connect(job, &EntityExistsJob::exists, this, &OwncloudSetupWizard::slotRemoteFolderExists);
         job->start();
     } else {
@@ -524,7 +524,7 @@ void OwncloudSetupWizard::createRemoteFolder()
 {
     _ocWizard->appendToConfigurationLog(tr("creating folder on spryCloud: %1").arg(_remoteFolder));
 
-    MkColJob *job = new MkColJob(_ocWizard->account(), _remoteFolder, this);
+    auto *job = new MkColJob(_ocWizard->account(), _remoteFolder, this);
     connect(job, SIGNAL(finished(QNetworkReply::NetworkError)), SLOT(slotCreateRemoteFolderFinished(QNetworkReply::NetworkError)));
     job->start();
 }
@@ -598,8 +598,7 @@ bool OwncloudSetupWizard::ensureStartFromScratch(const QString &localFolder)
     while (!renameOk) {
         renameOk = FolderMan::instance()->startFromScratch(localFolder);
         if (!renameOk) {
-            QMessageBox::StandardButton but;
-            but = QMessageBox::question(nullptr, tr("Folder rename failed"),
+            QMessageBox::StandardButton but = QMessageBox::question(nullptr, tr("Folder rename failed"),
                 tr("Can't remove and back up the folder because the folder or a file in it is open in another program."
                    " Please close the folder or file and hit retry or cancel the setup."),
                 QMessageBox::Retry | QMessageBox::Abort, QMessageBox::Retry);

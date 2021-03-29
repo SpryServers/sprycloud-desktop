@@ -133,19 +133,29 @@
         <translation>Por favor, cambie a su navegador para proceder.</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/flow2authwidget.ui" line="42"/>
-        <source>An error occurred while connecting. Please try again.</source>
-        <translation>Se ha producido un error al conectarse. Por favor, inténtelo de nuevo.</translation>
-    </message>
-    <message>
         <location filename="../src/gui/wizard/flow2authwidget.ui" line="52"/>
         <source>Re-open Browser</source>
         <translation>Reabrir navegador</translation>
     </message>
     <message>
+        <location filename="../src/gui/wizard/flow2authwidget.ui" line="56"/>
+        <source>Logo</source>
+        <translation>Logo</translation>
+    </message>
+    <message>
         <location filename="../src/gui/wizard/flow2authwidget.ui" line="65"/>
         <source>Copy link</source>
         <translation>Copiar enlace</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/flow2authwidget.ui" line="73"/>
+        <source>Switch to your browser to connect your account</source>
+        <translation>Cambiar al navegador para conectar con tu cuenta</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/flow2authwidget.ui" line="42"/>
+        <source>An error occurred while connecting. Please try again.</source>
+        <translation>Se ha producido un error al conectarse. Por favor, inténtelo de nuevo.</translation>
     </message>
 </context>
 <context>
@@ -1010,19 +1020,6 @@ Esto podría ser un problema con tu librería OpenSSL</translation>
     </message>
 </context>
 <context>
-    <name>OCC::Flow2AuthCredsPage</name>
-    <message>
-        <location filename="../src/gui/wizard/flow2authcredspage.cpp" line="36"/>
-        <source>Connect to %1</source>
-        <translation>Conectado a %1</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/wizard/flow2authcredspage.cpp" line="37"/>
-        <source>Login in your browser (Login Flow v2)</source>
-        <translation>Inicia sesión en tu navegador Web (Login Flow v2)</translation>
-    </message>
-</context>
-<context>
     <name>OCC::Flow2AuthWidget</name>
     <message>
         <location filename="../src/gui/wizard/flow2authwidget.cpp" line="77"/>
@@ -1048,6 +1045,16 @@ Esto podría ser un problema con tu librería OpenSSL</translation>
         <location filename="../src/gui/wizard/flow2authwidget.cpp" line="154"/>
         <source>Link copied to clipboard.</source>
         <translation>Enlace copiado al portapapeles.</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/flow2authwidget.cpp" line="215"/>
+        <source>Reopen Browser</source>
+        <translation>Reabrir el navegador</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/flow2authwidget.cpp" line="218"/>
+        <source>Copy Link</source>
+        <translation>Copiar Link</translation>
     </message>
 </context>
 <context>
@@ -1090,12 +1097,12 @@ Esto podría ser un problema con tu librería OpenSSL</translation>
         <translation>%1 ha sido descargado.</translation>
     </message>
     <message numerus="yes">
-        <location filename="../src/gui/folder.cpp" line="425"/>
+        <location filename="../src/gui/folder.cpp" line="433"/>
         <source>%1 and %n other file(s) have been added.</source>
         <translation><numerusform>%1 y %n otro(s) archivo(s) ha(n) sido añadido(s).</numerusform><numerusform>%1 y %n otro(s) archivo(s) ha(n) sido añadido(s).</numerusform></translation>
     </message>
     <message>
-        <location filename="../src/gui/folder.cpp" line="427"/>
+        <location filename="../src/gui/folder.cpp" line="435"/>
         <source>%1 has been added.</source>
         <comment>%1 names a file.</comment>
         <translation>%1 ha sido añadido.</translation>
@@ -1274,7 +1281,7 @@ Si continua con la sincronización todos los archivos serán remplazados por su 
         <translation>Mantener los archivos locales en caso de conflicto</translation>
     </message>
     <message>
-        <location filename="../src/gui/folder.cpp" line="1235"/>
+        <location filename="../src/gui/folder.cpp" line="1245"/>
         <source>All files in the sync folder '%1' folder were deleted on the server.
 These deletes will be synchronized to your local sync folder, making such files unavailable unless you have a right to restore. 
 If you decide to restore the files, they will be re-synced with the server if you have rights to do so.
@@ -1285,7 +1292,7 @@ Si decides restaurar los archivos, volverán a sincronizarse con el servidor si 
 Si decides eliminar los archivos, ya no los tendrás disponibles, a no ser que seas el propietario.</translation>
     </message>
     <message>
-        <location filename="../src/gui/folder.cpp" line="1240"/>
+        <location filename="../src/gui/folder.cpp" line="1250"/>
         <source>All the files in your local sync folder '%1' were deleted. These deletes will be synchronized with your server, making such files unavailable unless restored.
 Are you sure you want to sync those actions with the server?
 If this was an accident and you decide to keep your files, they will be re-synced from the server.</source>
@@ -1295,17 +1302,17 @@ Esta eliminación será sincronizada con tu servidor, haciendo que esos archivos
 Si esto ha sido un accidente, y decides mantener tus archivos, serán re-sincronizados con el servidor.</translation>
     </message>
     <message>
-        <location filename="../src/gui/folder.cpp" line="1244"/>
+        <location filename="../src/gui/folder.cpp" line="1254"/>
         <source>Remove All Files?</source>
         <translation>¿Eliminar todos los archivos?</translation>
     </message>
     <message>
-        <location filename="../src/gui/folder.cpp" line="1248"/>
+        <location filename="../src/gui/folder.cpp" line="1258"/>
         <source>Remove all files</source>
         <translation>Eliminar todos los archivos</translation>
     </message>
     <message>
-        <location filename="../src/gui/folder.cpp" line="1249"/>
+        <location filename="../src/gui/folder.cpp" line="1259"/>
         <source>Keep files</source>
         <translation>Mantener archivos</translation>
     </message>
@@ -1328,12 +1335,12 @@ Si esto ha sido un accidente, y decides mantener tus archivos, serán re-sincron
         <translation>Ya existe la carpeta</translation>
     </message>
     <message>
-        <location filename="../src/gui/foldercreationdialog.cpp" line="73"/>
+        <location filename="../src/gui/foldercreationdialog.cpp" line="76"/>
         <source>Error</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../src/gui/foldercreationdialog.cpp" line="73"/>
+        <location filename="../src/gui/foldercreationdialog.cpp" line="76"/>
         <source>Could not create a folder! Check your write permissions.</source>
         <translation>¡No se pudo crear la carpeta! Comprueba los permisos de escritura.</translation>
     </message>
@@ -1386,6 +1393,11 @@ Si esto ha sido un accidente, y decides mantener tus archivos, serán re-sincron
         <translation>La sincronización ha tenido éxito, pero hay conflictos sin resolver.</translation>
     </message>
     <message>
+        <location filename="../src/gui/folderman.cpp" line="1492"/>
+        <source>Sync finished with unresolved conflicts.</source>
+        <translation>La sincronización finalizó pero con conflictos sin resolver.</translation>
+    </message>
+    <message>
         <location filename="../src/gui/folderman.cpp" line="1373"/>
         <source>Last Sync was successful.</source>
         <translation>La última sincronización se ha realizado con éxito.</translation>
@@ -1416,7 +1428,7 @@ Si esto ha sido un accidente, y decides mantener tus archivos, serán re-sincron
         <translation>¡La carpeta seleccionada no es válida!</translation>
     </message>
     <message>
-        <location filename="../src/gui/folderman.cpp" line="1520"/>
+        <location filename="../src/gui/folderman.cpp" line="1532"/>
         <source>The selected path does not exist!</source>
         <translation>¡La ruta seleccionada no existe!</translation>
     </message>
@@ -2504,17 +2516,22 @@ for additional privileges during the process.</source>
         <translation>Configurar opciones de carpeta local</translation>
     </message>
     <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="60"/>
+        <source>Connect</source>
+        <translation>Conectar</translation>
+    </message>
+    <message>
         <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="54"/>
         <source>Connect …</source>
         <translation>Conectando...</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="85"/>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="88"/>
         <source>Use &amp;virtual files instead of downloading content immediately %1</source>
         <translation>Usa &amp;archivos virtuales en vez de descargar el contenido inmediatamente %1</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="85"/>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="88"/>
         <source>(experimental)</source>
         <translation>(experimental)</translation>
     </message>
@@ -2539,7 +2556,18 @@ for additional privileges during the process.</source>
         <translation>Espacio libre: %1</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="275"/>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="260"/>
+        <source>Warning: The local folder is not empty. Pick a resolution!</source>
+        <translation>Advertencia: La carpeta local no está vacía. ¡Elija una solución!</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="268"/>
+        <source>%1 free space</source>
+        <comment>%1 gets replaced with the size and a matching unit. Example: 3 MB or 5 GB</comment>
+        <translation>%1 espacio libre</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.cpp" line="352"/>
         <source>Virtual files are not available for the selected folder</source>
         <translation>Los archivos virtuales no están disponiblespara la carpeta seleccionada</translation>
     </message>
@@ -2652,6 +2680,12 @@ for additional privileges during the process.</source>
         <translation>Correo web, calendario y contactos fáciles de usar</translation>
     </message>
     <message>
+        <location filename="../src/gui/wizard/owncloudsetuppage.cpp" line="86"/>
+        <source>The link to your %1 web interface when you open it in the browser.</source>
+        <comment>%1 will be replaced with the application name</comment>
+        <translation>El link a su interfaz web %1 cuando la abra en el navegador.</translation>
+    </message>
+    <message>
         <location filename="../src/gui/wizard/owncloudsetuppage.cpp" line="80"/>
         <source>Screensharing, online meetings &amp; web conferences</source>
         <translation>Compartir pantalla, reuniones online y conferencias web</translation>
@@ -2667,11 +2701,6 @@ for additional privileges during the process.</source>
         <translation>Este es el enlace a la interfaz web de tu %1 cuando la abres en el navegador. &lt;br/&gt;Se parece a https://cloud.ejemplo.com o https://ejemplo.com/cloud</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudsetuppage.cpp" line="184"/>
-        <source>This URL is secure. You can use it.</source>
-        <translation>Esta URL es segura. Puede utilizarla.</translation>
-    </message>
-    <message>
         <location filename="../src/gui/wizard/owncloudsetuppage.cpp" line="185"/>
         <source>This URL is NOT secure as it is not encrypted.
 It is not advisable to use it.</source>
@@ -2679,9 +2708,19 @@ It is not advisable to use it.</source>
 No se recomienda usarla.</translation>
     </message>
     <message>
+        <location filename="../src/gui/wizard/owncloudsetuppage.cpp" line="184"/>
+        <source>This URL is secure. You can use it.</source>
+        <translation>Esta URL es segura. Puede utilizarla.</translation>
+    </message>
+    <message>
         <location filename="../src/gui/wizard/owncloudsetuppage.cpp" line="233"/>
         <source>&amp;Next &gt;</source>
         <translation>&amp;Siguiente &gt;</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudsetuppage.cpp" line="250"/>
+        <source>Server address does not seem to be valid</source>
+        <translation>La dirección del servidor no es válida</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudsetuppage.cpp" line="293"/>
@@ -2842,9 +2881,9 @@ No se recomienda usarla.</translation>
 <context>
     <name>OCC::OwncloudWizard</name>
     <message>
-        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="91"/>
-        <source>%1 Connection Wizard</source>
-        <translation>Asistente de conexión %1</translation>
+        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="88"/>
+        <source>Add %1 account</source>
+        <translation>Añadir %1 cuenta</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudwizard.cpp" line="100"/>
@@ -2852,12 +2891,17 @@ No se recomienda usarla.</translation>
         <translation>Omitir la configuración de carpetas</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="325"/>
+        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="91"/>
+        <source>%1 Connection Wizard</source>
+        <translation>Asistente de conexión %1</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="401"/>
         <source>Enable experimental feature?</source>
         <translation>¿Activar característica experimental?</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="326"/>
+        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="402"/>
         <source>When the &quot;virtual files&quot; mode is enabled no files will be downloaded initially. Instead, a tiny &quot;%1&quot; file will be created for each file that exists on the server. The contents can be downloaded by running these files or by using their context menu.
 
 The virtual files mode is mutually exclusive with selective sync. Currently unselected folders will be translated to online-only folders and your selective sync settings will be reset.
@@ -2874,12 +2918,12 @@ Cambiar a este modo interrumpirá cualquier sincronización en proceso.
 Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de cualquier tipo de problema que pueda surgir.</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="340"/>
+        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="416"/>
         <source>Enable experimental placeholder mode</source>
         <translation>Activar modo experimental de marcador de posición</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="341"/>
+        <location filename="../src/gui/wizard/owncloudwizard.cpp" line="417"/>
         <source>Stay safe</source>
         <translation>Mantente a salvo</translation>
     </message>
@@ -3003,42 +3047,42 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <translation>el servidor informó de no %1</translation>
     </message>
     <message>
-        <location filename="../src/libsync/discovery.cpp" line="1214"/>
+        <location filename="../src/libsync/discovery.cpp" line="1217"/>
         <source>Ignored because of the &quot;choose what to sync&quot; blacklist</source>
         <translation>Ignorado porque se encuentra en la lista negra de «elija qué va a sincronizar»</translation>
     </message>
     <message>
-        <location filename="../src/libsync/discovery.cpp" line="1247"/>
+        <location filename="../src/libsync/discovery.cpp" line="1250"/>
         <source>Not allowed because you don&apos;t have permission to add subfolders to that folder</source>
         <translation>No permitido porque no tienes permiso para añadir subcarpetas a esa carpeta.</translation>
     </message>
     <message>
-        <location filename="../src/libsync/discovery.cpp" line="1252"/>
+        <location filename="../src/libsync/discovery.cpp" line="1255"/>
         <source>Not allowed because you don&apos;t have permission to add files in that folder</source>
         <translation>No permitido porque no tienes permiso para añadir archivos a esa carpeta.</translation>
     </message>
     <message>
-        <location filename="../src/libsync/discovery.cpp" line="1265"/>
+        <location filename="../src/libsync/discovery.cpp" line="1268"/>
         <source>Not allowed to upload this file because it is read-only on the server, restoring</source>
         <translation>No está permitido subir este archivo porque es de solo lectura en el servidor, restaurando.</translation>
     </message>
     <message>
-        <location filename="../src/libsync/discovery.cpp" line="1287"/>
+        <location filename="../src/libsync/discovery.cpp" line="1290"/>
         <source>Moved to invalid target, restoring</source>
         <translation>Movido a un lugar no válido, restaurando</translation>
     </message>
     <message>
-        <location filename="../src/libsync/discovery.cpp" line="1300"/>
+        <location filename="../src/libsync/discovery.cpp" line="1303"/>
         <source>Not allowed to remove, restoring</source>
         <translation>No está permitido borrar, restaurando</translation>
     </message>
     <message>
-        <location filename="../src/libsync/discovery.cpp" line="1409"/>
+        <location filename="../src/libsync/discovery.cpp" line="1412"/>
         <source>Error while reading the database</source>
         <translation>Error mientras se leía la base de datos</translation>
     </message>
     <message>
-        <location filename="../src/libsync/discovery.cpp" line="1470"/>
+        <location filename="../src/libsync/discovery.cpp" line="1473"/>
         <source>Server replied with an error while reading directory &apos;%1&apos; : %2</source>
         <translation>El servidor contestó con un error al leer el directorio «%1» : %2</translation>
     </message>
@@ -3148,14 +3192,14 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <translation>Error al borrar &apos;%1&apos;: %2;</translation>
     </message>
     <message>
-        <location filename="../src/libsync/propagatorjobs.cpp" line="103"/>
-        <source>Could not remove %1 because of a local file name clash</source>
-        <translation>No se ha podido eliminar %1 por causa de un conflicto con el nombre de un archivo local</translation>
-    </message>
-    <message>
         <location filename="../src/libsync/propagatorjobs.cpp" line="104"/>
         <source>Could not remove folder &apos;%1&apos;</source>
         <translation>No se ha podido eliminar la carpeta &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <location filename="../src/libsync/propagatorjobs.cpp" line="103"/>
+        <source>Could not remove %1 because of a local file name clash</source>
+        <translation>No se ha podido eliminar %1 por causa de un conflicto con el nombre de un archivo local</translation>
     </message>
 </context>
 <context>
@@ -3172,7 +3216,7 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <translation>Error al escribir los metadatos en la base de datos</translation>
     </message>
     <message>
-        <location filename="../src/libsync/propagatorjobs.cpp" line="267"/>
+        <location filename="../src/libsync/propagatorjobs.cpp" line="269"/>
         <source>Error setting pin state</source>
         <translation>Error al configurar el estado fijado</translation>
     </message>
@@ -4427,6 +4471,14 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
     </message>
 </context>
 <context>
+    <name>OCC::UserStatus</name>
+    <message>
+        <location filename="../src/gui/userstatus.cpp" line="79"/>
+        <source>Do not disturb</source>
+        <translation>No molestar</translation>
+    </message>
+</context>
+<context>
     <name>OCC::Vfs</name>
     <message>
         <location filename="../src/common/vfs.cpp" line="82"/>
@@ -4451,6 +4503,11 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
     <name>OCC::WebFlowCredentials</name>
     <message>
         <location filename="../src/gui/creds/webflowcredentials.cpp" line="159"/>
+        <source>You have been logged out of %1 as user %2. Please login again.</source>
+        <translation>Ha sido cerrada la sesión de %1 como usuario %2. Por favor, inicie sesión de nuevo.</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/creds/webflowcredentials.cpp" line="159"/>
         <source>You have been logged out of %1 as user %2. Please login again</source>
         <translation>Has sido desconectado de %1 como el usuario %2. Por favor, vuelve a entrar</translation>
     </message>
@@ -4461,11 +4518,47 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
     </message>
 </context>
 <context>
-    <name>OCC::WebFlowCredentialsDialog</name>
+    <name>OCC::WelcomePage</name>
     <message>
-        <location filename="../src/gui/creds/webflowcredentialsdialog.cpp" line="34"/>
-        <source>Log in</source>
-        <translation>Inicio de sesión</translation>
+        <location filename="../src/gui/wizard/welcomepage.ui" line="20"/>
+        <source>Form</source>
+        <translation>Formulario</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/welcomepage.ui" line="143"/>
+        <location filename="../src/gui/wizard/welcomepage.cpp" line="88"/>
+        <source>Log in to your %1</source>
+        <translation>Inicia sesión en tu %1</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/welcomepage.ui" line="156"/>
+        <source>Create account with Provider</source>
+        <translation>Crear cuenta con Proveedor</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/welcomepage.cpp" line="67"/>
+        <source>Keep your data secure and under your control</source>
+        <translation>Mantén tus datos seguros y bajo tu control</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/welcomepage.cpp" line="68"/>
+        <source>Secure collaboration &amp; file exchange</source>
+        <translation>Colaboración segura e intercambio de archivos</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/welcomepage.cpp" line="69"/>
+        <source>Easy-to-use web mail, calendaring &amp; contacts</source>
+        <translation>Correo web, calendario y contactos fáciles de usar</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/welcomepage.cpp" line="70"/>
+        <source>Screensharing, online meetings &amp; web conferences</source>
+        <translation>Compartir pantalla, reuniones online y conferencias web</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/welcomepage.cpp" line="106"/>
+        <source>Host your own server</source>
+        <translation>Aloja tu propio servidor</translation>
     </message>
 </context>
 <context>
@@ -4712,18 +4805,53 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
     <name>OwncloudAdvancedSetupPage</name>
     <message>
         <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="90"/>
-        <source>S&amp;ynchronize everything from server</source>
-        <translation>S&amp;incronizar todo desde el servidor</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="90"/>
         <source>S&amp;ync everything from server</source>
         <translation>Sincronizar todo desde el servidor</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="121"/>
+        <source>User name</source>
+        <translation>Usuario</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="131"/>
+        <source>Server address</source>
+        <translation>Nombre del servidor</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="148"/>
         <source>Ask for confirmation before synchroni&amp;zing folders larger than</source>
         <translation>Preguntar si se desea sincroni&amp;zar carpetas mayores de</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="174"/>
+        <source>Ask for confirmation before synchronizing e&amp;xternal storages</source>
+        <translation>Preguntar si se desea sincronizar carpetas de almacenamiento e&amp;xterno</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="175"/>
+        <source>Sync Logo</source>
+        <translation>Sync Logo</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="251"/>
+        <source>&amp;Local Folder</source>
+        <translation>Carpeta &amp;local</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="244"/>
+        <source>Local Folder</source>
+        <translation>Carpeta Local</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="408"/>
+        <source>Synchronize everything from server</source>
+        <translation>Sincronizar todo desde el servidor</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="464"/>
+        <source>Ask before syncing folders larger than</source>
+        <translation>Preguntar antes sincronizar carpetas mayores de</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="165"/>
@@ -4732,19 +4860,14 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <translation>MB</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="174"/>
-        <source>Ask for confirmation before synchronizing e&amp;xternal storages</source>
-        <translation>Preguntar si se desea sincronizar carpetas de almacenamiento e&amp;xterno</translation>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="533"/>
+        <source>Ask before syncing external storages</source>
+        <translation>Preguntar antes sincronizar almacenamientos externos</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="198"/>
         <source>Choose what to sync</source>
         <translation>Elija qué sincronizar</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="251"/>
-        <source>&amp;Local Folder</source>
-        <translation>Carpeta &amp;local</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="304"/>
@@ -4757,14 +4880,24 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <translation>&amp;Mantener datos locales</translation>
     </message>
     <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="357"/>
+        <source>Start a &amp;clean sync (Erases the local folder!)</source>
+        <translation>Empezar con una sincronización &amp;limpia (¡Elimina la carpeta local!)</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="714"/>
+        <source>Keep local data</source>
+        <translation>Mantener datos locales</translation>
+    </message>
+    <message>
         <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="354"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this box is checked, existing content in the local folder will be erased to start a clean sync from the server.&lt;/p&gt;&lt;p&gt;Do not check this if the local content should be uploaded to the servers folder.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Si esta casilla está marcada, el contenido existente en el directorio local será eliminado para comenzar una sincronización limpia desde el servidor.&lt;/p&gt;&lt;p&gt;No marque esta casilla si el contenido local debería subirse al directorio del servidor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="357"/>
-        <source>Start a &amp;clean sync (Erases the local folder!)</source>
-        <translation>Empezar con una sincronización &amp;limpia (¡Elimina la carpeta local!)</translation>
+        <location filename="../src/gui/wizard/owncloudadvancedsetuppage.ui" line="733"/>
+        <source>Erase local folder and start a clean sync</source>
+        <translation>Borrar carpeta local e iniciar una sincronización limpia</translation>
     </message>
 </context>
 <context>
@@ -4806,6 +4939,22 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
 <context>
     <name>OwncloudSetupPage</name>
     <message>
+        <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="32"/>
+        <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="353"/>
+        <source>TextLabel</source>
+        <translation>TextLabel</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="73"/>
+        <source>Logo</source>
+        <translation>Logo</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="183"/>
+        <source>Server address</source>
+        <translation>Nombre del servidor</translation>
+    </message>
+    <message>
         <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="194"/>
         <source>Server Address</source>
         <translation>Dirección del servidor</translation>
@@ -4814,6 +4963,11 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="245"/>
         <source>This is the link to your %1 web interface when you open it in the browser.&lt;br/&gt;It looks like https://cloud.example.com or https://example.com/cloud</source>
         <translation>Este es el enlace a la interfaz web de tu %1 cuando la abres en el navegador. &lt;br/&gt;Se parece a https://cloud.ejemplo.com o https://ejemplo.com/cloud</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="259"/>
+        <source>This is the link to your %1 web interface when you open it in the browser.</source>
+        <translation>Este es el link a su interfaz web %1 cuando la abra en el navegador.</translation>
     </message>
     <message>
         <location filename="../src/gui/wizard/owncloudsetupnocredspage.ui" line="343"/>
@@ -4847,7 +5001,7 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../src/gui/foldercreationdialog.cpp" line="38"/>
+        <location filename="../src/gui/foldercreationdialog.cpp" line="41"/>
         <source>New folder</source>
         <translation>Nueva carpeta</translation>
     </message>
@@ -4919,6 +5073,16 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <location filename="../src/gui/tray/UserLine.qml" line="32"/>
         <source>Switch to account</source>
         <translation>Cambiar a la cuenta</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tray/UserLine.qml" line="92"/>
+        <source>Current user status is online</source>
+        <translation>El estado actual del usuario es en línea</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tray/UserLine.qml" line="92"/>
+        <source>Current user status is do not disturb</source>
+        <translation>El estado actual del usuario es no molestar</translation>
     </message>
     <message>
         <location filename="../src/gui/tray/UserLine.qml" line="94"/>
@@ -5095,6 +5259,21 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <translation>Avatar del usuario actual</translation>
     </message>
     <message>
+        <location filename="../src/gui/tray/Window.qml" line="360"/>
+        <source>Current user status is online</source>
+        <translation>El estado actual del usuario es en línea</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tray/Window.qml" line="360"/>
+        <source>Current user status is do not disturb</source>
+        <translation>El estado actual del usuario es no molestar</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/tray/Window.qml" line="422"/>
+        <source>Open local folder of current account</source>
+        <translation>Abrir carpeta local de la cuenta actual</translation>
+    </message>
+    <message>
         <location filename="../src/gui/tray/Window.qml" line="362"/>
         <source>Connected</source>
         <translation>Conectado</translation>
@@ -5103,11 +5282,6 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <location filename="../src/gui/tray/Window.qml" line="362"/>
         <source>Disconnected</source>
         <translation>Desconectado</translation>
-    </message>
-    <message>
-        <location filename="../src/gui/tray/Window.qml" line="422"/>
-        <source>Open local folder of current account</source>
-        <translation>Abrir carpeta local de la cuenta actual</translation>
     </message>
     <message>
         <location filename="../src/gui/tray/Window.qml" line="434"/>
@@ -5437,6 +5611,19 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
     </message>
 </context>
 <context>
+    <name>OCC::Flow2AuthCredsPage</name>
+    <message>
+        <location filename="../src/gui/wizard/flow2authcredspage.cpp" line="36"/>
+        <source>Connect to %1</source>
+        <translation>Conectado a %1</translation>
+    </message>
+    <message>
+        <location filename="../src/gui/wizard/flow2authcredspage.cpp" line="37"/>
+        <source>Login in your browser (Login Flow v2)</source>
+        <translation>Inicia sesión en tu navegador Web (Login Flow v2)</translation>
+    </message>
+</context>
+<context>
     <name>OCC::ShibbolethCredentials</name>
     <message>
         <location filename="../src/gui/creds/shibbolethcredentials.cpp" line="254"/>
@@ -5478,6 +5665,14 @@ Esta es un modo nuevo y experimental. Si decides usarlo, por favor, informa de c
         <location filename="../src/gui/synclogdialog.ui" line="14"/>
         <source>Synchronisation Log</source>
         <translation>Registro de sincronización</translation>
+    </message>
+</context>
+<context>
+    <name>OCC::WebFlowCredentialsDialog</name>
+    <message>
+        <location filename="../src/gui/creds/webflowcredentialsdialog.cpp" line="34"/>
+        <source>Log in</source>
+        <translation>Inicio de sesión</translation>
     </message>
 </context>
 </TS>

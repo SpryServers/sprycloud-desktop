@@ -24,6 +24,7 @@
 #include <QApplication>
 #endif
 #include <QSslSocket>
+#include <QSvgRenderer>
 
 #include "nextcloudtheme.h"
 
@@ -90,6 +91,11 @@ QString Theme::statusHeaderText(SyncResult::Status status) const
     return resultStr;
 }
 
+bool Theme::isBranded() const
+{
+    return appNameGUI() != QStringLiteral("Nextcloud");
+}
+
 QString Theme::appNameGUI() const
 {
     return APPLICATION_NAME;
@@ -121,11 +127,11 @@ QIcon Theme::applicationIcon() const
  * helper to load a icon from either the icon theme the desktop provides or from
  * the apps Qt resources.
  */
-QIcon Theme::themeIcon(const QString &name, bool sysTray, bool sysTrayMenuVisible) const
+QIcon Theme::themeIcon(const QString &name, bool sysTray) const
 {
     QString flavor;
     if (sysTray) {
-        flavor = systrayIconFlavor(_mono, sysTrayMenuVisible);
+        flavor = systrayIconFlavor(_mono);
     } else {
         flavor = QLatin1String("colored");
     }
@@ -138,29 +144,36 @@ QIcon Theme::themeIcon(const QString &name, bool sysTray, bool sysTrayMenuVisibl
             return cached = QIcon::fromTheme(name);
         }
 
-        QList<int> sizes;
-        sizes << 16 << 22 << 32 << 48 << 64 << 128 << 256 << 512 << 1024;
-        foreach (int size, sizes) {
-            QString pixmapName = QString::fromLatin1(":/client/theme/%1/%2-%3.png").arg(flavor).arg(name).arg(size);
-            if (QFile::exists(pixmapName)) {
-                QPixmap px(pixmapName);
-                // HACK, get rid of it by supporting FDO icon themes, this is really just emulating ubuntu-mono
-                if (qgetenv("DESKTOP_SESSION") == "ubuntu") {
-                    QBitmap mask = px.createMaskFromColor(Qt::white, Qt::MaskOutColor);
-                    QPainter p(&px);
-                    p.setPen(QColor("#dfdbd2"));
-                    p.drawPixmap(px.rect(), mask, mask.rect());
-                }
-                cached.addPixmap(px);
+        const auto svgName = QString::fromLatin1(":/client/theme/%1/%2.svg").arg(flavor).arg(name);
+        QSvgRenderer renderer(svgName);
+        const auto createPixmapFromSvg = [&renderer] (int size) {
+            QImage img(size, size, QImage::Format_ARGB32);
+            img.fill(Qt::GlobalColor::transparent);
+            QPainter imgPainter(&img);
+            renderer.render(&imgPainter);
+            return QPixmap::fromImage(img);
+        };
+
+        const auto loadPixmap = [flavor, name] (int size) {
+            const auto pixmapName = QString::fromLatin1(":/client/theme/%1/%2-%3.png").arg(flavor).arg(name).arg(size);
+            return QPixmap(pixmapName);
+        };
+
+        const auto sizes = isBranded() ? QVector<int>{ 16, 22, 32, 48, 64, 128, 256, 512, 1024 }
+                                       : QVector<int>{ 16, 32, 64, 128, 256 };
+        for (int size : sizes) {
+            auto px = isBranded() ? loadPixmap(size) : createPixmapFromSvg(size);
+            if (px.isNull()) {
+                continue;
             }
-        }
-        if (cached.isNull()) {
-            foreach (int size, sizes) {
-                QString pixmapName = QString::fromLatin1(":/client/resources/%1-%2.png").arg(name).arg(size);
-                if (QFile::exists(pixmapName)) {
-                    cached.addFile(pixmapName);
-                }
+            // HACK, get rid of it by supporting FDO icon themes, this is really just emulating ubuntu-mono
+            if (qgetenv("DESKTOP_SESSION") == "ubuntu") {
+                QBitmap mask = px.createMaskFromColor(Qt::white, Qt::MaskOutColor);
+                QPainter p(&px);
+                p.setPen(QColor("#dfdbd2"));
+                p.drawPixmap(px.rect(), mask, mask.rect());
             }
+            cached.addPixmap(px);
         }
     }
 
@@ -168,7 +181,7 @@ QIcon Theme::themeIcon(const QString &name, bool sysTray, bool sysTrayMenuVisibl
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     // This defines the icon as a template and enables automatic macOS color handling
     // See https://bugreports.qt.io/browse/QTBUG-42109
-    cached.setIsMask(_mono && sysTray && !sysTrayMenuVisible);
+    cached.setIsMask(_mono && sysTray);
 #endif
 #endif
 
@@ -208,7 +221,6 @@ QString Theme::hidpiFileName(const QString &fileName, QPaintDevice *dev)
 
 Theme::Theme()
     : QObject(nullptr)
-    , _mono(false)
 {
 }
 
@@ -257,6 +269,15 @@ QString Theme::overrideServerUrl() const
 #endif
 }
 
+bool Theme::forceOverrideServerUrl() const
+{
+#ifdef APPLICATION_SERVER_URL_ENFORCE
+    return true;
+#else
+    return false;
+#endif
+}
+
 QString Theme::forceConfigAuthType() const
 {
     return QString();
@@ -268,18 +289,11 @@ QString Theme::defaultClientFolder() const
     return appName();
 }
 
-QString Theme::systrayIconFlavor(bool mono, bool sysTrayMenuVisible) const
+QString Theme::systrayIconFlavor(bool mono) const
 {
-    Q_UNUSED(sysTrayMenuVisible)
     QString flavor;
     if (mono) {
         flavor = Utility::hasDarkSystray() ? QLatin1String("white") : QLatin1String("black");
-
-#ifdef Q_OS_MAC
-        if (sysTrayMenuVisible) {
-            flavor = QLatin1String("white");
-        }
-#endif
     } else {
         flavor = QLatin1String("colored");
     }
@@ -411,7 +425,7 @@ QVariant Theme::customMedia(CustomMediaType type)
     return re;
 }
 
-QIcon Theme::syncStateIcon(SyncResult::Status status, bool sysTray, bool sysTrayMenuVisible) const
+QIcon Theme::syncStateIcon(SyncResult::Status status, bool sysTray) const
 {
     // FIXME: Mind the size!
     QString statusIcon;
@@ -443,7 +457,7 @@ QIcon Theme::syncStateIcon(SyncResult::Status status, bool sysTray, bool sysTray
         statusIcon = QLatin1String("state-error");
     }
 
-    return themeIcon(statusIcon, sysTray, sysTrayMenuVisible);
+    return themeIcon(statusIcon, sysTray);
 }
 
 QIcon Theme::folderDisabledIcon() const
@@ -451,9 +465,9 @@ QIcon Theme::folderDisabledIcon() const
     return themeIcon(QLatin1String("state-pause"));
 }
 
-QIcon Theme::folderOfflineIcon(bool sysTray, bool sysTrayMenuVisible) const
+QIcon Theme::folderOfflineIcon(bool sysTray) const
 {
-    return themeIcon(QLatin1String("state-offline"), sysTray, sysTrayMenuVisible);
+    return themeIcon(QLatin1String("state-offline"), sysTray);
 }
 
 QColor Theme::wizardHeaderTitleColor() const
@@ -620,8 +634,17 @@ void Theme::replaceLinkColorString(QString &linkString, const QColor &newColor)
 
 QIcon Theme::createColorAwareIcon(const QString &name, const QPalette &palette)
 {
-    QImage img(name);
-    QImage inverted(img);
+    QSvgRenderer renderer(name);
+    QImage img(64, 64, QImage::Format_ARGB32);
+    img.fill(Qt::GlobalColor::transparent);
+    QPainter imgPainter(&img);
+    QImage inverted(64, 64, QImage::Format_ARGB32);
+    inverted.fill(Qt::GlobalColor::transparent);
+    QPainter invPainter(&inverted);
+
+    renderer.render(&imgPainter);
+    renderer.render(&invPainter);
+
     inverted.invertPixels(QImage::InvertRgb);
 
     QIcon icon;

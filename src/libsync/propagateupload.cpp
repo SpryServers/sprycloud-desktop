@@ -164,6 +164,48 @@ bool PollJob::finished()
     return true;
 }
 
+PropagateUploadFileCommon::PropagateUploadFileCommon(OwncloudPropagator *propagator, const SyncFileItemPtr &item)
+    : PropagateItemJob(propagator, item)
+    , _finished(false)
+    , _deleteExisting(false)
+    , _parallelism(FullParallelism)
+    , _uploadEncryptedHelper(nullptr)
+    , _uploadingEncrypted(false)
+{
+    const auto rootPath = [=]() {
+        const auto result = propagator->_remoteFolder;
+        if (result.startsWith('/')) {
+            return result.mid(1);
+        } else {
+            return result;
+        }
+    }();
+    const auto path = _item->_file;
+    const auto slashPosition = path.lastIndexOf('/');
+    const auto parentPath = slashPosition >= 0 ? path.left(slashPosition) : QString();
+
+    SyncJournalFileRecord parentRec;
+    bool ok = propagator->_journal->getFileRecord(parentPath, &parentRec);
+    if (!ok) {
+        done(SyncFileItem::NormalError);
+        return;
+    }
+
+    const auto remoteParentPath = parentRec._e2eMangledName.isEmpty() ? parentPath : parentRec._e2eMangledName;
+    const auto absoluteRemoteParentPath = remoteParentPath.isEmpty() ? rootPath : rootPath + remoteParentPath + '/';
+    const auto account = propagator->account();
+
+    if (account->capabilities().clientSideEncryptionAvailable() &&
+        account->e2e()->isFolderEncrypted(absoluteRemoteParentPath)) {
+        _parallelism = WaitForFinished;
+    }
+}
+
+PropagatorJob::JobParallelism PropagateUploadFileCommon::parallelism()
+{
+    return _parallelism;
+}
+
 void PropagateUploadFileCommon::setDeleteExisting(bool enabled)
 {
     _deleteExisting = enabled;
@@ -171,18 +213,43 @@ void PropagateUploadFileCommon::setDeleteExisting(bool enabled)
 
 void PropagateUploadFileCommon::start()
 {
-    if (propagator()->account()->capabilities().clientSideEncryptionAvaliable()) {
-      _uploadEncryptedHelper = new PropagateUploadEncrypted(propagator(), _item);
-      connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::folerNotEncrypted,
-        this, &PropagateUploadFileCommon::setupUnencryptedFile);
-      connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::finalized,
-        this, &PropagateUploadFileCommon::setupEncryptedFile);
-      connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::error,
-        []{ qCDebug(lcPropagateUpload) << "Error setting up encryption."; });
-      _uploadEncryptedHelper->start();
-   } else {
-      setupUnencryptedFile();
+    const auto rootPath = [=]() {
+        const auto result = propagator()->_remoteFolder;
+        if (result.startsWith('/')) {
+            return result.mid(1);
+        } else {
+            return result;
+        }
+    }();
+    const auto path = _item->_file;
+    const auto slashPosition = path.lastIndexOf('/');
+    const auto parentPath = slashPosition >= 0 ? path.left(slashPosition) : QString();
+
+    SyncJournalFileRecord parentRec;
+    bool ok = propagator()->_journal->getFileRecord(parentPath, &parentRec);
+    if (!ok) {
+        done(SyncFileItem::NormalError);
+        return;
     }
+
+    const auto remoteParentPath = parentRec._e2eMangledName.isEmpty() ? parentPath : parentRec._e2eMangledName;
+    const auto absoluteRemoteParentPath = remoteParentPath.isEmpty() ? rootPath : rootPath + remoteParentPath + '/';
+    const auto account = propagator()->account();
+
+    if (!account->capabilities().clientSideEncryptionAvailable() ||
+        !account->e2e()->isFolderEncrypted(absoluteRemoteParentPath)) {
+        setupUnencryptedFile();
+        return;
+    }
+
+    _uploadEncryptedHelper = new PropagateUploadEncrypted(propagator(), remoteParentPath, _item, this);
+    connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::folderNotEncrypted,
+            this, &PropagateUploadFileCommon::setupUnencryptedFile);
+    connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::finalized,
+            this, &PropagateUploadFileCommon::setupEncryptedFile);
+    connect(_uploadEncryptedHelper, &PropagateUploadEncrypted::error,
+            []{ qCDebug(lcPropagateUpload) << "Error setting up encryption."; });
+    _uploadEncryptedHelper->start();
 }
 
 void PropagateUploadFileCommon::setupEncryptedFile(const QString& path, const QString& filename, quint64 size)
@@ -509,7 +576,7 @@ void UploadDevice::setChoked(bool b)
 
 void PropagateUploadFileCommon::startPollJob(const QString &path)
 {
-    PollJob *job = new PollJob(propagator()->account(), path, _item,
+    auto *job = new PollJob(propagator()->account(), path, _item,
         propagator()->_journal, propagator()->_localDir, this);
     connect(job, &PollJob::finishedSignal, this, &PropagateUploadFileCommon::slotPollFinished);
     SyncJournalDb::PollInfo info;
@@ -524,7 +591,7 @@ void PropagateUploadFileCommon::startPollJob(const QString &path)
 
 void PropagateUploadFileCommon::slotPollFinished()
 {
-    PollJob *job = qobject_cast<PollJob *>(sender());
+    auto *job = qobject_cast<PollJob *>(sender());
     ASSERT(job);
 
     propagator()->_activeJobList.removeOne(this);
@@ -666,6 +733,10 @@ QMap<QByteArray, QByteArray> PropagateUploadFileCommon::headers()
             headers["OC-ConflictBaseMtime"] = QByteArray::number(conflictRecord.baseModtime);
         if (!conflictRecord.baseEtag.isEmpty())
             headers["OC-ConflictBaseEtag"] = conflictRecord.baseEtag;
+    }
+
+    if (_uploadEncryptedHelper && !_uploadEncryptedHelper->_folderToken.isEmpty()) {
+        headers.insert("e2e-token", _uploadEncryptedHelper->_folderToken);
     }
 
     return headers;

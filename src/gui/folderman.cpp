@@ -47,11 +47,8 @@ FolderMan *FolderMan::_instance = nullptr;
 
 FolderMan::FolderMan(QObject *parent)
     : QObject(parent)
-    , _currentSyncFolder(nullptr)
-    , _syncEnabled(true)
     , _lockWatcher(new LockWatcher)
     , _navigationPaneHelper(this)
-    , _appRestartRequired(false)
 {
     ASSERT(!_instance);
     _instance = this;
@@ -208,6 +205,41 @@ void FolderMan::setupFoldersHelper(QSettings &settings, AccountStatePtr account,
             // Migration: Old settings don't have journalPath
             if (folderDefinition.journalPath.isEmpty()) {
                 folderDefinition.journalPath = defaultJournalPath;
+            }
+
+            // Migration #2: journalPath now in DataAppDir, not root of local tree (cross-platform persistent user roaming files)
+            if (folderDefinition.journalPath.at(0) == QChar('.')) {
+                QFile oldJournal(folderDefinition.localPath + "/" + folderDefinition.journalPath);
+                QFile oldJournalShm(folderDefinition.localPath + "/" + folderDefinition.journalPath.append("-shm"));
+                QFile oldJournalWal(folderDefinition.localPath + "/" + folderDefinition.journalPath.append("-wal"));
+
+                folderDefinition.journalPath = defaultJournalPath;
+
+                socketApi()->slotUnregisterPath(folderAlias);
+                auto settings = account->settings();
+
+                auto journalFileMoveSuccess = true;
+                // Due to db logic can't be sure which of these file exist.
+                if (oldJournal.exists()) {
+                    journalFileMoveSuccess &= oldJournal.rename(folderDefinition.journalPath);
+                }
+                if (oldJournalShm.exists()) {
+                    journalFileMoveSuccess &= oldJournalShm.rename(folderDefinition.journalPath.append("-shm"));
+                }
+                if (oldJournalWal.exists()) {
+                    journalFileMoveSuccess &= oldJournalWal.rename(folderDefinition.journalPath.append("-wal"));
+                }
+
+                if (!journalFileMoveSuccess) {
+                    qCWarning(lcFolderMan) << "Wasn't able to move pre-2.7 syncjournal database files to new location. One-time loss off sync settings possible.";
+                } else {
+                    qCInfo(lcFolderMan) << "Successfully migrated syncjournal database.";
+                }
+
+                Folder *f = addFolderInternal(folderDefinition, account.data());
+                f->saveToSettings();
+
+                continue;
             }
 
             // Migration: ._ files sometimes don't work
@@ -442,7 +474,7 @@ void FolderMan::slotFolderSyncPaused(Folder *f, bool paused)
 
 void FolderMan::slotFolderCanSyncChanged()
 {
-    Folder *f = qobject_cast<Folder *>(sender());
+    auto *f = qobject_cast<Folder *>(sender());
      ASSERT(f);
     if (f->canSync()) {
         _socketApi->slotRegisterPath(f->alias());
@@ -587,7 +619,7 @@ void FolderMan::slotRunOneEtagJob()
 
 void FolderMan::slotAccountStateChanged()
 {
-    AccountState *accountState = qobject_cast<AccountState *>(sender());
+    auto *accountState = qobject_cast<AccountState *>(sender());
     if (!accountState) {
         return;
     }
@@ -769,7 +801,7 @@ void FolderMan::slotRemoveFoldersForAccount(AccountState *accountState)
 
 void FolderMan::slotForwardFolderSyncStateChange()
 {
-    if (Folder *f = qobject_cast<Folder *>(sender())) {
+    if (auto *f = qobject_cast<Folder *>(sender())) {
         emit folderSyncStateChange(f);
     }
 }
@@ -912,6 +944,11 @@ Folder *FolderMan::addFolderInternal(FolderDefinition folderDefinition,
     }
 
     auto folder = new Folder(folderDefinition, accountState, this);
+
+    if (_navigationPaneHelper.showInExplorerNavigationPane() && folderDefinition.navigationPaneClsid.isNull()) {
+        folder->setNavigationPaneClsid(QUuid::createUuid());
+        folder->saveToSettings();
+    }
 
     qCInfo(lcFolderMan) << "Adding folder to Folder Map " << folder << folder->alias();
     _folderMap[folder->alias()] = folder;
@@ -1357,7 +1394,7 @@ QString FolderMan::checkPathValidityForNewFolder(const QString &path, const QUrl
 
     const QString userDir = QDir::cleanPath(canonicalPath(path)) + '/';
     for (auto i = _folderMap.constBegin(); i != _folderMap.constEnd(); ++i) {
-        Folder *f = static_cast<Folder *>(i.value());
+        auto *f = static_cast<Folder *>(i.value());
         QString folderDir = QDir::cleanPath(canonicalPath(f->path())) + '/';
 
         bool differentPaths = QString::compare(folderDir, userDir, cs) != 0;

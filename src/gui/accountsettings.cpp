@@ -33,7 +33,7 @@
 #include "creds/httpcredentialsgui.h"
 #include "tooltipupdater.h"
 #include "filesystem.h"
-#include "clientsideencryptionjobs.h"
+#include "encryptfolderjob.h"
 #include "syncresult.h"
 #include "ignorelisttablewidget.h"
 
@@ -120,7 +120,7 @@ AccountSettings::AccountSettings(AccountState *accountState, QWidget *parent)
     _model = new FolderStatusModel;
     _model->setAccountState(_accountState);
     _model->setParent(this);
-    FolderStatusDelegate *delegate = new FolderStatusDelegate;
+    auto *delegate = new FolderStatusDelegate;
     delegate->setParent(this);
 
     // Connect styleChanged events to our widgets, so they can adapt (Dark-/Light-Mode switching)
@@ -143,9 +143,6 @@ AccountSettings::AccountSettings(AccountState *accountState, QWidget *parent)
     _ui->_folderList->setAttribute(Qt::WA_Hover, true);
     _ui->_folderList->installEventFilter(mouseCursorChanger);
 
-    createAccountToolbox();
-    connect(AccountManager::instance(), &AccountManager::accountAdded,
-        this, &AccountSettings::slotAccountAdded);
     connect(this, &AccountSettings::removeAccountFolders,
             AccountManager::instance(), &AccountManager::removeAccountFolders);
     connect(_ui->_folderList, &QWidget::customContextMenuRequested,
@@ -162,12 +159,12 @@ AccountSettings::AccountSettings(AccountState *accountState, QWidget *parent)
     connect(_model, &QAbstractItemModel::rowsInserted,
         this, &AccountSettings::refreshSelectiveSyncStatus);
 
-    QAction *syncNowAction = new QAction(this);
+    auto *syncNowAction = new QAction(this);
     syncNowAction->setShortcut(QKeySequence(Qt::Key_F6));
     connect(syncNowAction, &QAction::triggered, this, &AccountSettings::slotScheduleCurrentFolder);
     addAction(syncNowAction);
 
-    QAction *syncNowWithRemoteDiscovery = new QAction(this);
+    auto *syncNowWithRemoteDiscovery = new QAction(this);
     syncNowWithRemoteDiscovery->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_F6));
     connect(syncNowWithRemoteDiscovery, &QAction::triggered, this, &AccountSettings::slotScheduleCurrentFolderForceRemoteDiscovery);
     addAction(syncNowWithRemoteDiscovery);
@@ -200,40 +197,21 @@ AccountSettings::AccountSettings(AccountState *accountState, QWidget *parent)
     connect(_accountState->account()->e2e(), &ClientSideEncryption::showMnemonic, this, &AccountSettings::slotShowMnemonic);
 
     connect(_accountState->account()->e2e(), &ClientSideEncryption::mnemonicGenerated, this, &AccountSettings::slotNewMnemonicGenerated);
-    if (_accountState->account()->e2e()->newMnemonicGenerated())
-    {
+    if (_accountState->account()->e2e()->newMnemonicGenerated()) {
         slotNewMnemonicGenerated();
     } else {
+        _ui->encryptionMessage->setText(tr("This account supports end-to-end encryption"));
+
+        auto *mnemonic = new QAction(tr("Display mnemonic"), this);
+        connect(mnemonic, &QAction::triggered, this, &AccountSettings::requesetMnemonic);
+        _ui->encryptionMessage->addAction(mnemonic);
         _ui->encryptionMessage->hide();
     }
 
+    connect(UserModel::instance(), &UserModel::addAccount,
+         this, &AccountSettings::slotOpenAccountWizard);
+
     customizeStyle();
-}
-
-
-void AccountSettings::createAccountToolbox()
-{
-    QMenu *menu = new QMenu();
-
-    connect(menu, &QMenu::aboutToShow, this, &AccountSettings::slotMenuBeforeShow);
-
-    _addAccountAction = new QAction(tr("Add new"), this);
-    menu->addAction(_addAccountAction);
-    connect(_addAccountAction, &QAction::triggered, this, &AccountSettings::slotOpenAccountWizard);
-
-    _toggleSignInOutAction = new QAction(tr("Log out"), this);
-    connect(_toggleSignInOutAction, &QAction::triggered, this, &AccountSettings::slotToggleSignInState);
-    menu->addAction(_toggleSignInOutAction);
-
-    QAction *action = new QAction(tr("Remove"), this);
-    menu->addAction(action);
-    connect(action, &QAction::triggered, this, &AccountSettings::slotDeleteAccount);
-
-    _ui->_accountToolbox->setText(tr("Account") + QLatin1Char(' '));
-    _ui->_accountToolbox->setMenu(menu);
-    _ui->_accountToolbox->setPopupMode(QToolButton::InstantPopup);
-
-    slotAccountAdded(_accountState);
 }
 
 
@@ -241,7 +219,7 @@ void AccountSettings::slotNewMnemonicGenerated()
 {
     _ui->encryptionMessage->setText(tr("This account supports end-to-end encryption"));
 
-    QAction *mnemonic = new QAction(tr("Enable encryption"), this);
+    auto *mnemonic = new QAction(tr("Enable encryption"), this);
     connect(mnemonic, &QAction::triggered, this, &AccountSettings::requesetMnemonic);
     connect(mnemonic, &QAction::triggered, _ui->encryptionMessage, &KMessageWidget::hide);
 
@@ -249,23 +227,16 @@ void AccountSettings::slotNewMnemonicGenerated()
     _ui->encryptionMessage->show();
 }
 
-void AccountSettings::slotMenuBeforeShow() {
-    if (_menuShown) {
-        return;
+void AccountSettings::slotEncryptFolderFinished(int status)
+{
+    qCInfo(lcAccountSettings) << "Current folder encryption status code:" << status;
+    auto job = qobject_cast<EncryptFolderJob*>(sender());
+    Q_ASSERT(job);
+    if (!job->errorString().isEmpty()) {
+        QMessageBox::warning(nullptr, tr("Warning"), job->errorString());
     }
-
-    auto menu = _ui->_accountToolbox->menu();
-
-    // We can't check this during the initial creation as there is no account yet then
-    if (_accountState->account()->capabilities().clientSideEncryptionAvaliable()) {
-        QAction *mnemonic = new QAction(tr("Show E2E mnemonic"), this);
-        connect(mnemonic, &QAction::triggered, this, &AccountSettings::requesetMnemonic);
-        menu->addAction(mnemonic);
-    }
-
-    _menuShown = true;
+    job->deleteLater();
 }
-
 
 QString AccountSettings::selectedFolderAlias() const
 {
@@ -305,98 +276,6 @@ void AccountSettings::slotShowMnemonic(const QString &mnemonic) {
     AccountManager::instance()->displayMnemonic(mnemonic);
 }
 
-void AccountSettings::slotEncryptionFlagSuccess(const QByteArray& fileId)
-{
-    if (auto info = _model->infoForFileId(fileId)) {
-      accountsState()->account()->e2e()->setFolderEncryptedStatus(info->_path, true);
-    } else {
-      qCInfo(lcAccountSettings()) << "Could not get information from the current folder.";
-    }
-    auto lockJob = new LockEncryptFolderApiJob(accountsState()->account(), fileId);
-    connect(lockJob, &LockEncryptFolderApiJob::success,
-            this, &AccountSettings::slotLockForEncryptionSuccess);
-    connect(lockJob, &LockEncryptFolderApiJob::error,
-            this, &AccountSettings::slotLockForEncryptionError);
-    lockJob->start();
-}
-
-void AccountSettings::slotEncryptionFlagError(const QByteArray& fileId, int httpErrorCode)
-{
-    Q_UNUSED(fileId);
-    Q_UNUSED(httpErrorCode);
-    qDebug() << "Error on the encryption flag";
-}
-
-void AccountSettings::slotLockForEncryptionSuccess(const QByteArray& fileId, const QByteArray &token)
-{
-        accountsState()->account()->e2e()->setTokenForFolder(fileId, token);
-
-        FolderMetadata emptyMetadata(accountsState()->account());
-    auto encryptedMetadata = emptyMetadata.encryptedMetadata();
-    if (encryptedMetadata.isEmpty()) {
-      //TODO: Mark the folder as unencrypted as the metadata generation failed.
-      QMessageBox::warning(nullptr, "Warning",
-          "Could not generate the metadata for encryption, Unlocking the folder. \n"
-          "This can be an issue with your OpenSSL libraries, please note that OpenSSL 1.1 is \n"
-          "not compatible with Nextcloud yet."
-      );
-      return;
-    }
-    auto storeMetadataJob = new StoreMetaDataApiJob(accountsState()->account(), fileId, emptyMetadata.encryptedMetadata());
-        connect(storeMetadataJob, &StoreMetaDataApiJob::success,
-                        this, &AccountSettings::slotUploadMetadataSuccess);
-        connect(storeMetadataJob, &StoreMetaDataApiJob::error,
-                        this, &AccountSettings::slotUpdateMetadataError);
-
-        storeMetadataJob->start();
-}
-
-void AccountSettings::slotUploadMetadataSuccess(const QByteArray& folderId)
-{
-    const auto token = accountsState()->account()->e2e()->tokenForFolder(folderId);
-    auto unlockJob = new UnlockEncryptFolderApiJob(accountsState()->account(), folderId, token);
-    connect(unlockJob, &UnlockEncryptFolderApiJob::success,
-                    this, &AccountSettings::slotUnlockFolderSuccess);
-    connect(unlockJob, &UnlockEncryptFolderApiJob::error,
-                    this, &AccountSettings::slotUnlockFolderError);
-    unlockJob->start();
-}
-
-void AccountSettings::slotUpdateMetadataError(const QByteArray& folderId, int httpReturnCode)
-{
-    Q_UNUSED(httpReturnCode);
-
-    const auto token = accountsState()->account()->e2e()->tokenForFolder(folderId);
-    auto unlockJob = new UnlockEncryptFolderApiJob(accountsState()->account(), folderId, token);
-    connect(unlockJob, &UnlockEncryptFolderApiJob::success,
-                    this, &AccountSettings::slotUnlockFolderSuccess);
-    connect(unlockJob, &UnlockEncryptFolderApiJob::error,
-                    this, &AccountSettings::slotUnlockFolderError);
-    unlockJob->start();
-}
-
-void AccountSettings::slotLockForEncryptionError(const QByteArray& fileId, int httpErrorCode)
-{
-    Q_UNUSED(fileId);
-    Q_UNUSED(httpErrorCode);
-
-    qCInfo(lcAccountSettings()) << "Locking error" << httpErrorCode;
-}
-
-void AccountSettings::slotUnlockFolderError(const QByteArray& fileId, int httpErrorCode)
-{
-    Q_UNUSED(fileId);
-    Q_UNUSED(httpErrorCode);
-
-    qCInfo(lcAccountSettings()) << "Unlocking error!";
-}
-void AccountSettings::slotUnlockFolderSuccess(const QByteArray& fileId)
-{
-    Q_UNUSED(fileId);
-
-    qCInfo(lcAccountSettings()) << "Unlocking success!";
-}
-
 bool AccountSettings::canEncryptOrDecrypt (const FolderStatusModel::SubFolderInfo* info) {
     if (info->_folder->syncResult().status() != SyncResult::Status::Success) {
         QMessageBox msgBox;
@@ -411,8 +290,8 @@ bool AccountSettings::canEncryptOrDecrypt (const FolderStatusModel::SubFolderInf
 
     if (folderPath.count() != 0) {
         QMessageBox msgBox;
-        msgBox.setText("You cannot encyrpt a folder with contents, please remove the files \n"
-                       "Wait for the new sync, then encrypt it.");
+        msgBox.setText(tr("You cannot encrypt a folder with contents, please remove the files.\n"
+                       "Wait for the new sync, then encrypt it."));
         msgBox.exec();
         return false;
     }
@@ -425,115 +304,9 @@ void AccountSettings::slotMarkSubfolderEncrypted(const FolderStatusModel::SubFol
         return;
     }
 
-    auto job = new OCC::SetEncryptionFlagApiJob(accountsState()->account(),  folderInfo->_fileId);
-    connect(job, &OCC::SetEncryptionFlagApiJob::success, this, &AccountSettings::slotEncryptionFlagSuccess);
-    connect(job, &OCC::SetEncryptionFlagApiJob::error, this, &AccountSettings::slotEncryptionFlagError);
+    auto job = new OCC::EncryptFolderJob(accountsState()->account(), folderInfo->_path, folderInfo->_fileId, this);
+    connect(job, &OCC::EncryptFolderJob::finished, this, &AccountSettings::slotEncryptFolderFinished);
     job->start();
-}
-
-
-// Order:
-// 1 - Lock folder,
-// 2 - Delete Metadata,
-// 3 - Unlock Folder,
-// 4 - Mark as Decrypted.
-
-
-void AccountSettings::slotMarkSubfolderDecrypted(const FolderStatusModel::SubFolderInfo* folderInfo)
-{
-    if (!canEncryptOrDecrypt(folderInfo)) {
-        return;
-    }
-
-  qDebug() << "Starting to mark as decrypted";
-  qDebug() << "Locking the folder";
-  auto lockJob = new LockEncryptFolderApiJob(accountsState()->account(), folderInfo->_fileId);
-  connect(lockJob, &LockEncryptFolderApiJob::success,
-          this, &AccountSettings::slotLockForDecryptionSuccess);
-  connect(lockJob, &LockEncryptFolderApiJob::error,
-          this, &AccountSettings::slotLockForDecryptionError);
-  lockJob->start();
-}
-
-void AccountSettings::slotLockForDecryptionSuccess(const QByteArray& fileId, const QByteArray& token)
-{
-  qDebug() << "Locking success, trying to delete the metadata";
-  accountsState()->account()->e2e()->setTokenForFolder(fileId, token);
-  auto job = new DeleteMetadataApiJob(accountsState()->account(), fileId);
-  connect(job, &DeleteMetadataApiJob::success,
-          this, &AccountSettings::slotDeleteMetadataSuccess);
-  connect(job, &DeleteMetadataApiJob::error,
-          this, &AccountSettings::slotDeleteMetadataError);
-  job->start();
-}
-
-void AccountSettings::slotDeleteMetadataSuccess(const QByteArray& fileId)
-{
-  qDebug() << "Metadata successfully deleted, unlocking the folder";
-  auto token = accountsState()->account()->e2e()->tokenForFolder(fileId);
-  auto job = new UnlockEncryptFolderApiJob(accountsState()->account(), fileId, token);
-  connect(job, &UnlockEncryptFolderApiJob::success,
-          this, &AccountSettings::slotUnlockForDecryptionSuccess);
-  connect(job, &UnlockEncryptFolderApiJob::error,
-          this, &AccountSettings::slotUnlockForDecryptionError);
-  job->start();
-}
-
-void AccountSettings::slotUnlockForDecryptionSuccess(const QByteArray& fileId)
-{
-  qDebug() << "Unlocked the folder successfully, removing the encrypted bit.";
-  auto job = new OCC::DeleteApiJob(accountsState()->account(),
-      "ocs/v2.php/apps/end_to_end_encryption/api/v1/encrypted/" + QString(fileId));
-
-  // This Delete ApiJob is different than all other jobs used here, sigh.
-  connect(job, &OCC::DeleteApiJob::result, [this, &fileId](int httpResponse) {
-      if (httpResponse == 200) {
-          slotDecryptionFlagSuccess(fileId);
-      } else {
-          slotDecryptionFlagError(fileId, httpResponse);
-      }
-  });
-  job->start();
-}
-
-void AccountSettings::slotDecryptionFlagSuccess(const QByteArray& fileId)
-{
-    if (auto info = _model->infoForFileId(fileId)) {
-        accountsState()->account()->e2e()->setFolderEncryptedStatus(info->_path, false);
-    } else {
-        qCInfo(lcAccountSettings()) << "Could not get information for the current path.";
-    }
-}
-
-void AccountSettings::slotDecryptionFlagError(const QByteArray& fileId, int httpReturnCode)
-{
-    Q_UNUSED(fileId);
-    Q_UNUSED(httpReturnCode);
-
-    qDebug() << "Error Setting the Decryption Flag";
-}
-
-void AccountSettings::slotUnlockForDecryptionError(const QByteArray& fileId, int httpReturnCode)
-{
-    Q_UNUSED(fileId);
-    Q_UNUSED(httpReturnCode);
-
-    qDebug() << "Error unlocking folder after decryption";
-}
-
-void AccountSettings::slotDeleteMetadataError(const QByteArray& fileId, int httpReturnCode)
-{
-    Q_UNUSED(fileId);
-    Q_UNUSED(httpReturnCode);
-
-    qDebug() << "Error deleting the metadata";
-}
-void AccountSettings::slotLockForDecryptionError(const QByteArray& fileId, int httpReturnCode)
-{
-    Q_UNUSED(fileId);
-    Q_UNUSED(httpReturnCode);
-
-    qDebug() << "Error Locking for decryption";
 }
 
 void AccountSettings::slotEditCurrentIgnoredFiles()
@@ -596,14 +369,15 @@ void AccountSettings::slotSubfolderContextMenuRequested(const QModelIndex& index
     auto info   = _model->infoForIndex(index);
     auto acc = _accountState->account();
 
-    if (acc->capabilities().clientSideEncryptionAvaliable()) {
+    if (acc->capabilities().clientSideEncryptionAvailable()) {
         // Verify if the folder is empty before attempting to encrypt.
 
         bool isEncrypted = acc->e2e()->isFolderEncrypted(info->_path);
+        bool isParentEncrypted = acc->e2e()->isAnyParentFolderEncrypted(info->_path);
 
-        if (!isEncrypted) {
+        if (!isEncrypted && !isParentEncrypted) {
             ac = menu.addAction(tr("Encrypt"));
-            connect(ac, &QAction::triggered, [this, &info] { slotMarkSubfolderEncrypted(info); });
+            connect(ac, &QAction::triggered, [this, info] { slotMarkSubfolderEncrypted(info); });
         } else {
             // Ingore decrypting for now since it only works with an empty folder
             // connect(ac, &QAction::triggered, [this, &info] { slotMarkSubfolderDecrypted(info); });
@@ -639,7 +413,7 @@ void AccountSettings::slotCustomContextMenuRequested(const QPoint &pos)
     bool folderConnected = _model->data(index, FolderStatusDelegate::FolderAccountConnected).toBool();
     auto folderMan = FolderMan::instance();
 
-    QMenu *menu = new QMenu(tv);
+    auto *menu = new QMenu(tv);
 
     menu->setAttribute(Qt::WA_DeleteOnClose);
 
@@ -712,7 +486,7 @@ void AccountSettings::slotAddFolder()
     FolderMan *folderMan = FolderMan::instance();
     folderMan->setSyncEnabled(false); // do not start more syncs.
 
-    FolderWizard *folderWizard = new FolderWizard(_accountState->account(), this);
+    auto *folderWizard = new FolderWizard(_accountState->account(), this);
 
     connect(folderWizard, &QDialog::accepted, this, &AccountSettings::slotFolderWizardAccepted);
     connect(folderWizard, &QDialog::rejected, this, &AccountSettings::slotFolderWizardRejected);
@@ -722,7 +496,7 @@ void AccountSettings::slotAddFolder()
 
 void AccountSettings::slotFolderWizardAccepted()
 {
-    FolderWizard *folderWizard = qobject_cast<FolderWizard *>(sender());
+    auto *folderWizard = qobject_cast<FolderWizard *>(sender());
     FolderMan *folderMan = FolderMan::instance();
 
     qCInfo(lcAccountSettings) << "Folder wizard completed";
@@ -1046,7 +820,7 @@ void AccountSettings::slotAccountStateChanged()
 
     if (state != AccountState::Connected) {
         /* check if there are expanded root items, if so, close them */
-        int i;
+        int i = 0;
         for (i = 0; i < _model->rowCount(); ++i) {
             if (_ui->_folderList->isExpanded(_model->index(i)))
                 _ui->_folderList->setExpanded(_model->index(i), false);
@@ -1060,22 +834,17 @@ void AccountSettings::slotAccountStateChanged()
     // sync user interface buttons.
     refreshSelectiveSyncStatus();
 
-    /* set the correct label for the Account toolbox button */
-    if (_accountState) {
-        if (_accountState->isSignedOut()) {
-            _toggleSignInOutAction->setText(tr("Log in"));
-        } else {
-            _toggleSignInOutAction->setText(tr("Log out"));
-        }
-    }
-
     if (state == AccountState::State::Connected) {
         /* TODO: We should probably do something better here.
          * Verify if the user has a private key already uploaded to the server,
          * if it has, do not offer to create one.
          */
-        qCInfo(lcAccountSettings) << "Accout" << accountsState()->account()->displayName()
-            << "Client Side Encryption" << accountsState()->account()->capabilities().clientSideEncryptionAvaliable();
+        qCInfo(lcAccountSettings) << "Account" << accountsState()->account()->displayName()
+            << "Client Side Encryption" << accountsState()->account()->capabilities().clientSideEncryptionAvailable();
+
+        if (_accountState->account()->capabilities().clientSideEncryptionAvailable()) {
+            _ui->encryptionMessage->show();
+        }
     }
 }
 
@@ -1130,7 +899,7 @@ void AccountSettings::refreshSelectiveSyncStatus()
             continue;
         }
 
-        bool ok;
+        bool ok = false;
         auto undecidedList = folder->journalDb()->getSelectiveSyncList(SyncJournalDb::SelectiveSyncUndecidedList, &ok);
         QString p;
         foreach (const auto &it, undecidedList) {
@@ -1187,18 +956,6 @@ void AccountSettings::refreshSelectiveSyncStatus()
                 _ui->selectiveSyncStatus->hide();
             }
         });
-    }
-}
-
-void AccountSettings::slotAccountAdded(AccountState *)
-{
-    // if the theme is limited to single account, the button must hide if
-    // there is already one account.
-    int s = AccountManager::instance()->accounts().size();
-    if (s > 0 && !Theme::instance()->multiAccount()) {
-        _addAccountAction->setVisible(false);
-    } else {
-        _addAccountAction->setVisible(true);
     }
 }
 

@@ -20,14 +20,12 @@ namespace OCC {
 
 ElidedLabel::ElidedLabel(QWidget *parent)
     : QLabel(parent)
-    , _elideMode(Qt::ElideNone)
 {
 }
 
 ElidedLabel::ElidedLabel(const QString &text, QWidget *parent)
     : QLabel(text, parent)
     , _text(text)
-    , _elideMode(Qt::ElideNone)
 {
 }
 

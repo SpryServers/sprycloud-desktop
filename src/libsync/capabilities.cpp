@@ -59,6 +59,11 @@ bool Capabilities::sharePublicLinkSupportsUploadOnly() const
     return _capabilities["files_sharing"].toMap()["public"].toMap()["supports_upload_only"].toBool();
 }
 
+bool Capabilities::sharePublicLinkAskOptionalPassword() const
+{
+    return _capabilities["files_sharing"].toMap()["public"].toMap()["password"].toMap()["askForOptionalPassword"].toBool();
+}
+
 bool Capabilities::sharePublicLinkEnforcePassword() const
 {
     return _capabilities["files_sharing"].toMap()["public"].toMap()["password"].toMap()["enforced"].toBool();
@@ -84,12 +89,38 @@ bool Capabilities::shareResharing() const
     return _capabilities["files_sharing"].toMap()["resharing"].toBool();
 }
 
-bool Capabilities::clientSideEncryptionAvaliable() const
+bool Capabilities::clientSideEncryptionAvailable() const
 {
     auto it = _capabilities.constFind(QStringLiteral("end-to-end-encryption"));
-    if (it != _capabilities.constEnd())
-        return (*it).toMap().value(QStringLiteral("enabled"), false).toBool();
-    return false;
+    if (it == _capabilities.constEnd()) {
+        return false;
+    }
+
+    const auto properties = (*it).toMap();
+    const auto enabled = properties.value(QStringLiteral("enabled"), false).toBool();
+    if (!enabled) {
+        return false;
+    }
+
+    const auto version = properties.value(QStringLiteral("api-version"), "1.0").toByteArray();
+    qCInfo(lcServerCapabilities) << "E2EE API version:" << version;
+    const auto splittedVersion = version.split('.');
+
+    bool ok = false;
+    const auto major = !splittedVersion.isEmpty() ? splittedVersion.at(0).toInt(&ok) : 0;
+    if (!ok) {
+        qCWarning(lcServerCapabilities) << "Didn't understand version scheme (major), E2EE disabled";
+        return false;
+    }
+
+    ok = false;
+    const auto minor = splittedVersion.size() > 1 ? splittedVersion.at(1).toInt(&ok) : 0;
+    if (!ok) {
+        qCWarning(lcServerCapabilities) << "Didn't understand version scheme (minor), E2EE disabled";
+        return false;
+    }
+
+    return major == 1 && minor >= 1;
 }
 
 bool Capabilities::notificationsAvailable() const
@@ -103,7 +134,8 @@ bool Capabilities::isValid() const
     return !_capabilities.isEmpty();
 }
 
-bool Capabilities::hasActivities() const {
+bool Capabilities::hasActivities() const
+{
     return _capabilities.contains("activity");
 }
 
@@ -175,4 +207,85 @@ bool Capabilities::uploadConflictFiles() const
 
     return _capabilities["uploadConflictFiles"].toBool();
 }
+
+/*-------------------------------------------------------------------------------------*/
+
+// Direct Editing
+void Capabilities::addDirectEditor(DirectEditor* directEditor)
+{
+    if(directEditor)
+        _directEditors.append(directEditor);
+}
+
+DirectEditor* Capabilities::getDirectEditorForMimetype(const QMimeType &mimeType)
+{
+    foreach(DirectEditor* editor, _directEditors) {
+        if(editor->hasMimetype(mimeType))
+            return editor;
+    }
+
+    return nullptr;
+}
+
+DirectEditor* Capabilities::getDirectEditorForOptionalMimetype(const QMimeType &mimeType)
+{
+    foreach(DirectEditor* editor, _directEditors) {
+        if(editor->hasOptionalMimetype(mimeType))
+            return editor;
+    }
+
+    return nullptr;
+}
+
+/*-------------------------------------------------------------------------------------*/
+
+DirectEditor::DirectEditor(const QString &id, const QString &name, QObject* parent)
+    : QObject(parent)
+    , _id(id)
+    , _name(name)
+{
+}
+
+QString DirectEditor::id() const
+{
+    return _id;
+}
+
+QString DirectEditor::name() const
+{
+    return _name;
+}
+
+void DirectEditor::addMimetype(const QByteArray &mimeType)
+{
+    _mimeTypes.append(mimeType);
+}
+
+void DirectEditor::addOptionalMimetype(const QByteArray &mimeType)
+{
+    _optionalMimeTypes.append(mimeType);
+}
+
+QList<QByteArray> DirectEditor::mimeTypes() const
+{
+    return _mimeTypes;
+}
+
+QList<QByteArray> DirectEditor::optionalMimeTypes() const
+{
+    return _optionalMimeTypes;
+}
+
+bool DirectEditor::hasMimetype(const QMimeType &mimeType)
+{
+    return _mimeTypes.contains(mimeType.name().toLatin1());
+}
+
+bool DirectEditor::hasOptionalMimetype(const QMimeType &mimeType)
+{
+    return _optionalMimeTypes.contains(mimeType.name().toLatin1());
+}
+
+/*-------------------------------------------------------------------------------------*/
+
 }

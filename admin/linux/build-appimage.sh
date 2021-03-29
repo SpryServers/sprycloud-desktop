@@ -6,14 +6,14 @@ mkdir /app
 mkdir /build
 
 #Set Qt-5.12
-export QT_BASE_DIR=/opt/qt5.12.8
+export QT_BASE_DIR=/opt/qt5.12.9
 export QTDIR=$QT_BASE_DIR
 export PATH=$QT_BASE_DIR/bin:$PATH
 export LD_LIBRARY_PATH=$QT_BASE_DIR/lib/x86_64-linux-gnu:$QT_BASE_DIR/lib:$LD_LIBRARY_PATH
 export PKG_CONFIG_PATH=$QT_BASE_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
 
 #Set APPID for .desktop file processing
-export LINUX_APPLICATION_ID=com.nextcloud.desktopclient.nextcloud
+export LINUX_APPLICATION_ID=com.spryservers.desktopclient.sprycloud
 
 #set defaults
 export SUFFIX=${DRONE_PULL_REQUEST:=master}
@@ -71,7 +71,7 @@ mv ./etc/spryCloud/sync-exclude.lst ./usr/bin/
 rm -rf ./etc
 
 DESKTOP_FILE=/app/usr/share/applications/${LINUX_APPLICATION_ID}.desktop
-sed -i -e 's|Icon=sprycloud|Icon=spryCloud|g' usr/share/applications/sprycloud.desktop # Bug in desktop file?
+sed -i -e 's|Icon=sprycloud|Icon=spryCloud|g'  ${DESKTOP_FILE}# Bug in desktop file?
 cp ./usr/share/icons/hicolor/512x512/apps/spryCloud.png . # Workaround for linuxeployqt bug, FIXME
 
 # Because distros need to get their shit together
@@ -85,13 +85,13 @@ cp -P -r /usr/lib/x86_64-linux-gnu/nss ./usr/lib/
 
 # Use linuxdeployqt to deploy
 cd /build
-wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
+wget --ca-directory=/etc/ssl/certs/ -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
 chmod a+x linuxdeployqt*.AppImage
 ./linuxdeployqt-continuous-x86_64.AppImage --appimage-extract
 rm ./linuxdeployqt-continuous-x86_64.AppImage
 unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/app/usr/lib/
-./squashfs-root/AppRun ${DESKTOP_FILE} -bundle-non-qt-libs
+./squashfs-root/AppRun ${DESKTOP_FILE} -bundle-non-qt-libs -qmldir=$DRONE_WORKSPACE/src/gui
 
 # Set origin
 ./squashfs-root/usr/bin/patchelf --set-rpath '$ORIGIN/' /app/usr/lib/libsprycloudsync.so.0

@@ -7,6 +7,7 @@ set( APPLICATION_UPDATE_URL "https://updates.cloud.spryservers.net/" CACHE strin
 set( APPLICATION_HELP_URL   "" CACHE STRING "URL for the help menu" )
 set( APPLICATION_ICON_NAME  "spryCloud" )
 set( APPLICATION_SERVER_URL "" CACHE STRING "URL for the server to use. If entered the server can only connect to this instance" )
+set( APPLICATION_SERVER_URL_ENFORCE ON ) # If set and APPLICATION_SERVER_URL is defined, the server can only connect to the pre-defined URL
 set( APPLICATION_REV_DOMAIN "net.spryservers.sprycloudclient" )
 
 set( LINUX_PACKAGE_SHORTNAME "sprycloud" )
@@ -35,3 +36,26 @@ option( WITH_PROVIDERS "Build with providers list" ON )
 set( APPLICATION_WIZARD_HEADER_BACKGROUND_COLOR "#0082c9" CACHE STRING "Hex color of the wizard header background")
 set( APPLICATION_WIZARD_HEADER_TITLE_COLOR "#ffffff" CACHE STRING "Hex color of the text in the wizard header")
 option( APPLICATION_WIZARD_USE_CUSTOM_LOGO "Use the logo from ':/client/theme/colored/wizard_logo.png' else the default application icon is used" ON )
+
+
+#
+## Windows Shell Extensions & MSI - IMPORTANT: Generate new GUIDs for custom builds with "guidgen" or "uuidgen"
+#
+if(WIN32)
+    # Context Menu
+    set( WIN_SHELLEXT_CONTEXT_MENU_GUID      "{BC6988AB-ACE2-4B81-84DC-DC34F9B24401}" )
+
+    # Overlays
+    set( WIN_SHELLEXT_OVERLAY_GUID_ERROR     "{E0342B74-7593-4C70-9D61-22F294AAFE05}" )
+    set( WIN_SHELLEXT_OVERLAY_GUID_OK        "{E1094E94-BE93-4EA2-9639-8475C68F3886}" )
+    set( WIN_SHELLEXT_OVERLAY_GUID_OK_SHARED "{E243AD85-F71B-496B-B17E-B8091CBE93D2}" )
+    set( WIN_SHELLEXT_OVERLAY_GUID_SYNC      "{E3D6DB20-1D83-4829-B5C9-941B31C0C35A}" )
+    set( WIN_SHELLEXT_OVERLAY_GUID_WARNING   "{E4977F33-F93A-4A0A-9D3C-83DEA0EE8483}" )
+
+    # MSI Upgrade Code (without brackets)
+    set( WIN_MSI_UPGRADE_CODE                "FD2FCCA9-BB8F-4485-8F70-A0621B84A7F4" )
+
+    # Windows build options
+    option( BUILD_WIN_MSI "Build MSI scripts and helper DLL" OFF )
+    option( BUILD_WIN_TOOLS "Build Win32 migration tools" OFF )
+endif()

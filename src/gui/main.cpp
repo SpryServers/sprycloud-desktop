@@ -14,6 +14,7 @@
  */
 #include <QtGlobal>
 
+#include <cmath>
 #include <signal.h>
 
 #ifdef Q_OS_UNIX
@@ -33,6 +34,8 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QDebug>
+#include <QQuickStyle>
+#include <QQuickWindow>
 
 using namespace OCC;
 
@@ -48,7 +51,14 @@ void warnSystray()
 
 int main(int argc, char **argv)
 {
-    Q_INIT_RESOURCE(client);
+    Q_INIT_RESOURCE(resources);
+
+    // Work around a bug in KDE's qqc2-desktop-style which breaks
+    // buttons with icons not based on a name, by forcing a style name
+    // the platformtheme plugin won't try to force qqc2-desktops-style
+    // anymore.
+    // Can be removed once the bug in qqc2-desktop-style is gone.
+    QQuickStyle::setStyle("Default");
 
     // OpenSSL 1.1.0: No explicit initialisation or de-initialisation is necessary.
 
@@ -91,6 +101,15 @@ int main(int argc, char **argv)
         return 0;
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
+#else
+    // See https://bugreports.qt.io/browse/QTBUG-70481
+    if (std::fmod(app.devicePixelRatio(), 1) == 0) {
+        QQuickWindow::setTextRenderType(QQuickWindow::NativeTextRendering);
+    }
+#endif
+
 // check a environment variable for core dumps
 #ifdef Q_OS_UNIX
     if (!qEnvironmentVariableIsEmpty("OWNCLOUD_CORE_DUMP")) {
@@ -131,7 +150,7 @@ int main(int argc, char **argv)
             if (!app.sendMessage(QLatin1String("MSG_PARSEOPTIONS:") + msg))
                 return -1;
         }
-        if (!app.backgroundMode() && !app.sendMessage(QLatin1String("MSG_SHOWSETTINGS"))) {
+        if (!app.backgroundMode() && !app.sendMessage(QLatin1String("MSG_SHOWMAINDIALOG"))) {
             return -1;
         }
         return 0;
@@ -164,7 +183,7 @@ int main(int argc, char **argv)
                 }
             }
             if (!app.backgroundMode() && !QSystemTrayIcon::isSystemTrayAvailable() && desktopSession != "ubuntu") {
-                app.showSettingsDialog();
+                app.showMainDialog();
             }
         }
     }

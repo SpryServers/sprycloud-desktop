@@ -37,6 +37,7 @@ namespace OCC {
 class SyncFileStatus;
 class Folder;
 class SocketListener;
+class DirectEditor;
 
 /**
  * @brief The SocketApi class
@@ -119,7 +120,7 @@ private:
     Q_INVOKABLE void command_GET_STRINGS(const QString &argument, SocketListener *listener);
 
     // Sends the context menu options relating to sharing to listener
-    void sendSharingContextMenuOptions(const FileData &fileData, SocketListener *listener);
+    void sendSharingContextMenuOptions(const FileData &fileData, SocketListener *listener, bool enabled);
 
     /** Send the list of menu item. (added in version 1.1)
      * argument is a list of files for which the menu should be shown, separated by '\x1e'
@@ -129,6 +130,10 @@ private:
      * and ends with GET_MENU_ITEMS:END
      */
     Q_INVOKABLE void command_GET_MENU_ITEMS(const QString &argument, SocketListener *listener);
+
+    /// Direct Editing
+    Q_INVOKABLE void command_EDIT(const QString &localFile, SocketListener *listener);
+    DirectEditor* getDirectEditorForLocalFile(const QString &localFile);
 
     QString buildRegisterPathMessage(const QString &path);
 

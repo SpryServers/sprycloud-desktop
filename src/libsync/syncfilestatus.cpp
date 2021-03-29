@@ -16,14 +16,11 @@
 
 namespace OCC {
 SyncFileStatus::SyncFileStatus()
-    : _tag(StatusNone)
-    , _shared(false)
 {
 }
 
 SyncFileStatus::SyncFileStatus(SyncFileStatusTag tag)
     : _tag(tag)
-    , _shared(false)
 {
 }
 

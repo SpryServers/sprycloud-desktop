@@ -177,8 +177,9 @@ SocketApi::SocketApi(QObject *parent)
     QString socketPath;
 
     if (Utility::isWindows()) {
-        socketPath = QLatin1String("\\\\.\\pipe\\")
-            + QLatin1String("ownCloud-")
+        socketPath = QLatin1String(R"(\\.\pipe\)")
+            + QLatin1String(APPLICATION_EXECUTABLE)
+            + QLatin1String("-")
             + QString::fromLocal8Bit(qgetenv("USERNAME"));
         // TODO: once the windows extension supports multiple
         // client connections, switch back to the theme name
@@ -271,13 +272,13 @@ void SocketApi::onLostConnection()
 
 void SocketApi::slotSocketDestroyed(QObject *obj)
 {
-    QIODevice *socket = static_cast<QIODevice *>(obj);
+    auto *socket = static_cast<QIODevice *>(obj);
     _listeners.erase(std::remove_if(_listeners.begin(), _listeners.end(), ListenerHasSocketPred(socket)), _listeners.end());
 }
 
 void SocketApi::slotReadSocket()
 {
-    QIODevice *socket = qobject_cast<QIODevice *>(sender());
+    auto *socket = qobject_cast<QIODevice *>(sender());
     ASSERT(socket);
     SocketListener *listener = &*std::find_if(_listeners.begin(), _listeners.end(), ListenerHasSocketPred(socket));
 
@@ -462,7 +463,42 @@ void SocketApi::command_VERSION(const QString &, SocketListener *listener)
 
 void SocketApi::command_SHARE_MENU_TITLE(const QString &, SocketListener *listener)
 {
-    listener->sendMessage(QLatin1String("SHARE_MENU_TITLE:") + tr("Share with %1", "parameter is spryCloud").arg(Theme::instance()->appNameGUI()));
+    //listener->sendMessage(QLatin1String("SHARE_MENU_TITLE:") + tr("Share with %1", "parameter is Nextcloud").arg(Theme::instance()->appNameGUI()));
+    listener->sendMessage(QLatin1String("SHARE_MENU_TITLE:") + Theme::instance()->appNameGUI());
+}
+
+void SocketApi::command_EDIT(const QString &localFile, SocketListener *listener)
+{
+    auto fileData = FileData::get(localFile);
+    if (!fileData.folder) {
+        qCWarning(lcSocketApi) << "Unknown path" << localFile;
+        return;
+    }
+
+    auto record = fileData.journalRecord();
+    if (!record.isValid())
+        return;
+
+    DirectEditor* editor = getDirectEditorForLocalFile(fileData.localPath);
+    if (!editor)
+        return;
+
+    auto *job = new JsonApiJob(fileData.folder->accountState()->account(), QLatin1String("ocs/v2.php/apps/files/api/v1/directEditing/open"), this);
+
+    QUrlQuery params;
+    params.addQueryItem("path", fileData.accountRelativePath);
+    params.addQueryItem("editorId", editor->id());
+    job->addQueryParams(params);
+    job->usePOST();
+
+    QObject::connect(job, &JsonApiJob::jsonReceived, [](const QJsonDocument &json){
+        auto data = json.object().value("ocs").toObject().value("data").toObject();
+        auto url = QUrl(data.value("url").toString());
+
+        if(!url.isEmpty())
+            Utility::openBrowser(url, nullptr);
+    });
+    job->start();
 }
 
 // don't pull the share manager into socketapi unittests
@@ -523,7 +559,7 @@ private slots:
     }
 
     void passwordRequired() {
-        bool ok;
+        bool ok = false;
         QString password = QInputDialog::getText(nullptr,
                                                  tr("Password for share required"),
                                                  tr("Please enter a password for your link share:"),
@@ -669,7 +705,7 @@ void SocketApi::command_GET_STRINGS(const QString &argument, SocketListener *lis
 {
     static std::array<std::pair<const char *, QString>, 5> strings { {
         { "SHARE_MENU_TITLE", tr("Share options") },
-        { "CONTEXT_MENU_TITLE", tr("Share via %1").arg(Theme::instance()->appNameGUI())},
+        { "CONTEXT_MENU_TITLE", Theme::instance()->appNameGUI() },
         { "COPY_PRIVATE_LINK_MENU_TITLE", tr("Copy private link to clipboard") },
         { "EMAIL_PRIVATE_LINK_MENU_TITLE", tr("Send private link by email …") },
         { "CONTEXT_MENU_ICON", APPLICATION_ICON_NAME},
@@ -683,11 +719,11 @@ void SocketApi::command_GET_STRINGS(const QString &argument, SocketListener *lis
     listener->sendMessage(QString("GET_STRINGS:END"));
 }
 
-void SocketApi::sendSharingContextMenuOptions(const FileData &fileData, SocketListener *listener)
+void SocketApi::sendSharingContextMenuOptions(const FileData &fileData, SocketListener *listener, bool enabled)
 {
     auto record = fileData.journalRecord();
     bool isOnTheServer = record.isValid();
-    auto flagString = isOnTheServer ? QLatin1String("::") : QLatin1String(":d:");
+    auto flagString = isOnTheServer && enabled ? QLatin1String("::") : QLatin1String(":d:");
 
     auto capabilities = fileData.folder->accountState()->account()->capabilities();
     auto theme = Theme::instance();
@@ -707,6 +743,7 @@ void SocketApi::sendSharingContextMenuOptions(const FileData &fileData, SocketLi
         // Is is possible to create a public link without user choices?
         bool canCreateDefaultPublicLink = publicLinksEnabled
             && !capabilities.sharePublicLinkEnforceExpireDate()
+            && !capabilities.sharePublicLinkAskOptionalPassword()
             && !capabilities.sharePublicLinkEnforcePassword();
 
         if (canCreateDefaultPublicLink) {
@@ -763,12 +800,40 @@ void SocketApi::command_GET_MENU_ITEMS(const QString &argument, OCC::SocketListe
     bool hasSeveralFiles = argument.contains(QLatin1Char('\x1e')); // Record Separator
     FileData fileData = hasSeveralFiles ? FileData{} : FileData::get(argument);
     bool isOnTheServer = fileData.journalRecord().isValid();
-    auto flagString = isOnTheServer ? QLatin1String("::") : QLatin1String(":d:");
+    const auto isE2eEncryptedPath = fileData.journalRecord()._isE2eEncrypted || !fileData.journalRecord()._e2eMangledName.isEmpty();
+    auto flagString = isOnTheServer && !isE2eEncryptedPath ? QLatin1String("::") : QLatin1String(":d:");
+
     if (fileData.folder && fileData.folder->accountState()->isConnected()) {
-        sendSharingContextMenuOptions(fileData, listener);
-        listener->sendMessage(QLatin1String("MENU_ITEM:OPEN_PRIVATE_LINK") + flagString + tr("Open in browser"));
+        DirectEditor* editor = getDirectEditorForLocalFile(fileData.localPath);
+        if (editor) {
+            //listener->sendMessage(QLatin1String("MENU_ITEM:EDIT") + flagString + tr("Edit via ") + editor->name());
+            listener->sendMessage(QLatin1String("MENU_ITEM:EDIT") + flagString + tr("Edit"));
+        } else {
+            listener->sendMessage(QLatin1String("MENU_ITEM:OPEN_PRIVATE_LINK") + flagString + tr("Open in browser"));
+        }
+
+        sendSharingContextMenuOptions(fileData, listener, !isE2eEncryptedPath);
     }
     listener->sendMessage(QString("GET_MENU_ITEMS:END"));
+}
+
+DirectEditor* SocketApi::getDirectEditorForLocalFile(const QString &localFile)
+{
+    FileData fileData = FileData::get(localFile);
+    auto capabilities = fileData.folder->accountState()->account()->capabilities();
+
+    if (fileData.folder && fileData.folder->accountState()->isConnected()) {
+        QMimeDatabase db;
+        QMimeType type = db.mimeTypeForFile(localFile);
+
+        DirectEditor* editor = capabilities.getDirectEditorForMimetype(type);
+        if (!editor) {
+            editor = capabilities.getDirectEditorForOptionalMimetype(type);
+        }
+        return editor;
+    }
+
+    return nullptr;
 }
 
 QString SocketApi::buildRegisterPathMessage(const QString &path)

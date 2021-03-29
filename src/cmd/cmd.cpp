@@ -288,7 +288,7 @@ void selectiveSyncFixup(OCC::SyncJournalDb *journal, const QStringList &newList)
         return;
     }
 
-    bool ok;
+    bool ok = false;
 
     auto oldBlackListSet = journal->getSelectiveSyncList(SyncJournalDb::SelectiveSyncBlackList, &ok).toSet();
     if (ok) {
@@ -418,7 +418,7 @@ int main(int argc, char **argv)
     if (!options.proxy.isNull()) {
         QString host;
         int port = 0;
-        bool ok;
+        bool ok = false;
 
         QStringList pList = options.proxy.split(':');
         if (pList.count() == 3) {
@@ -437,9 +437,9 @@ int main(int argc, char **argv)
         }
     }
 
-    SimpleSslErrorHandler *sslErrorHandler = new SimpleSslErrorHandler;
+    auto *sslErrorHandler = new SimpleSslErrorHandler;
 
-    HttpCredentialsText *cred = new HttpCredentialsText(user, password);
+    auto *cred = new HttpCredentialsText(user, password);
 
     if (options.trustSSL) {
         cred->setSSLTrusted(true);
@@ -456,7 +456,7 @@ int main(int argc, char **argv)
         // 'dav' endpoint instead of the nonshib one (which still use the old chunking)
 
         QEventLoop loop;
-        JsonApiJob *job = new JsonApiJob(account, QLatin1String("ocs/v1.php/cloud/capabilities"));
+        auto *job = new JsonApiJob(account, QLatin1String("ocs/v1.php/cloud/capabilities"));
         QObject::connect(job, &JsonApiJob::jsonReceived, [&](const QJsonDocument &json) {
             auto caps = json.object().value("ocs").toObject().value("data").toObject().value("capabilities").toObject();
             qDebug() << "Server capabilities" << caps;
@@ -499,7 +499,7 @@ restart_sync:
     }
 
     Cmd cmd;
-    QString dbPath = options.source_dir + SyncJournalDb::makeDbName(options.source_dir, credentialFreeUrl, folder, user);
+    QString dbPath = SyncJournalDb::makeDbName(credentialFreeUrl, folder, user);
     SyncJournalDb db(dbPath);
 
     if (!selectiveSyncList.empty()) {

@@ -156,23 +156,23 @@ void FolderStatusDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     }
     painter->save();
 
-    QIcon statusIcon = qvariant_cast<QIcon>(index.data(FolderStatusIconRole));
-    QString aliasText = qvariant_cast<QString>(index.data(HeaderRole));
-    QString pathText = qvariant_cast<QString>(index.data(FolderPathRole));
-    QString remotePath = qvariant_cast<QString>(index.data(FolderSecondPathRole));
-    QStringList conflictTexts = qvariant_cast<QStringList>(index.data(FolderConflictMsg));
-    QStringList errorTexts = qvariant_cast<QStringList>(index.data(FolderErrorMsg));
+    auto statusIcon = qvariant_cast<QIcon>(index.data(FolderStatusIconRole));
+    auto aliasText = qvariant_cast<QString>(index.data(HeaderRole));
+    auto pathText = qvariant_cast<QString>(index.data(FolderPathRole));
+    auto remotePath = qvariant_cast<QString>(index.data(FolderSecondPathRole));
+    auto conflictTexts = qvariant_cast<QStringList>(index.data(FolderConflictMsg));
+    auto errorTexts = qvariant_cast<QStringList>(index.data(FolderErrorMsg));
 
-    int overallPercent = qvariant_cast<int>(index.data(SyncProgressOverallPercent));
-    QString overallString = qvariant_cast<QString>(index.data(SyncProgressOverallString));
-    QString itemString = qvariant_cast<QString>(index.data(SyncProgressItemString));
-    int warningCount = qvariant_cast<int>(index.data(WarningCount));
-    bool syncOngoing = qvariant_cast<bool>(index.data(SyncRunning));
-    QDateTime syncDate = qvariant_cast<QDateTime>(index.data(SyncDate));
-    bool syncEnabled = qvariant_cast<bool>(index.data(FolderAccountConnected));
+    auto overallPercent = qvariant_cast<int>(index.data(SyncProgressOverallPercent));
+    auto overallString = qvariant_cast<QString>(index.data(SyncProgressOverallString));
+    auto itemString = qvariant_cast<QString>(index.data(SyncProgressItemString));
+    auto warningCount = qvariant_cast<int>(index.data(WarningCount));
+    auto syncOngoing = qvariant_cast<bool>(index.data(SyncRunning));
+    auto syncDate = qvariant_cast<QDateTime>(index.data(SyncDate));
+    auto syncEnabled = qvariant_cast<bool>(index.data(FolderAccountConnected));
 
-    QRect iconRect = option.rect;
-    QRect aliasRect = option.rect;
+    auto iconRect = option.rect;
+    auto aliasRect = option.rect;
 
     iconRect.setLeft(option.rect.left() + aliasMargin);
     iconRect.setTop(iconRect.top() + aliasMargin); // (iconRect.height()-iconsize.height())/2);
@@ -183,12 +183,12 @@ void FolderStatusDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     aliasRect.setRight(aliasRect.right() - aliasMargin);
 
     // remote directory box
-    QRect remotePathRect = aliasRect;
+    auto remotePathRect = aliasRect;
     remotePathRect.setTop(aliasRect.bottom() + margin);
     remotePathRect.setBottom(remotePathRect.top() + subFm.height());
 
     // local directory box
-    QRect localPathRect = remotePathRect;
+    auto localPathRect = remotePathRect;
     localPathRect.setTop(remotePathRect.bottom() + margin);
     localPathRect.setBottom(localPathRect.top() + subFm.height());
 
@@ -217,7 +217,7 @@ void FolderStatusDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         warnRect.setWidth(16);
         warnRect.setHeight(16);
 
-        QIcon warnIcon(":/client/resources/warning");
+        QIcon warnIcon(":/client/theme/warning");
         QPixmap pm = warnIcon.pixmap(16, 16, syncEnabled ? QIcon::Normal : QIcon::Disabled);
         warnRect = QStyle::visualRect(option.direction, option.rect, warnRect);
         painter->drawPixmap(QPoint(warnRect.left(), warnRect.top()), pm);
@@ -372,8 +372,8 @@ bool FolderStatusDelegate::editorEvent(QEvent *event, QAbstractItemModel *model,
     switch (event->type()) {
     case QEvent::MouseButtonPress:
     case QEvent::MouseMove:
-        if (const QAbstractItemView *view = qobject_cast<const QAbstractItemView *>(option.widget)) {
-            QMouseEvent *me = static_cast<QMouseEvent *>(event);
+        if (const auto *view = qobject_cast<const QAbstractItemView *>(option.widget)) {
+            auto *me = static_cast<QMouseEvent *>(event);
             QModelIndex index;
             if (me->buttons()) {
                 index = view->indexAt(me->pos());
@@ -440,7 +440,7 @@ void FolderStatusDelegate::slotStyleChanged()
 
 void FolderStatusDelegate::customizeStyle()
 {
-    _iconMore = Theme::createColorAwareIcon(QLatin1String(":/client/resources/more.svg"));
+    _iconMore = Theme::createColorAwareIcon(QLatin1String(":/client/theme/more.svg"));
 }
 
 } // namespace OCC

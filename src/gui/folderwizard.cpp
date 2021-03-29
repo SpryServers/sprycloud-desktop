@@ -176,7 +176,7 @@ void FolderWizardRemotePath::slotAddRemoteFolder()
         parent = current->data(0, Qt::UserRole).toString();
     }
 
-    QInputDialog *dlg = new QInputDialog(this);
+    auto *dlg = new QInputDialog(this);
 
     dlg->setWindowTitle(tr("Create Remote Folder"));
     dlg->setLabelText(tr("Enter the name of the new folder to be created below '%1':")
@@ -197,7 +197,7 @@ void FolderWizardRemotePath::slotCreateRemoteFolder(const QString &folder)
     }
     fullPath += "/" + folder;
 
-    MkColJob *job = new MkColJob(_account, fullPath, this);
+    auto *job = new MkColJob(_account, fullPath, this);
     /* check the owncloud configuration file and query the ownCloud */
     connect(job, static_cast<void (MkColJob::*)(QNetworkReply::NetworkError)>(&MkColJob::finished),
         this, &FolderWizardRemotePath::slotCreateRemoteFolderFinished);
@@ -319,6 +319,13 @@ void FolderWizardRemotePath::slotUpdateDirectories(const QStringList &list)
     Utility::sortFilenames(sortedList);
     foreach (QString path, sortedList) {
         path.remove(webdavFolder);
+
+        // Don't allow to select subfolders of encrypted subfolders
+        if (_account->capabilities().clientSideEncryptionAvailable() &&
+            _account->e2e()->isAnyParentFolderEncrypted(path)) {
+            continue;
+        }
+
         QStringList paths = path.split('/');
         if (paths.last().isEmpty())
             paths.removeLast();
@@ -344,6 +351,12 @@ void FolderWizardRemotePath::slotCurrentItemChanged(QTreeWidgetItem *item)
 {
     if (item) {
         QString dir = item->data(0, Qt::UserRole).toString();
+
+        // We don't want to allow creating subfolders in encrypted folders outside of the sync logic
+        const auto encrypted = _account->capabilities().clientSideEncryptionAvailable() &&
+                _account->e2e()->isFolderEncrypted(dir + '/');
+        _ui.addFolderButton->setEnabled(!encrypted);
+
         if (!dir.startsWith(QLatin1Char('/'))) {
             dir.prepend(QLatin1Char('/'));
         }
@@ -403,7 +416,7 @@ void FolderWizardRemotePath::slotTypedPathError(QNetworkReply *reply)
 
 LsColJob *FolderWizardRemotePath::runLsColJob(const QString &path)
 {
-    LsColJob *job = new LsColJob(_account, path, this);
+    auto *job = new LsColJob(_account, path, this);
     job->setProperties(QList<QByteArray>() << "resourcetype");
     connect(job, &LsColJob::directoryListingSubfolders,
         this, &FolderWizardRemotePath::slotUpdateDirectories);
@@ -431,7 +444,7 @@ bool FolderWizardRemotePath::isComplete() const
     Folder::Map map = FolderMan::instance()->map();
     Folder::Map::const_iterator i = map.constBegin();
     for (i = map.constBegin(); i != map.constEnd(); i++) {
-        Folder *f = static_cast<Folder *>(i.value());
+        auto *f = static_cast<Folder *>(i.value());
         if (f->accountState()->account() != _account) {
             continue;
         }
@@ -476,7 +489,7 @@ void FolderWizardRemotePath::showWarn(const QString &msg) const
 
 FolderWizardSelectiveSync::FolderWizardSelectiveSync(const AccountPtr &account)
 {
-    QVBoxLayout *layout = new QVBoxLayout(this);
+    auto *layout = new QVBoxLayout(this);
     _selectiveSync = new SelectiveSyncWidget(account, this);
     layout->addWidget(_selectiveSync);
 }

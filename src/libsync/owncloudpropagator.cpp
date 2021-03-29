@@ -364,9 +364,29 @@ quint64 OwncloudPropagator::smallFileSize()
     return smallFileSize;
 }
 
-void OwncloudPropagator::start(const SyncFileItemVector &items)
+void OwncloudPropagator::start(const SyncFileItemVector &items,
+                                const bool &hasChange,
+                                const int &lastChangeInstruction,
+                                const bool &hasDelete,
+                                const int &lastDeleteInstruction)
 {
-    Q_ASSERT(std::is_sorted(items.begin(), items.end()));
+    if (!hasChange && !hasDelete) {
+        Q_ASSERT(std::is_sorted(items.begin(), items.end()));
+    } else if (hasChange) {
+        Q_ASSERT(std::is_sorted(items.begin(), items.end(),
+            [](SyncFileItemVector::const_reference &a, SyncFileItemVector::const_reference &b) -> bool {
+                return ((a->_instruction == CSYNC_INSTRUCTION_TYPE_CHANGE) && (b->_instruction != CSYNC_INSTRUCTION_TYPE_CHANGE));
+            }));
+        Q_ASSERT(std::is_sorted(items.begin(), items.begin() + lastChangeInstruction));
+
+        if (hasDelete) {
+            Q_ASSERT(std::is_sorted(items.begin() + (lastChangeInstruction + 1), items.end(),
+                [](SyncFileItemVector::const_reference &a, SyncFileItemVector::const_reference &b) -> bool {
+                    return ((a->_instruction == CSYNC_INSTRUCTION_REMOVE) && (b->_instruction != CSYNC_INSTRUCTION_REMOVE));
+                }));
+            Q_ASSERT(std::is_sorted(items.begin() + (lastChangeInstruction + 1), items.begin() + lastDeleteInstruction));
+        }
+	}
 
     /* This builds all the jobs needed for the propagation.
      * Each directory is a PropagateDirectory job, which contains the files in it.
@@ -382,7 +402,7 @@ void OwncloudPropagator::start(const SyncFileItemVector &items)
     foreach (const SyncFileItemPtr &item, items) {
         if (!removedDirectory.isEmpty() && item->_file.startsWith(removedDirectory)) {
             // this is an item in a directory which is going to be removed.
-            PropagateDirectory *delDirJob = qobject_cast<PropagateDirectory *>(directoriesToRemove.first());
+            auto *delDirJob = qobject_cast<PropagateDirectory *>(directoriesToRemove.first());
 
             if (item->_instruction == CSYNC_INSTRUCTION_REMOVE) {
                 // already taken care of. (by the removal of the parent directory)
@@ -431,7 +451,7 @@ void OwncloudPropagator::start(const SyncFileItemVector &items)
         }
 
         if (item->isDirectory()) {
-            PropagateDirectory *dir = new PropagateDirectory(this, item);
+            auto *dir = new PropagateDirectory(this, item);
 
             if (item->_instruction == CSYNC_INSTRUCTION_TYPE_CHANGE
                 && item->_direction == SyncFileItem::Up) {
@@ -824,7 +844,7 @@ bool PropagatorCompositeJob::scheduleSelfOrChild()
 
 void PropagatorCompositeJob::slotSubJobFinished(SyncFileItem::Status status)
 {
-    PropagatorJob *subJob = static_cast<PropagatorJob *>(sender());
+    auto *subJob = static_cast<PropagatorJob *>(sender());
     ASSERT(subJob);
 
     // Delete the job and remove it from our list of jobs.
@@ -958,7 +978,7 @@ void PropagateDirectory::slotSubJobsFinished(SyncFileItem::Status status)
         if (_item->_instruction == CSYNC_INSTRUCTION_RENAME
             || _item->_instruction == CSYNC_INSTRUCTION_NEW
             || _item->_instruction == CSYNC_INSTRUCTION_UPDATE_METADATA) {
-            if (PropagateRemoteMkdir *mkdir = qobject_cast<PropagateRemoteMkdir *>(_firstJob.data())) {
+            if (auto *mkdir = qobject_cast<PropagateRemoteMkdir *>(_firstJob.data())) {
                 // special case from MKDIR, get the fileId from the job there
                 if (_item->_fileId.isEmpty() && !mkdir->_item->_fileId.isEmpty()) {
                     _item->_fileId = mkdir->_item->_fileId;
@@ -994,7 +1014,7 @@ void CleanupPollsJob::start()
     SyncJournalFileRecord record;
     if (_journal->getFileRecord(info._file, &record) && record.isValid()) {
         SyncFileItemPtr item = SyncFileItem::fromSyncJournalFileRecord(record);
-        PollJob *job = new PollJob(_account, info._url, item, _journal, _localPath, this);
+        auto *job = new PollJob(_account, info._url, item, _journal, _localPath, this);
         connect(job, &PollJob::finishedSignal, this, &CleanupPollsJob::slotPollFinished);
         job->start();
     }
@@ -1002,7 +1022,7 @@ void CleanupPollsJob::start()
 
 void CleanupPollsJob::slotPollFinished()
 {
-    PollJob *job = qobject_cast<PollJob *>(sender());
+    auto *job = qobject_cast<PollJob *>(sender());
     ASSERT(job);
     if (job->_item->_status == SyncFileItem::FatalError) {
         emit aborted(job->_item->_errorString);

@@ -108,7 +108,7 @@ void IgnoreListTableWidget::slotWriteIgnoreFile(const QString & file)
 
 void IgnoreListTableWidget::slotAddPattern()
 {
-    bool okClicked;
+    bool okClicked = false;
     QString pattern = QInputDialog::getText(this, tr("Add Ignore Pattern"),
         tr("Add a new ignore pattern:"),
         QLineEdit::Normal, QString(), &okClicked);
@@ -144,11 +144,11 @@ int IgnoreListTableWidget::addPattern(const QString &pattern, bool deletable, bo
     int newRow = ui->tableWidget->rowCount();
     ui->tableWidget->setRowCount(newRow + 1);
 
-    QTableWidgetItem *patternItem = new QTableWidgetItem;
+    auto *patternItem = new QTableWidgetItem;
     patternItem->setText(pattern);
     ui->tableWidget->setItem(newRow, patternCol, patternItem);
 
-    QTableWidgetItem *deletableItem = new QTableWidgetItem;
+    auto *deletableItem = new QTableWidgetItem;
     deletableItem->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
     deletableItem->setCheckState(deletable ? Qt::Checked : Qt::Unchecked);
     ui->tableWidget->setItem(newRow, deletableCol, deletableItem);

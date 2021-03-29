@@ -23,6 +23,7 @@
 #include <QElapsedTimer>
 #include <QUrl>
 #include <QDir>
+#include <QStandardPaths>
 #include <sqlite3.h>
 
 #include "common/syncjournaldb.h"
@@ -46,7 +47,7 @@ Q_LOGGING_CATEGORY(lcDb, "nextcloud.sync.database", QtInfoMsg)
 
 #define GET_FILE_RECORD_QUERY \
         "SELECT path, inode, modtime, type, md5, fileid, remotePerm, filesize," \
-        "  ignoredChildrenRemote, contentchecksumtype.name || ':' || contentChecksum, e2eMangledName " \
+        "  ignoredChildrenRemote, contentchecksumtype.name || ':' || contentChecksum, e2eMangledName, isE2eEncrypted " \
         " FROM metadata" \
         "  LEFT JOIN checksumtype as contentchecksumtype ON metadata.contentChecksumTypeId == contentchecksumtype.id"
 
@@ -63,6 +64,7 @@ static void fillFileRecordFromGetQuery(SyncJournalFileRecord &rec, SqlQuery &que
     rec._serverHasIgnoredFiles = (query.intValue(8) > 0);
     rec._checksumHeader = query.baValue(9);
     rec._e2eMangledName = query.baValue(10);
+    rec._isE2eEncrypted = query.intValue(11) > 0;
 }
 
 static QByteArray defaultJournalMode(const QString &dbPath)
@@ -102,11 +104,15 @@ SyncJournalDb::SyncJournalDb(const QString &dbFilePath, QObject *parent)
     }
 }
 
-QString SyncJournalDb::makeDbName(const QString &localPath,
-    const QUrl &remoteUrl,
+QString SyncJournalDb::makeDbName(const QUrl &remoteUrl,
     const QString &remotePath,
     const QString &user)
 {
+    const QString dbPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    if (!QDir(dbPath).exists()) {
+        QDir().mkdir(dbPath);
+    }
+
     QString journalPath = QLatin1String("._sync_");
 
     QString key = QString::fromUtf8("%1@%2:%3").arg(user, remoteUrl.toString(), remotePath);
@@ -115,17 +121,16 @@ QString SyncJournalDb::makeDbName(const QString &localPath,
     journalPath.append(ba.left(6).toHex());
     journalPath.append(".db");
 
+    journalPath = dbPath + QLatin1Char('/') + journalPath;
+
     // If the journal doesn't exist and we can't create a file
     // at that location, try again with a journal name that doesn't
     // have the ._ prefix.
     //
-    // The disadvantage of that filename is that it will only be ignored
-    // by client versions >2.3.2.
-    //
     // See #5633: "._*" is often forbidden on samba shared folders.
 
     // If it exists already, the path is clearly usable
-    QFile file(QDir(localPath).filePath(journalPath));
+    QFile file(QDir(dbPath).filePath(journalPath));
     if (file.exists()) {
         return journalPath;
     }
@@ -140,7 +145,7 @@ QString SyncJournalDb::makeDbName(const QString &localPath,
 
     // Can we create it if we drop the underscore?
     QString alternateJournalPath = journalPath.mid(2).prepend(".");
-    QFile file2(QDir(localPath).filePath(alternateJournalPath));
+    QFile file2(QDir(dbPath).filePath(alternateJournalPath));
     if (file2.open(QIODevice::ReadWrite)) {
         // The alternative worked, use it
         qCInfo(lcDb) << "Using alternate database path" << alternateJournalPath;
@@ -720,6 +725,16 @@ bool SyncJournalDb::updateMetadataTableStructure()
         commitInternal("update database structure: add e2eMangledName col");
     }
 
+    if (!columns.contains("isE2eEncrypted")) {
+        SqlQuery query(_db);
+        query.prepare("ALTER TABLE metadata ADD COLUMN isE2eEncrypted INTEGER;");
+        if (!query.exec()) {
+            sqlFail("updateMetadataTableStructure: add e2eMangledName column", query);
+            re = false;
+        }
+        commitInternal("update database structure: add e2eMangledName col");
+    }
+
     if (!tableColumns("uploadinfo").contains("contentChecksum")) {
         SqlQuery query(_db);
         query.prepare("ALTER TABLE uploadinfo ADD COLUMN contentChecksum TEXT;");
@@ -730,6 +745,15 @@ bool SyncJournalDb::updateMetadataTableStructure()
         commitInternal("update database structure: add contentChecksum col for uploadinfo");
     }
 
+    if (true) {
+        SqlQuery query(_db);
+        query.prepare("CREATE INDEX IF NOT EXISTS metadata_e2e_id ON metadata(e2eMangledName);");
+        if (!query.exec()) {
+            sqlFail("updateMetadataTableStructure: create index e2eMangledName", query);
+            re = false;
+        }
+        commitInternal("update database structure: add e2eMangledName index");
+    }
 
     return re;
 }
@@ -807,7 +831,7 @@ QVector<QByteArray> SyncJournalDb::tableColumns(const QByteArray &table)
 
 qint64 SyncJournalDb::getPHash(const QByteArray &file)
 {
-    int64_t h;
+    int64_t h = 0;
 
     if (file.isEmpty()) {
         return -1;
@@ -839,7 +863,8 @@ bool SyncJournalDb::setFileRecord(const SyncJournalFileRecord &_record)
     qCInfo(lcDb) << "Updating file record for path:" << record._path << "inode:" << record._inode
                  << "modtime:" << record._modtime << "type:" << record._type
                  << "etag:" << record._etag << "fileId:" << record._fileId << "remotePerm:" << record._remotePerm.toString()
-                 << "fileSize:" << record._fileSize << "checksum:" << record._checksumHeader << "e2eMangledName:" << record._e2eMangledName;
+                 << "fileSize:" << record._fileSize << "checksum:" << record._checksumHeader
+                 << "e2eMangledName:" << record._e2eMangledName << "isE2eEncrypted:" << record._isE2eEncrypted;
 
     qlonglong phash = getPHash(record._path);
     if (checkConnect()) {
@@ -858,8 +883,8 @@ bool SyncJournalDb::setFileRecord(const SyncJournalFileRecord &_record)
 
         if (!_setFileRecordQuery.initOrReset(QByteArrayLiteral(
             "INSERT OR REPLACE INTO metadata "
-            "(phash, pathlen, path, inode, uid, gid, mode, modtime, type, md5, fileid, remotePerm, filesize, ignoredChildrenRemote, contentChecksum, contentChecksumTypeId, e2eMangledName) "
-            "VALUES (?1 , ?2, ?3 , ?4 , ?5 , ?6 , ?7,  ?8 , ?9 , ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17);"), _db)) {
+            "(phash, pathlen, path, inode, uid, gid, mode, modtime, type, md5, fileid, remotePerm, filesize, ignoredChildrenRemote, contentChecksum, contentChecksumTypeId, e2eMangledName, isE2eEncrypted) "
+            "VALUES (?1 , ?2, ?3 , ?4 , ?5 , ?6 , ?7,  ?8 , ?9 , ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18);"), _db)) {
             return false;
         }
 
@@ -880,6 +905,7 @@ bool SyncJournalDb::setFileRecord(const SyncJournalFileRecord &_record)
         _setFileRecordQuery.bindValue(15, checksum);
         _setFileRecordQuery.bindValue(16, contentChecksumTypeId);
         _setFileRecordQuery.bindValue(17, record._e2eMangledName);
+        _setFileRecordQuery.bindValue(18, record._isE2eEncrypted);
 
         if (!_setFileRecordQuery.exec()) {
             return false;
@@ -1094,6 +1120,7 @@ bool SyncJournalDb::getFilesBelowPath(const QByteArray &path, const std::functio
         if (!_getFilesBelowPathQuery.initOrReset(QByteArrayLiteral(
                 GET_FILE_RECORD_QUERY
                 " WHERE " IS_PREFIX_PATH_OF("?1", "path")
+                " OR " IS_PREFIX_PATH_OF("?1", "e2eMangledName")
                 // We want to ensure that the contents of a directory are sorted
                 // directly behind the directory itself. Without this ORDER BY
                 // an ordering like foo, foo-2, foo/file would be returned.
@@ -1129,7 +1156,7 @@ bool SyncJournalDb::postSyncCleanup(const QSet<QString> &filepathsToKeep,
     }
 
     SqlQuery query(_db);
-    query.prepare("SELECT phash, path FROM metadata order by path");
+    query.prepare("SELECT phash, path, e2eMangledName FROM metadata order by path");
 
     if (!query.exec()) {
         return false;
@@ -1138,11 +1165,12 @@ bool SyncJournalDb::postSyncCleanup(const QSet<QString> &filepathsToKeep,
     QByteArrayList superfluousItems;
 
     while (query.next()) {
-        const QString file = query.baValue(1);
-        bool keep = filepathsToKeep.contains(file);
+        const auto file = QString(query.baValue(1));
+        const auto mangledPath = QString(query.baValue(2));
+        bool keep = filepathsToKeep.contains(file) || filepathsToKeep.contains(mangledPath);
         if (!keep) {
             foreach (const QString &prefix, prefixesToKeep) {
-                if (file.startsWith(prefix)) {
+                if (file.startsWith(prefix) || mangledPath.startsWith(prefix)) {
                     keep = true;
                     break;
                 }
@@ -1266,6 +1294,7 @@ bool SyncJournalDb::setFileRecordMetadata(const SyncJournalFileRecord &record)
     existing._fileSize = record._fileSize;
     existing._serverHasIgnoredFiles = record._serverHasIgnoredFiles;
     existing._e2eMangledName = record._e2eMangledName;
+    existing._isE2eEncrypted = record._isE2eEncrypted;
     return setFileRecord(existing);
 }
 

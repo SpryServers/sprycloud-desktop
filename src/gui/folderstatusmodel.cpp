@@ -43,8 +43,6 @@ static QString removeTrailingSlash(const QString &s)
 
 FolderStatusModel::FolderStatusModel(QObject *parent)
     : QAbstractItemModel(parent)
-    , _accountState(nullptr)
-    , _dirty(false)
 {
 
 }
@@ -155,11 +153,17 @@ QVariant FolderStatusModel::data(const QModelIndex &index, int role) const
             return QString(QLatin1String("<qt>") + Utility::escape(x._size < 0 ? x._name : tr("%1 (%2)").arg(x._name, Utility::octetsToString(x._size))) + QLatin1String("</qt>"));
         case Qt::CheckStateRole:
             return x._checked;
-        case Qt::DecorationRole:
-            if (_accountState->account()->e2e()->isFolderEncrypted(x._path)) {
-                return QIcon(QLatin1String(":/client/resources/lock-https.png"));
+        case Qt::DecorationRole: {
+            Q_ASSERT(x._folder->remotePath().startsWith('/'));
+            const auto rootPath = x._folder->remotePath().mid(1);
+            const auto absoluteRemotePath = rootPath.isEmpty() ? x._path : rootPath + '/' + x._path;
+            if (_accountState->account()->e2e()->isFolderEncrypted(absoluteRemotePath)) {
+                return QIcon(QLatin1String(":/client/theme/lock-https.svg"));
+            } else if (x._size > 0 && _accountState->account()->e2e()->isAnyParentFolderEncrypted(absoluteRemotePath)) {
+                return QIcon(QLatin1String(":/client/theme/lock-broken.svg"));
             }
             return QFileIconProvider().icon(x._isExternal ? QFileIconProvider::Network : QFileIconProvider::Folder);
+        }
         case Qt::ForegroundRole:
             if (x._isUndecided) {
                 return QColor(Qt::red);
@@ -284,7 +288,7 @@ bool FolderStatusModel::setData(const QModelIndex &index, const QVariant &value,
 {
     if (role == Qt::CheckStateRole) {
         auto info = infoForIndex(index);
-        Qt::CheckState checked = static_cast<Qt::CheckState>(value.toInt());
+        auto checked = static_cast<Qt::CheckState>(value.toInt());
 
         if (info && info->_checked != checked) {
             info->_checked = checked;
@@ -483,7 +487,7 @@ QModelIndex FolderStatusModel::index(int row, int column, const QModelIndex &par
         return {};
     case RootFolder:
         if (_folders.count() <= parent.row())
-            return QModelIndex(); // should not happen
+            return {}; // should not happen
         return createIndex(row, column, const_cast<SubFolderInfo *>(&_folders[parent.row()]));
     case SubFolder: {
         auto pinfo = static_cast<SubFolderInfo *>(parent.internalPointer());
@@ -581,13 +585,7 @@ void FolderStatusModel::fetchMore(const QModelIndex &parent)
         path += info->_path;
     }
 
-		//TODO: This is the correct place, but this doesn't seems to be the right
-		// Way to call fetchFolderEncryptedStatus.
-		if (_accountState->account()->capabilities().clientSideEncryptionAvaliable()) {
-			_accountState->account()->e2e()->fetchFolderEncryptedStatus();
-		}
-
-    LsColJob *job = new LsColJob(_accountState->account(), path, this);
+    auto *job = new LsColJob(_accountState->account(), path, this);
     info->_fetchingJob = job;
     job->setProperties(QList<QByteArray>() << "resourcetype"
                                            << "http://owncloud.org/ns:size"
@@ -696,7 +694,14 @@ void FolderStatusModel::slotUpdateDirectories(const QStringList &list)
         newInfo._pathIdx << newSubs.size();
         newInfo._isExternal = permissionMap.value(removeTrailingSlash(path)).toString().contains("M");
         newInfo._path = relativePath;
-        newInfo._name = removeTrailingSlash(relativePath).split('/').last();
+
+        SyncJournalFileRecord rec;
+        parentInfo->_folder->journalDb()->getFileRecordByE2eMangledName(removeTrailingSlash(relativePath), &rec);
+        if (rec.isValid()) {
+            newInfo._name = removeTrailingSlash(rec._path).split('/').last();
+        } else {
+            newInfo._name = removeTrailingSlash(relativePath).split('/').last();
+        }
 
         const auto& folderInfo = job->_folderInfos.value(path);
         newInfo._size = folderInfo.size;
@@ -840,7 +845,7 @@ void FolderStatusModel::slotApplySelectiveSync()
         }
         auto folder = _folders.at(i)._folder;
 
-        bool ok;
+        bool ok = false;
         auto oldBlackList = folder->journalDb()->getSelectiveSyncList(SyncJournalDb::SelectiveSyncBlackList, &ok);
         if (!ok) {
             qCWarning(lcFolderStatus) << "Could not read selective sync list from db.";
@@ -891,7 +896,7 @@ void FolderStatusModel::slotSetProgress(const ProgressInfo &progress)
         return; // for https://github.com/owncloud/client/issues/2648#issuecomment-71377909
     }
 
-    Folder *f = qobject_cast<Folder *>(sender());
+    auto *f = qobject_cast<Folder *>(sender());
     if (!f) {
         return;
     }
@@ -1146,7 +1151,7 @@ void FolderStatusModel::slotSyncAllPendingBigFolders()
         }
         auto folder = _folders.at(i)._folder;
 
-        bool ok;
+        bool ok = false;
         auto undecidedList = folder->journalDb()->getSelectiveSyncList(SyncJournalDb::SelectiveSyncUndecidedList, &ok);
         if (!ok) {
             qCWarning(lcFolderStatus) << "Could not read selective sync list from db.";
@@ -1261,7 +1266,7 @@ bool FolderStatusModel::SubFolderInfo::hasLabel() const
 void FolderStatusModel::SubFolderInfo::resetSubs(FolderStatusModel *model, QModelIndex index)
 {
     _fetched = false;
-    delete _fetchingJob;
+    _fetchingJob->deleteLater();
     if (hasLabel()) {
         model->beginRemoveRows(index, 0, 0);
         _fetchingLabel = false;

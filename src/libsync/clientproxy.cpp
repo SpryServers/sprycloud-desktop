@@ -130,7 +130,7 @@ void ClientProxy::setupQtProxyFromConfig()
 
 void ClientProxy::lookupSystemProxyAsync(const QUrl &url, QObject *dst, const char *slot)
 {
-    SystemProxyRunnable *runnable = new SystemProxyRunnable(url);
+    auto *runnable = new SystemProxyRunnable(url);
     QObject::connect(runnable, SIGNAL(systemProxyLookedUp(QNetworkProxy)), dst, slot);
     QThreadPool::globalInstance()->start(runnable); // takes ownership and deletes
 }

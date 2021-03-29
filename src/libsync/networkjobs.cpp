@@ -79,7 +79,7 @@ void RequestEtagJob::start()
                    "    <d:getetag/>\n"
                    "  </d:prop>\n"
                    "</d:propfind>\n");
-    QBuffer *buf = new QBuffer(this);
+    auto *buf = new QBuffer(this);
     buf->setData(xml);
     buf->open(QIODevice::ReadOnly);
     // assumes ownership
@@ -119,6 +119,12 @@ bool RequestEtagJob::finished()
 
 MkColJob::MkColJob(AccountPtr account, const QString &path, QObject *parent)
     : AbstractNetworkJob(account, path, parent)
+{
+}
+
+MkColJob::MkColJob(AccountPtr account, const QString &path, const QMap<QByteArray, QByteArray> &extraHeaders, QObject *parent)
+    : AbstractNetworkJob(account, path, parent)
+    , _extraHeaders(extraHeaders)
 {
 }
 
@@ -342,7 +348,7 @@ void LsColJob::start()
                    "  <d:prop>\n"
         + propStr + "  </d:prop>\n"
                     "</d:propfind>\n");
-    QBuffer *buf = new QBuffer(this);
+    auto *buf = new QBuffer(this);
     buf->setData(xml);
     buf->open(QIODevice::ReadOnly);
     if (_url.isValid()) {
@@ -564,7 +570,7 @@ void PropfindJob::start()
         + propStr + "  </d:prop>\n"
                     "</d:propfind>\n";
 
-    QBuffer *buf = new QBuffer(this);
+    auto *buf = new QBuffer(this);
     buf->setData(xml);
     buf->open(QIODevice::ReadOnly);
     sendRequest("PROPFIND", makeDavUrl(path()), req, buf);
@@ -649,6 +655,10 @@ void AvatarJob::start()
 
 QImage AvatarJob::makeCircularAvatar(const QImage &baseAvatar)
 {
+    if (baseAvatar.isNull()) {
+        return {};
+    }
+
     int dim = baseAvatar.width();
 
     QImage avatar(dim, dim, QImage::Format_ARGB32);
@@ -726,7 +736,7 @@ void ProppatchJob::start()
         + propStr + "  </d:prop></d:set>\n"
                     "</d:propertyupdate>\n";
 
-    QBuffer *buf = new QBuffer(this);
+    auto *buf = new QBuffer(this);
     buf->setData(xml);
     buf->open(QIODevice::ReadOnly);
     sendRequest("PROPPATCH", makeDavUrl(path()), req, buf);
@@ -802,7 +812,7 @@ void JsonApiJob::start()
     auto query = _additionalParams;
     query.addQueryItem(QLatin1String("format"), QLatin1String("json"));
     QUrl url = Utility::concatUrlPath(account()->url(), path(), query);
-    sendRequest("GET", url, _request);
+    sendRequest(_usePOST ? "POST" : "GET", url, _request);
     AbstractNetworkJob::start();
 }
 
@@ -831,7 +841,7 @@ bool JsonApiJob::finished()
         qCWarning(lcJsonApiJob) << "Nothing changed so nothing to retrieve - status code: " << httpStatusCode;
         statusCode = httpStatusCode;
     } else {
-        QRegExp rex("\"statuscode\":(\\d+),");
+        QRegExp rex(R"("statuscode":(\d+),)");
         // example: "{"ocs":{"meta":{"status":"ok","statuscode":100,"message":null},"data":{"version":{"major":8,"minor":"... (504)
         if (jsonStr.contains(rex)) {
             statusCode = rex.cap(1).toInt();
@@ -1039,7 +1049,7 @@ void fetchPrivateLinkUrl(AccountPtr account, const QString &remotePath,
         oldUrl = account->deprecatedPrivateLinkUrl(numericFileId).toString(QUrl::FullyEncoded);
 
     // Retrieve the new link by PROPFIND
-    PropfindJob *job = new PropfindJob(account, remotePath, target);
+    auto *job = new PropfindJob(account, remotePath, target);
     job->setProperties(
         QList<QByteArray>()
         << "http://owncloud.org/ns:fileid" // numeric file id for fallback private link generation

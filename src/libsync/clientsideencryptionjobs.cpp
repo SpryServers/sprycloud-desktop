@@ -29,15 +29,21 @@ GetFolderEncryptStatusJob::GetFolderEncryptStatusJob(const AccountPtr& account, 
 {
 }
 
+QString GetFolderEncryptStatusJob::folder() const
+{
+    return _folder;
+}
+
 void GetFolderEncryptStatusJob::start()
 {
 	QNetworkRequest req;
 	req.setPriority(QNetworkRequest::HighPriority);
 	req.setRawHeader("OCS-APIREQUEST", "true");
     req.setHeader(QNetworkRequest::ContentTypeHeader, QByteArrayLiteral("application/xml"));
+    req.setRawHeader("Depth", "1");
 
-	QByteArray xml = "<d:propfind xmlns:d=\"DAV:\"> <d:prop xmlns:nc=\"http://nextcloud.org/ns\"> <nc:is-encrypted/> </d:prop> </d:propfind>";
-	QBuffer *buf = new QBuffer(this);
+	QByteArray xml = R"(<d:propfind xmlns:d="DAV:"> <d:prop xmlns:nc="http://nextcloud.org/ns"> <nc:is-encrypted/> </d:prop> </d:propfind>)";
+	auto *buf = new QBuffer(this);
 	buf->setData(xml);
 	buf->open(QIODevice::ReadOnly);
   QString tmpPath = path() + (!_folder.isEmpty() ? "/" + _folder : QString());
@@ -73,20 +79,19 @@ bool GetFolderEncryptStatusJob::finished()
             </d:response>
           </d:multistatus>
         */
+        QString base = account()->url().path();
+        if (base.endsWith(QLatin1Char('/')))
+            base.chop(1);
 
         QString currFile;
         int currEncryptedStatus = -1;
-        QMap<QString, bool> folderStatus;
+        QHash<QString, bool> folderStatus;
         while (!reader.atEnd()) {
             auto type = reader.readNext();
             if (type == QXmlStreamReader::StartElement) {
                 if (reader.name() == QLatin1String("href")) {
                     // If the current file is not a folder, ignore it.
-                    QString base = account()->url().path();
-                    if (base.endsWith(QLatin1Char('/')))
-                        base.chop(1);
-
-                    currFile = reader.readElementText(QXmlStreamReader::SkipChildElements);
+                    currFile = QUrl::fromPercentEncoding(reader.readElementText(QXmlStreamReader::SkipChildElements).toUtf8());
                     currFile.remove(base + QLatin1String("/remote.php/webdav/"));
                     if (!currFile.endsWith('/'))
                         currFile.clear();
@@ -211,14 +216,14 @@ void UpdateMetadataApiJob::start()
 
     QUrlQuery urlQuery;
     urlQuery.addQueryItem(QStringLiteral("format"), QStringLiteral("json"));
-    urlQuery.addQueryItem(QStringLiteral("token"), _token);
+    urlQuery.addQueryItem(QStringLiteral("e2e-token"), _token);
 
     QUrl url = Utility::concatUrlPath(account()->url(), path());
     url.setQuery(urlQuery);
 
     QUrlQuery params;
     params.addQueryItem("metaData",QUrl::toPercentEncoding(_b64Metadata));
-    params.addQueryItem("token",_token);
+    params.addQueryItem("e2e-token", _token);
 
     QByteArray data = params.query().toLocal8Bit();
     auto buffer = new QBuffer(this);
@@ -254,7 +259,7 @@ void UnlockEncryptFolderApiJob::start()
 {
     QNetworkRequest req;
     req.setRawHeader("OCS-APIREQUEST", "true");
-    req.setRawHeader("token", _token);
+    req.setRawHeader("e2e-token", _token);
 
     QUrl url = Utility::concatUrlPath(account()->url(), path());
     sendRequest("DELETE", url, req);
@@ -341,7 +346,7 @@ bool LockEncryptFolderApiJob::finished()
     QJsonParseError error;
     auto json = QJsonDocument::fromJson(reply()->readAll(), &error);
     auto obj = json.object().toVariantMap();
-    auto token = obj["ocs"].toMap()["data"].toMap()["token"].toByteArray();
+    auto token = obj["ocs"].toMap()["data"].toMap()["e2e-token"].toByteArray();
     qCInfo(lcCseJob()) << "got json:" << token;
 
     //TODO: Parse the token and submit.

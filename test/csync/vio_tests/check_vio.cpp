@@ -20,8 +20,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <string.h>
-#include <errno.h>
+#include <cstring>
+#include <cerrno>
 
 #include "csync_private.h"
 #include "std/c_utf8.h"
@@ -41,8 +41,8 @@ static char wd_buffer[WD_BUFFER_SIZE];
 
 static int setup(void **state)
 {
-    CSYNC *csync;
-    int rc;
+    CSYNC *csync = nullptr;
+    int rc = 0;
 
     assert_non_null(getcwd(wd_buffer, WD_BUFFER_SIZE));
 
@@ -58,7 +58,7 @@ static int setup(void **state)
 }
 
 static int setup_dir(void **state) {
-    int rc;
+    int rc = 0;
     mbchar_t *dir = c_utf8_path_to_locale(CSYNC_TEST_DIR);
 
     setup(state);
@@ -75,8 +75,8 @@ static int setup_dir(void **state) {
 }
 
 static int teardown(void **state) {
-    CSYNC *csync = (CSYNC*)*state;
-    int rc;
+    auto *csync = (CSYNC*)*state;
+    int rc = 0;
 
     auto statedb = csync->statedb;
     delete csync;
@@ -99,9 +99,9 @@ static int teardown(void **state) {
 
 static void check_csync_vio_opendir(void **state)
 {
-    CSYNC *csync = (CSYNC*)*state;
-    csync_vio_handle_t *dh;
-    int rc;
+    auto *csync = (CSYNC*)*state;
+    csync_vio_handle_t *dh = nullptr;
+    int rc = 0;
 
     dh = csync_vio_opendir(csync, CSYNC_TEST_DIR);
     assert_non_null(dh);
@@ -112,9 +112,9 @@ static void check_csync_vio_opendir(void **state)
 
 static void check_csync_vio_opendir_perm(void **state)
 {
-    CSYNC *csync = (CSYNC*)*state;
-    csync_vio_handle_t *dh;
-    int rc;
+    auto *csync = (CSYNC*)*state;
+    csync_vio_handle_t *dh = nullptr;
+    int rc = 0;
     mbchar_t *dir = c_utf8_path_to_locale(CSYNC_TEST_DIR);
 
     assert_non_null(dir);
@@ -132,8 +132,8 @@ static void check_csync_vio_opendir_perm(void **state)
 
 static void check_csync_vio_closedir_null(void **state)
 {
-    CSYNC *csync = (CSYNC*)*state;
-    int rc;
+    auto *csync = (CSYNC*)*state;
+    int rc = 0;
 
     rc = csync_vio_closedir(csync, nullptr);
     assert_int_equal(rc, -1);

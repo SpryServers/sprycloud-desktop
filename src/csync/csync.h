@@ -149,15 +149,16 @@ enum ItemType {
 typedef struct csync_file_stat_s csync_file_stat_t;
 
 struct OCSYNC_EXPORT csync_file_stat_s {
-  time_t modtime;
-  int64_t size;
-  uint64_t inode;
+  time_t modtime = 0;
+  int64_t size = 0;
+  uint64_t inode = 0;
 
   OCC::RemotePermissions remotePerm;
   ItemType type BITFIELD(4);
   bool child_modified BITFIELD(1);
   bool has_ignored_files BITFIELD(1); // Specify that a directory, or child directory contains ignored files.
   bool is_hidden BITFIELD(1); // Not saved in the DB, only used during discovery for local files.
+  bool isE2eEncrypted BITFIELD(1);
 
   QByteArray path;
   QByteArray rename_path;
@@ -174,20 +175,16 @@ struct OCSYNC_EXPORT csync_file_stat_s {
   QByteArray checksumHeader;
   QByteArray e2eMangledName;
 
-  CSYNC_STATUS error_status;
+  CSYNC_STATUS error_status = CSYNC_STATUS_OK;
 
-  enum csync_instructions_e instruction; /* u32 */
+  enum csync_instructions_e instruction = CSYNC_INSTRUCTION_NONE; /* u32 */
 
   csync_file_stat_s()
-    : modtime(0)
-    , size(0)
-    , inode(0)
-    , type(ItemTypeSkip)
+    : type(ItemTypeSkip)
     , child_modified(false)
     , has_ignored_files(false)
     , is_hidden(false)
-    , error_status(CSYNC_STATUS_OK)
-    , instruction(CSYNC_INSTRUCTION_NONE)
+    , isE2eEncrypted(false)
   { }
 
   static std::unique_ptr<csync_file_stat_t> fromSyncJournalFileRecord(const OCC::SyncJournalFileRecord &rec);

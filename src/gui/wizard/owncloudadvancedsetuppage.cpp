@@ -36,14 +36,7 @@ namespace OCC {
 
 OwncloudAdvancedSetupPage::OwncloudAdvancedSetupPage()
     : QWizardPage()
-    , _ui()
-    , _checking(false)
-    , _created(false)
-    , _localFolderValid(false)
     , _progressIndi(new QProgressIndicator(this))
-    , _remoteFolder()
-    , _rSize(-1)
-    , _rSelectedSize(-1)
 {
     _ui.setupUi(this);
 
@@ -68,7 +61,9 @@ OwncloudAdvancedSetupPage::OwncloudAdvancedSetupPage()
     _ui.lServerIcon->setText(QString());
     _ui.lServerIcon->setPixmap(appIcon.pixmap(48));
     _ui.lLocalIcon->setText(QString());
-    _ui.lLocalIcon->setPixmap(QPixmap(Theme::hidpiFileName(":/client/resources/folder-sync.png")));
+
+    // TO DO: File doesn't exist anymore - unneccessary or replacement needed?
+    _ui.lLocalIcon->setPixmap(QPixmap(Theme::hidpiFileName(":/client/theme/folder-sync.png")));
 
     if (theme->wizardHideExternalStorageConfirmationCheckbox()) {
         _ui.confCheckBoxExternal->hide();
@@ -314,7 +309,7 @@ void OwncloudAdvancedSetupPage::slotSelectiveSyncClicked()
     _ui.rSyncEverything->setChecked(_selectiveSyncBlacklist.isEmpty());
 
     AccountPtr acc = static_cast<OwncloudWizard *>(wizard())->account();
-    SelectiveSyncDialog *dlg = new SelectiveSyncDialog(acc, _remoteFolder, _selectiveSyncBlacklist, this);
+    auto *dlg = new SelectiveSyncDialog(acc, _remoteFolder, _selectiveSyncBlacklist, this);
 
     const int result = dlg->exec();
     bool updateBlacklist = false;

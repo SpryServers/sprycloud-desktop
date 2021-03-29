@@ -56,6 +56,7 @@ if(NOT BUILD_LIBRARIES_ONLY)
         add_custom_command(TARGET ${CRASHREPORTER_EXECUTABLE} POST_BUILD
             COMMAND "${MACDEPLOYQT_EXECUTABLE}"
                 "$<TARGET_FILE_DIR:${CRASHREPORTER_EXECUTABLE}>/../.."
+                -qmldir=${CMAKE_SOURCE_DIR}/src/gui
                 -always-overwrite
             COMMENT "Running macdeployqt..."
         )

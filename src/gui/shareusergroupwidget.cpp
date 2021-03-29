@@ -46,6 +46,8 @@
 #include <QPainter>
 #include <QListWidget>
 
+#include <string.h>
+
 namespace OCC {
 
 ShareUserGroupWidget::ShareUserGroupWidget(AccountPtr account,
@@ -211,7 +213,7 @@ void ShareUserGroupWidget::slotSharesFetched(const QList<QSharedPointer<Share>> 
             _ui->mainOwnerLabel->setText(QString("Shared with you by ").append(share->getOwnerDisplayName()));
         }
 
-        ShareUserLine *s = new ShareUserLine(share, _maxSharingPermissions, _isFile, _parentScrollArea);
+        auto *s = new ShareUserLine(share, _maxSharingPermissions, _isFile, _parentScrollArea);
         connect(s, &ShareUserLine::resizeRequested, this, &ShareUserGroupWidget::slotAdjustScrollWidgetSize);
         connect(s, &ShareUserLine::visualDeletionDone, this, &ShareUserGroupWidget::getShares);
         s->setBackgroundRole(layout->count() % 2 == 0 ? QPalette::Base : QPalette::AlternateBase);
@@ -264,7 +266,7 @@ void ShareUserGroupWidget::slotPrivateLinkShare()
     menu->setAttribute(Qt::WA_DeleteOnClose);
 
     // this icon is not handled by slotStyleChanged() -> customizeStyle but we can live with that
-    menu->addAction(Theme::createColorAwareIcon(":/client/resources/copy.svg"),
+    menu->addAction(Theme::createColorAwareIcon(":/client/theme/copy.svg"),
                     tr("Copy link"),
         this, SLOT(slotPrivateLinkCopy()));
 
@@ -378,7 +380,7 @@ void ShareUserGroupWidget::slotStyleChanged()
 
 void ShareUserGroupWidget::customizeStyle()
 {
-    _ui->confirmShare->setIcon(Theme::createColorAwareIcon(":/client/resources/confirm.svg"));
+    _ui->confirmShare->setIcon(Theme::createColorAwareIcon(":/client/theme/confirm.svg"));
 
     _pi_sharee.setColor(QGuiApplication::palette().color(QPalette::Text));
 
@@ -410,7 +412,7 @@ ShareUserLine::ShareUserLine(QSharedPointer<Share> share,
     connect(_ui->permissionsEdit, &QAbstractButton::clicked, this, &ShareUserLine::slotEditPermissionsChanged);
 
     // create menu with checkable permissions
-    QMenu *menu = new QMenu(this);
+    auto *menu = new QMenu(this);
     _permissionReshare= new QAction(tr("Can reshare"), this);
     _permissionReshare->setCheckable(true);
     _permissionReshare->setEnabled(maxSharingPermissions & SharePermissionShare);
@@ -420,7 +422,7 @@ ShareUserLine::ShareUserLine(QSharedPointer<Share> share,
     menu->addSeparator();
 
       // Adds action to delete share widget
-      QIcon deleteicon = QIcon::fromTheme(QLatin1String("user-trash"),QIcon(QLatin1String(":/client/resources/delete.png")));
+      QIcon deleteicon = QIcon::fromTheme(QLatin1String("user-trash"),QIcon(QLatin1String(":/client/theme/delete.svg")));
       _deleteShareButton= new QAction(deleteicon,tr("Unshare"), this);
 
     menu->addAction(_deleteShareButton);
@@ -452,10 +454,6 @@ ShareUserLine::ShareUserLine(QSharedPointer<Share> share,
     _ui->permissionToolButton->setMenu(menu);
     _ui->permissionToolButton->setPopupMode(QToolButton::InstantPopup);
 
-    // icon now set in: customizeStyle
-    /*QIcon icon(QLatin1String(":/client/resources/more.svg"));
-    _ui->permissionToolButton->setIcon(icon);*/
-
     // Set the permissions checkboxes
     displayPermissions();
 
@@ -472,9 +470,6 @@ ShareUserLine::ShareUserLine(QSharedPointer<Share> share,
 
     connect(share.data(), &Share::permissionsSet, this, &ShareUserLine::slotPermissionsSet);
     connect(share.data(), &Share::shareDeleted, this, &ShareUserLine::slotShareDeleted);
-
-    // _ui->deleteShareButton->setIcon(QIcon::fromTheme(QLatin1String("user-trash"),
-    //                                                  QIcon(QLatin1String(":/client/resources/delete.png"))));
 
     if (!share->account()->capabilities().shareResharing()) {
         _permissionReshare->setVisible(false);
@@ -524,7 +519,7 @@ void ShareUserLine::loadAvatar()
      * Currently only regular users can have avatars.
      */
     if (_share->getShareWith()->type() == Sharee::User) {
-        AvatarJob *job = new AvatarJob(_share->account(), _share->getShareWith()->shareWith(), avatarSize, this);
+        auto *job = new AvatarJob(_share->account(), _share->getShareWith()->shareWith(), avatarSize, this);
         connect(job, &AvatarJob::avatarPixmap, this, &ShareUserLine::slotAvatarLoaded);
         job->start();
     }
@@ -629,7 +624,7 @@ void ShareUserLine::slotDeleteAnimationFinished()
 
 void ShareUserLine::slotShareDeleted()
 {
-    QPropertyAnimation *animation = new QPropertyAnimation(this, "maximumHeight", this);
+    auto *animation = new QPropertyAnimation(this, "maximumHeight", this);
 
     animation->setDuration(500);
     animation->setStartValue(height());
@@ -685,9 +680,9 @@ void ShareUserLine::slotStyleChanged()
 
 void ShareUserLine::customizeStyle()
 {
-    _ui->permissionToolButton->setIcon(Theme::createColorAwareIcon(":/client/resources/more.svg"));
+    _ui->permissionToolButton->setIcon(Theme::createColorAwareIcon(":/client/theme/more.svg"));
 
-    QIcon deleteicon = QIcon::fromTheme(QLatin1String("user-trash"),Theme::createColorAwareIcon(QLatin1String(":/client/resources/delete.png")));
+    QIcon deleteicon = QIcon::fromTheme(QLatin1String("user-trash"),Theme::createColorAwareIcon(QLatin1String(":/client/theme/delete.svg")));
     _deleteShareButton->setIcon(deleteicon);
 }
 

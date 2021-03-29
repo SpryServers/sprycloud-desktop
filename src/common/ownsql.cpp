@@ -44,8 +44,6 @@ namespace OCC {
 Q_LOGGING_CATEGORY(lcSql, "nextcloud.sync.database.sql", QtInfoMsg)
 
 SqlDatabase::SqlDatabase()
-    : _db(nullptr)
-    , _errId(0)
 {
 }
 
@@ -253,7 +251,7 @@ int SqlQuery::prepare(const QByteArray &sql, bool allow_failure)
     }
     if (!_sql.isEmpty()) {
         int n = 0;
-        int rc;
+        int rc = 0;
         do {
             rc = sqlite3_prepare_v2(_db, _sql.constData(), -1, &_stmt, nullptr);
             if ((rc == SQLITE_BUSY) || (rc == SQLITE_LOCKED)) {
@@ -306,7 +304,7 @@ bool SqlQuery::exec()
 
     // Don't do anything for selects, that is how we use the lib :-|
     if (!isSelect() && !isPragma()) {
-        int rc, n = 0;
+        int rc = 0, n = 0;
         do {
             rc = sqlite3_step(_stmt);
             if (rc == SQLITE_LOCKED) {
@@ -384,7 +382,7 @@ void SqlQuery::bindValue(int pos, const QVariant &value)
     case QVariant::String: {
         if (!value.toString().isNull()) {
             // lifetime of string == lifetime of its qvariant
-            const QString *str = static_cast<const QString *>(value.constData());
+            const auto *str = static_cast<const QString *>(value.constData());
             res = sqlite3_bind_text16(_stmt, pos, str->utf16(),
                 (str->size()) * sizeof(QChar), SQLITE_TRANSIENT);
         } else {

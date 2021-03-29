@@ -27,10 +27,7 @@ Q_LOGGING_CATEGORY(lcFlow2AuthWidget, "nextcloud.gui.wizard.flow2authwidget", Qt
 
 Flow2AuthWidget::Flow2AuthWidget(QWidget *parent)
     : QWidget(parent)
-    , _account(nullptr)
-    , _ui()
     , _progressIndi(new QProgressIndicator(this))
-    , _statusUpdateSkipCount(0)
 {
     _ui.setupUi(this);
 

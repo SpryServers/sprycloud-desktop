@@ -1,5 +1,5 @@
 project(gui)
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt5 REQUIRED COMPONENTS Widgets Svg Qml Quick QuickControls2)
 set(CMAKE_AUTOMOC TRUE)
 set(CMAKE_AUTOUIC TRUE)
 set(CMAKE_AUTORCC TRUE)
@@ -8,8 +8,7 @@ IF(BUILD_UPDATER)
     add_subdirectory(updater)
 endif()
 
-#TODO Move resources files
-set(MIRALL_RC_SRC ../../client.qrc)
+set(MIRALL_RC_SRC ../../resources.qrc)
 if (EXISTS "${OEM_THEME_DIR}/theme.qrc")
     list(APPEND MIRALL_RC_SRC ${OEM_THEME_DIR}/theme.qrc)
     set(theme_dir ${OEM_THEME_DIR}/theme)
@@ -17,6 +16,8 @@ else()
     list(APPEND MIRALL_RC_SRC ../../theme.qrc)
     set(theme_dir ${CMAKE_SOURCE_DIR}/theme)
 endif()
+
+#set (QML_IMPORT_PATH "${CMAKE_SOURCE_DIR}/src/gui/tray" CACHE STRING "Extra qml module import paths" FORCE)
 
 set(client_UI_SRCS
     accountsettings.ui
@@ -27,7 +28,6 @@ set(client_UI_SRCS
     ignorelisteditor.ui
     ignorelisttablewidget.ui
     networksettings.ui
-    activitywidget.ui
     synclogdialog.ui
     settingsdialog.ui
     sharedialog.ui
@@ -38,6 +38,8 @@ set(client_UI_SRCS
     addcertificatedialog.ui
     proxyauthdialog.ui
     mnemonicdialog.ui
+    tray/Window.qml
+    tray/UserLine.qml
     wizard/flow2authwidget.ui
     wizard/owncloudadvancedsetuppage.ui
     wizard/owncloudconnectionmethoddialog.ui
@@ -75,10 +77,6 @@ set(client_SRCS
     openfilemanager.cpp
     owncloudgui.cpp
     owncloudsetupwizard.cpp
-    activitydata.cpp
-    activitylistmodel.cpp
-    activitywidget.cpp
-    activityitemdelegate.cpp
     selectivesyncdialog.cpp
     settingsdialog.cpp
     sharedialog.cpp
@@ -101,12 +99,15 @@ set(client_SRCS
     synclogdialog.cpp
     tooltipupdater.cpp
     notificationconfirmjob.cpp
-    servernotificationhandler.cpp
     guiutility.cpp
     elidedlabel.cpp
     headerbanner.cpp
     iconjob.cpp
     remotewipe.cpp
+    tray/ActivityData.cpp
+    tray/ActivityListModel.cpp
+    tray/UserModel.cpp
+    tray/NotificationHandler.cpp
     creds/credentialsfactory.cpp
     creds/httpcredentialsgui.cpp
     creds/oauth.cpp
@@ -302,7 +303,7 @@ endif()
 
 IF(BUILD_UPDATER)
     add_library(updater STATIC ${updater_SRCS})
-    target_link_libraries(updater ${synclib_NAME} Qt5::Widgets Qt5::Network Qt5::Xml)
+    target_link_libraries(updater ${synclib_NAME} Qt5::Widgets Qt5::Svg Qt5::Network Qt5::Xml)
     target_include_directories(updater PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
@@ -313,7 +314,7 @@ set_target_properties( ${APPLICATION_EXECUTABLE} PROPERTIES
 set_target_properties( ${APPLICATION_EXECUTABLE} PROPERTIES
         INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}/${APPLICATION_EXECUTABLE};${CMAKE_INSTALL_RPATH}" )
 
-target_link_libraries( ${APPLICATION_EXECUTABLE} Qt5::Widgets Qt5::Network Qt5::Xml Qt5::WebEngineWidgets)
+target_link_libraries( ${APPLICATION_EXECUTABLE} Qt5::Widgets Qt5::Svg Qt5::Network Qt5::Xml Qt5::Qml Qt5::Quick Qt5::QuickControls2 Qt5::WebEngineWidgets)
 target_link_libraries( ${APPLICATION_EXECUTABLE} ${synclib_NAME} )
 IF(BUILD_UPDATER)
     target_link_libraries( ${APPLICATION_EXECUTABLE} updater )
@@ -394,11 +395,19 @@ if(BUILD_OWNCLOUD_OSX_BUNDLE AND NOT BUILD_LIBRARIES_ONLY)
 
     set(cmd_NAME ${APPLICATION_EXECUTABLE}cmd)
 
+    if(CMAKE_BUILD_TYPE MATCHES Debug)
+        set(NO_STRIP "-no-strip")
+    else()
+        set(NO_STRIP "")
+    endif()
+
     add_custom_command(TARGET ${APPLICATION_EXECUTABLE} POST_BUILD
         COMMAND "${MACDEPLOYQT_EXECUTABLE}"
             "$<TARGET_FILE_DIR:${APPLICATION_EXECUTABLE}>/../.."
+            -qmldir=${CMAKE_SOURCE_DIR}/src/gui
             -always-overwrite
             -executable="$<TARGET_FILE_DIR:${APPLICATION_EXECUTABLE}>/${cmd_NAME}"
+            ${NO_STRIP}
         COMMENT "Running macdeployqt..."
     )
 endif()
@@ -408,4 +417,3 @@ if(NOT BUILD_OWNCLOUD_OSX_BUNDLE AND NOT WIN32)
                    ${CMAKE_CURRENT_BINARY_DIR}/${LINUX_APPLICATION_ID}.desktop)
     install(FILES  ${CMAKE_CURRENT_BINARY_DIR}/${LINUX_APPLICATION_ID}.desktop DESTINATION ${DATADIR}/applications )
 endif()
-

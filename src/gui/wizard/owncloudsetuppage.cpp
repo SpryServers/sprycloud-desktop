@@ -39,16 +39,10 @@ namespace OCC {
 
 OwncloudSetupPage::OwncloudSetupPage(QWidget *parent)
     : QWizardPage()
-    , _ui()
-    , _oCUrl()
-    , _ocUser()
-    , _authTypeKnown(false)
-    , _checking(false)
-    , _authType(DetermineAuthTypeJob::Basic)
     , _progressIndi(new QProgressIndicator(this))
+    , _ocWizard(qobject_cast<OwncloudWizard *>(parent))
 {
     _ui.setupUi(this);
-    _ocWizard = qobject_cast<OwncloudWizard *>(parent);
 
     Theme *theme = Theme::instance();
     setTitle(WizardCommon::titleTemplate().arg(tr("Connect to %1").arg(theme->appNameGUI())));
@@ -57,7 +51,7 @@ OwncloudSetupPage::OwncloudSetupPage(QWidget *parent)
     if (theme->overrideServerUrl().isEmpty()) {
         _ui.leUrl->setPostfix(theme->wizardUrlPostfix());
         _ui.leUrl->setPlaceholderText(theme->wizardUrlHint());
-    } else {
+    } else if (Theme::instance()->forceOverrideServerUrl()) {
         _ui.leUrl->setEnabled(false);
     }
 
@@ -85,6 +79,7 @@ OwncloudSetupPage::OwncloudSetupPage(QWidget *parent)
     _ui.slideShow->addSlide(Theme::hidpiFileName(":/client/theme/colored/wizard-files.png"), tr("Secure collaboration & file exchange"));
     _ui.slideShow->addSlide(Theme::hidpiFileName(":/client/theme/colored/wizard-groupware.png"), tr("Easy-to-use web mail, calendaring & contacts"));
     _ui.slideShow->addSlide(Theme::hidpiFileName(":/client/theme/colored/wizard-talk.png"), tr("Screensharing, online meetings & web conferences"));
+
     connect(_ui.slideShow, &SlideShow::clicked, _ui.slideShow, &SlideShow::stopShow);
     connect(_ui.nextButton, &QPushButton::clicked, _ui.slideShow, &SlideShow::nextSlide);
     connect(_ui.prevButton, &QPushButton::clicked, _ui.slideShow, &SlideShow::prevSlide);
@@ -133,7 +128,7 @@ void OwncloudSetupPage::slotLogin()
 {
     _ocWizard->setRegistration(false);
     _ui.login->setMaximumHeight(0);
-    QPropertyAnimation *animation = new QPropertyAnimation(_ui.login, "maximumHeight");
+    auto *animation = new QPropertyAnimation(_ui.login, "maximumHeight");
     animation->setDuration(0);
     animation->setStartValue(500);
     animation->setEndValue(500);
@@ -185,11 +180,11 @@ void OwncloudSetupPage::slotUrlChanged(const QString &url)
     }
 
     if (!url.startsWith(QLatin1String("https://"))) {
-        _ui.urlLabel->setPixmap(QPixmap(Theme::hidpiFileName(":/client/resources/lock-http.png")));
+        _ui.urlLabel->setPixmap(QPixmap(Theme::hidpiFileName(":/client/theme/lock-http.svg")));
         _ui.urlLabel->setToolTip(tr("This URL is NOT secure as it is not encrypted.\n"
                                     "It is not advisable to use it."));
     } else {
-        _ui.urlLabel->setPixmap(QPixmap(Theme::hidpiFileName(":/client/resources/lock-https.png")));
+        _ui.urlLabel->setPixmap(QPixmap(Theme::hidpiFileName(":/client/theme/lock-https.svg")));
         _ui.urlLabel->setToolTip(tr("This URL is secure. You can use it."));
     }
 }
@@ -217,17 +212,21 @@ void OwncloudSetupPage::initializePage()
     _checking = false;
 
     QAbstractButton *nextButton = wizard()->button(QWizard::NextButton);
-    QPushButton *pushButton = qobject_cast<QPushButton *>(nextButton);
+    auto *pushButton = qobject_cast<QPushButton *>(nextButton);
     if (pushButton)
         pushButton->setDefault(true);
 
     // If url is overriden by theme, it's already set and
     // we just check the server type and switch to second page
     // immediately.
-//    if (Theme::instance()->overrideServerUrl().isEmpty()) {
-//        _ui.leUrl->setFocus();
-//    } else {
-//        setCommitPage(true);
+    if (Theme::instance()->overrideServerUrl().isEmpty()) {
+        _ui.leUrl->setFocus();
+    } else if (!Theme::instance()->forceOverrideServerUrl()) {
+        if (nextButton) {
+            nextButton->setFocus();
+        }
+    } else {
+        setCommitPage(true);
         // Hack: setCommitPage() changes caption, but after an error this page could still be visible
 //        setButtonText(QWizard::CommitButton, tr("&Next >"));
 //        validatePage();

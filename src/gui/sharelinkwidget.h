@@ -73,6 +73,9 @@ private slots:
     void slotPasswordSet();
     void slotPasswordSetError(int code, const QString &message);
 
+	void slotCreateNote();
+    void slotNoteSet();
+
     void slotSetExpireDate();
     void slotExpireDateSet();
 
@@ -93,6 +96,10 @@ private:
 
     void showPasswordOptions(bool show);
     void togglePasswordOptions(bool enable);
+
+	void showNoteOptions(bool show);
+    void toggleNoteOptions(bool enable);
+    void setNote(const QString &note);
 
     void showExpireDateOptions(bool show);
     void toggleExpireDateOptions(bool enable);
@@ -121,6 +128,7 @@ private:
     bool _passwordRequired;
     bool _expiryRequired;
     bool _namesSupported;
+    bool _noteRequired;
 
     QMenu *_linkContextMenu;
     QAction *_readOnlyLinkAction;
@@ -131,6 +139,7 @@ private:
     QAction *_expirationDateLinkAction;
     QAction *_unshareLinkAction;
     QAction *_addAnotherLinkAction;
+    QAction *_noteLinkAction;
 };
 }
 

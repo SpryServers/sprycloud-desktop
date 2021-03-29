@@ -23,7 +23,6 @@
 #include "configfile.h"
 #include "progressdispatcher.h"
 #include "owncloudgui.h"
-#include "activitywidget.h"
 #include "accountmanager.h"
 
 #include <QLabel>
@@ -71,7 +70,7 @@ SettingsDialog::SettingsDialog(ownCloudGui *gui, QWidget *parent)
     layout()->setMenuBar(_toolBar);
 
     // People perceive this as a Window, so also make Ctrl+W work
-    QAction *closeWindowAction = new QAction(this);
+    auto *closeWindowAction = new QAction(this);
     closeWindowAction->setShortcut(QKeySequence("Ctrl+W"));
     connect(closeWindowAction, &QAction::triggered, this, &SettingsDialog::accept);
     addAction(closeWindowAction);
@@ -93,24 +92,24 @@ SettingsDialog::SettingsDialog(ownCloudGui *gui, QWidget *parent)
     _toolBar->addAction(_actionBefore);
 
     // Adds space between users + activities and general + network actions
-    QWidget* spacer = new QWidget();
+    auto *spacer = new QWidget();
     spacer->setMinimumWidth(10);
     spacer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     _toolBar->addWidget(spacer);
 
-    QAction *generalAction = createColorAwareAction(QLatin1String(":/client/resources/settings.png"), tr("General"));
+    QAction *generalAction = createColorAwareAction(QLatin1String(":/client/theme/settings.svg"), tr("General"));
     _actionGroup->addAction(generalAction);
     _toolBar->addAction(generalAction);
-    GeneralSettings *generalSettings = new GeneralSettings;
+    auto *generalSettings = new GeneralSettings;
     _ui->stack->addWidget(generalSettings);
 
     // Connect styleChanged events to our widgets, so they can adapt (Dark-/Light-Mode switching)
     connect(this, &SettingsDialog::styleChanged, generalSettings, &GeneralSettings::slotStyleChanged);
 
-    QAction *networkAction = createColorAwareAction(QLatin1String(":/client/resources/network.png"), tr("Network"));
+    QAction *networkAction = createColorAwareAction(QLatin1String(":/client/theme/network.svg"), tr("Network"));
     _actionGroup->addAction(networkAction);
     _toolBar->addAction(networkAction);
-    NetworkSettings *networkSettings = new NetworkSettings;
+    auto *networkSettings = new NetworkSettings;
     _ui->stack->addWidget(networkSettings);
 
     _actionGroupWidgets.insert(generalAction, generalSettings);
@@ -122,7 +121,7 @@ SettingsDialog::SettingsDialog(ownCloudGui *gui, QWidget *parent)
 
     QTimer::singleShot(1, this, &SettingsDialog::showFirstPage);
 
-    QAction *showLogWindow = new QAction(this);
+    auto *showLogWindow = new QAction(this);
     showLogWindow->setShortcut(QKeySequence("F12"));
     connect(showLogWindow, &QAction::triggered, gui, &ownCloudGui::slotToggleLogBrowser);
     addAction(showLogWindow);
@@ -189,39 +188,13 @@ void SettingsDialog::showFirstPage()
     }
 }
 
-void SettingsDialog::showActivityPage()
-{
-    if (auto account = qvariant_cast<AccountState*>(sender()->property("account"))) {
-        _activitySettings[account]->show();
-        _ui->stack->setCurrentWidget(_activitySettings[account]);
-    }
-}
-
 void SettingsDialog::showIssuesList(AccountState *account) {
-    for (auto it = _actionGroupWidgets.begin(); it != _actionGroupWidgets.end(); ++it) {
+    /*for (auto it = _actionGroupWidgets.begin(); it != _actionGroupWidgets.end(); ++it) {
         if (it.value() == _activitySettings[account]) {
             it.key()->activate(QAction::ActionEvent::Trigger);
             break;
         }
-    }
-}
-
-void SettingsDialog::activityAdded(AccountState *s){
-    _ui->stack->addWidget(_activitySettings[s]);
-    connect(_activitySettings[s], &ActivitySettings::guiLog, _gui,
-        &ownCloudGui::slotShowOptionalTrayMessage);
-
-    ConfigFile cfg;
-    _activitySettings[s]->setNotificationRefreshInterval(cfg.notificationRefreshInterval());
-
-    // Note: all the actions have a '\n' because the account name is in two lines and
-    // all buttons must have the same size in order to keep a good layout
-    QAction *action = createColorAwareAction(QLatin1String(":/client/resources/activity.png"), tr("Activity"));
-    action->setProperty("account", QVariant::fromValue(s));
-    _toolBar->insertAction(_actionBefore, action);
-    _actionGroup->addAction(action);
-    _actionGroupWidgets.insert(action, _activitySettings[s]);
-    connect(action, &QAction::triggered, this, &SettingsDialog::showActivityPage);
+    }*/
 }
 
 void SettingsDialog::accountAdded(AccountState *s)
@@ -229,19 +202,11 @@ void SettingsDialog::accountAdded(AccountState *s)
     auto height = _toolBar->sizeHint().height();
     bool brandingSingleAccount = !Theme::instance()->multiAccount();
 
-    _activitySettings[s] = new ActivitySettings(s, this);
-
-    // if this is not the first account, then before we continue to add more accounts we add a separator
-    if(AccountManager::instance()->accounts().first().data() != s &&
-        AccountManager::instance()->accounts().size() >= 1){
-        _actionGroupWidgets.insert(_toolBar->insertSeparator(_actionBefore), _activitySettings[s]);
-    }
-
-    QAction *accountAction;
+    QAction *accountAction = nullptr;
     QImage avatar = s->account()->avatar();
     const QString actionText = brandingSingleAccount ? tr("Account") : s->account()->displayName();
     if (avatar.isNull()) {
-        accountAction = createColorAwareAction(QLatin1String(":/client/resources/account.png"),
+        accountAction = createColorAwareAction(QLatin1String(":/client/theme/account.svg"),
             actionText);
     } else {
         QIcon icon(QPixmap::fromImage(AvatarJob::makeCircularAvatar(avatar)));
@@ -264,24 +229,16 @@ void SettingsDialog::accountAdded(AccountState *s)
     connect(accountSettings, &AccountSettings::folderChanged, _gui, &ownCloudGui::slotFoldersChanged);
     connect(accountSettings, &AccountSettings::openFolderAlias,
         _gui, &ownCloudGui::slotFolderOpenAction);
-    connect(accountSettings, &AccountSettings::showIssuesList, this, &SettingsDialog::showIssuesList);
     connect(s->account().data(), &Account::accountChangedAvatar, this, &SettingsDialog::slotAccountAvatarChanged);
     connect(s->account().data(), &Account::accountChangedDisplayName, this, &SettingsDialog::slotAccountDisplayNameChanged);
 
-    // Refresh immediatly when getting online
-    connect(s, &AccountState::isConnectedChanged, this, &SettingsDialog::slotRefreshActivityAccountStateSender);
-
     // Connect styleChanged event, to adapt (Dark-/Light-Mode switching)
     connect(this, &SettingsDialog::styleChanged, accountSettings, &AccountSettings::slotStyleChanged);
-    connect(this, &SettingsDialog::styleChanged, _activitySettings[s], &ActivitySettings::slotStyleChanged);
-
-    activityAdded(s);
-    slotRefreshActivity(s);
 }
 
 void SettingsDialog::slotAccountAvatarChanged()
 {
-    Account *account = static_cast<Account *>(sender());
+    auto *account = static_cast<Account *>(sender());
     if (account && _actionForAccount.contains(account)) {
         QAction *action = _actionForAccount[account];
         if (action) {
@@ -295,7 +252,7 @@ void SettingsDialog::slotAccountAvatarChanged()
 
 void SettingsDialog::slotAccountDisplayNameChanged()
 {
-    Account *account = static_cast<Account *>(sender());
+    auto *account = static_cast<Account *>(sender());
     if (account && _actionForAccount.contains(account)) {
         QAction *action = _actionForAccount[account];
         if (action) {
@@ -332,19 +289,6 @@ void SettingsDialog::accountRemoved(AccountState *s)
         _actionForAccount.remove(s->account().data());
     }
 
-    if(_activitySettings.contains(s)){
-        _activitySettings[s]->slotRemoveAccount();
-        _activitySettings[s]->hide();
-
-        // get the settings widget and the separator
-        foreach(QAction *action, _actionGroupWidgets.keys(_activitySettings[s])){
-            _actionGroupWidgets.remove(action);
-            _toolBar->removeAction(action);
-        }
-        _toolBar->widgetForAction(_actionBefore)->hide();
-        _activitySettings.remove(s);
-    }
-
     // Hide when the last account is deleted. We want to enter the same
     // state we'd be in the client was started up without an account
     // configured.
@@ -364,7 +308,7 @@ void SettingsDialog::customizeStyle()
     Q_FOREACH (QAction *a, _actionGroup->actions()) {
         QIcon icon = Theme::createColorAwareIcon(a->property("iconPath").toString(), palette());
         a->setIcon(icon);
-        QToolButton *btn = qobject_cast<QToolButton *>(_toolBar->widgetForAction(a));
+        auto *btn = qobject_cast<QToolButton *>(_toolBar->widgetForAction(a));
         if (btn)
             btn->setIcon(icon);
     }
@@ -389,7 +333,7 @@ public:
             return nullptr;
         }
 
-        QToolButton *btn = new QToolButton(parent);
+        auto *btn = new QToolButton(parent);
         btn->setDefaultAction(this);
         btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
         btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -412,17 +356,6 @@ QAction *SettingsDialog::createColorAwareAction(const QString &iconPath, const Q
     // all buttons must have the same size in order to keep a good layout
     QIcon coloredIcon = Theme::createColorAwareIcon(iconPath, palette());
     return createActionWithIcon(coloredIcon, text, iconPath);
-}
-
-void SettingsDialog::slotRefreshActivityAccountStateSender()
-{
-    slotRefreshActivity(qobject_cast<AccountState*>(sender()));
-}
-
-void SettingsDialog::slotRefreshActivity(AccountState *accountState)
-{
-    if (accountState->isConnected())
-        _activitySettings[accountState]->slotRefresh();
 }
 
 } // namespace OCC

@@ -36,6 +36,14 @@
 #include <QSslKey>
 #include <QAuthenticator>
 #include <QStandardPaths>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
+#include <keychain.h>
+#include "creds/abstractcredentials.h"
+
+using namespace QKeychain;
 
 #include <keychain.h>
 #include "creds/abstractcredentials.h"
@@ -541,12 +549,12 @@ void Account::writeAppPasswordOnce(QString appPassword){
                 id()
     );
 
-    WritePasswordJob *job = new WritePasswordJob(Theme::instance()->appName());
+    auto *job = new WritePasswordJob(Theme::instance()->appName());
     job->setInsecureFallback(false);
     job->setKey(kck);
     job->setBinaryData(appPassword.toLatin1());
     connect(job, &WritePasswordJob::finished, [this](Job *incoming) {
-        WritePasswordJob *writeJob = static_cast<WritePasswordJob *>(incoming);
+        auto *writeJob = static_cast<WritePasswordJob *>(incoming);
         if (writeJob->error() == NoError)
             qCInfo(lcAccount) << "appPassword stored in keychain";
         else
@@ -565,11 +573,11 @@ void Account::retrieveAppPassword(){
                 id()
     );
 
-    ReadPasswordJob *job = new ReadPasswordJob(Theme::instance()->appName());
+    auto *job = new ReadPasswordJob(Theme::instance()->appName());
     job->setInsecureFallback(false);
     job->setKey(kck);
     connect(job, &ReadPasswordJob::finished, [this](Job *incoming) {
-        ReadPasswordJob *readJob = static_cast<ReadPasswordJob *>(incoming);
+        auto *readJob = static_cast<ReadPasswordJob *>(incoming);
         QString pwd("");
         // Error or no valid public key error out
         if (readJob->error() == NoError &&
@@ -594,11 +602,11 @@ void Account::deleteAppPassword(){
         return;
     }
 
-    DeletePasswordJob *job = new DeletePasswordJob(Theme::instance()->appName());
+    auto *job = new DeletePasswordJob(Theme::instance()->appName());
     job->setInsecureFallback(false);
     job->setKey(kck);
     connect(job, &DeletePasswordJob::finished, [this](Job *incoming) {
-        DeletePasswordJob *deleteJob = static_cast<DeletePasswordJob *>(incoming);
+        auto *deleteJob = static_cast<DeletePasswordJob *>(incoming);
         if (deleteJob->error() == NoError)
             qCInfo(lcAccount) << "appPassword deleted from keychain";
         else
@@ -608,6 +616,51 @@ void Account::deleteAppPassword(){
         _wroteAppPassword = false;
     });
     job->start();
+}
+
+void Account::fetchDirectEditors(const QUrl &directEditingURL, const QString &directEditingETag)
+{
+    if(directEditingURL.isEmpty() || directEditingETag.isEmpty())
+        return;
+
+    // Check for the directEditing capability
+    if (!directEditingURL.isEmpty() &&
+        (directEditingETag.isEmpty() || directEditingETag != _lastDirectEditingETag)) {
+            // Fetch the available editors and their mime types
+            auto *job = new JsonApiJob(sharedFromThis(), QLatin1String("ocs/v2.php/apps/files/api/v1/directEditing"), this);
+            QObject::connect(job, &JsonApiJob::jsonReceived, this, &Account::slotDirectEditingRecieved);
+            job->start();
+    }
+}
+
+void Account::slotDirectEditingRecieved(const QJsonDocument &json)
+{
+    auto data = json.object().value("ocs").toObject().value("data").toObject();
+    auto editors = data.value("editors").toObject();
+
+    foreach (auto editorKey, editors.keys()) {
+        auto editor = editors.value(editorKey).toObject();
+
+        const QString id = editor.value("id").toString();
+        const QString name = editor.value("name").toString();
+
+        if(!id.isEmpty() && !name.isEmpty()) {
+            auto mimeTypes = editor.value("mimetypes").toArray();
+            auto optionalMimeTypes = editor.value("optionalMimetypes").toArray();
+
+            auto *directEditor = new DirectEditor(id, name);
+
+            foreach(auto mimeType, mimeTypes) {
+                directEditor->addMimetype(mimeType.toString().toLatin1());
+            }
+
+            foreach(auto optionalMimeType, optionalMimeTypes) {
+                directEditor->addOptionalMimetype(optionalMimeType.toString().toLatin1());
+            }
+
+            _capabilities.addDirectEditor(directEditor);
+        }
+    }
 }
 
 } // namespace OCC

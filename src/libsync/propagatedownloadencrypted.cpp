@@ -6,9 +6,12 @@ Q_LOGGING_CATEGORY(lcPropagateDownloadEncrypted, "nextcloud.sync.propagator.down
 
 namespace OCC {
 
-PropagateDownloadEncrypted::PropagateDownloadEncrypted(OwncloudPropagator *propagator, SyncFileItemPtr item) :
- _propagator(propagator), _item(item), _info(_item->_file)
-
+PropagateDownloadEncrypted::PropagateDownloadEncrypted(OwncloudPropagator *propagator, const QString &localParentPath, SyncFileItemPtr item, QObject *parent)
+    : QObject(parent)
+    , _propagator(propagator)
+    , _localParentPath(localParentPath)
+    , _item(item)
+    , _info(_item->_file)
 {
 }
 
@@ -18,7 +21,19 @@ void PropagateDownloadEncrypted::start() {
 
 void PropagateDownloadEncrypted::checkFolderEncryptedStatus()
 {
-  auto getEncryptedStatus = new GetFolderEncryptStatusJob(_propagator->account(), _info.path());
+    const auto rootPath = [=]() {
+        const auto result = _propagator->_remoteFolder;
+        if (result.startsWith('/')) {
+            return result.mid(1);
+        } else {
+            return result;
+        }
+    }();
+    const auto remoteFilename = _item->_encryptedFileName.isEmpty() ? _item->_file : _item->_encryptedFileName;
+    const auto remotePath = QString(rootPath + remoteFilename);
+    const auto remoteParentPath = remotePath.left(remotePath.lastIndexOf('/'));
+
+  auto getEncryptedStatus = new GetFolderEncryptStatusJob(_propagator->account(), remoteParentPath, this);
   connect(getEncryptedStatus, &GetFolderEncryptStatusJob::encryptStatusFolderReceived,
           this, &PropagateDownloadEncrypted::folderStatusReceived);
 
@@ -86,6 +101,15 @@ void PropagateDownloadEncrypted::checkFolderEncryptedMetadata(const QJsonDocumen
   for (const EncryptedFile &file : files) {
     if (encryptedFilename == file.encryptedFilename) {
       _encryptedInfo = file;
+      if (_item->_encryptedFileName.isEmpty()) {
+        _item->_encryptedFileName = _item->_file;
+      }
+      if (!_localParentPath.isEmpty()) {
+          _item->_file = _localParentPath + QLatin1Char('/') + _encryptedInfo.originalFilename;
+      } else {
+          _item->_file = _encryptedInfo.originalFilename;
+      }
+
       qCDebug(lcPropagateDownloadEncrypted) << "Found matching encrypted metadata for file, starting download";
       emit folderStatusEncrypted();
       return;
@@ -125,13 +149,6 @@ bool PropagateDownloadEncrypted::decryptFile(QFile& tmpFile)
 
     // Let's fool the rest of the logic into thinking this was the actual download
     tmpFile.setFileName(_tmpOutput.fileName());
-
-    //TODO: This seems what's breaking the logic.
-    // Let's fool the rest of the logic into thinking this is the right name of the DAV file
-    _item->_encryptedFileName = _item->_file;
-    _item->_file = _item->_file.section(QLatin1Char('/'), 0, -2)
-            + QLatin1Char('/') + _encryptedInfo.originalFilename;
-
 
     return true;
 }
