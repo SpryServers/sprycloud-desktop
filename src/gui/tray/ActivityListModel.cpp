@@ -14,6 +14,7 @@
 
 #include <QtCore>
 #include <QAbstractListModel>
+#include <QDesktopServices>
 #include <QWidget>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -21,9 +22,12 @@
 #include "account.h"
 #include "accountstate.h"
 #include "accountmanager.h"
+#include "conflictdialog.h"
 #include "folderman.h"
 #include "iconjob.h"
 #include "accessmanager.h"
+#include "owncloudgui.h"
+#include "guiutility.h"
 
 #include "ActivityData.h"
 #include "ActivityListModel.h"
@@ -35,7 +39,7 @@ namespace OCC {
 Q_LOGGING_CATEGORY(lcActivity, "nextcloud.gui.activity", QtInfoMsg)
 
 ActivityListModel::ActivityListModel(AccountState *accountState, QObject *parent)
-    : QAbstractListModel()
+    : QAbstractListModel(parent)
     , _accountState(accountState)
 {
 }
@@ -51,6 +55,7 @@ QHash<int, QByteArray> ActivityListModel::roleNames() const
     roles[ActionRole] = "type";
     roles[ActionIconRole] = "icon";
     roles[ActionTextRole] = "subject";
+    roles[ActionsLinksRole] = "links";
     roles[ActionTextColorRole] = "activityTextTitleColor";
     roles[ObjectTypeRole] = "objectType";
     roles[PointInTimeRole] = "dateTime";
@@ -137,10 +142,8 @@ QVariant ActivityListModel::data(const QModelIndex &index, int role) const
     }
     case ActionsLinksRole: {
         QList<QVariant> customList;
-        foreach (ActivityLink customItem, a._links) {
-            QVariant customVariant;
-            customVariant.setValue(customItem);
-            customList << customVariant;
+        foreach (ActivityLink activityLink, a._links) {
+            customList << QVariant::fromValue(activityLink);
         }
         return customList;
     }
@@ -414,6 +417,81 @@ void ActivityListModel::removeActivityFromActivityList(Activity activity)
         qCInfo(lcActivity) << "Updating Activity/Notification/Error view.";
         combineActivityLists();
     }
+}
+
+void ActivityListModel::triggerDefaultAction(int activityIndex)
+{
+    if (activityIndex < 0 || activityIndex >= _finalList.size()) {
+        qCWarning(lcActivity) << "Couldn't trigger default action at index" << activityIndex << "/ final list size:" << _finalList.size();
+        return;
+    }
+
+    const auto modelIndex = index(activityIndex);
+    const auto path = data(modelIndex, PathRole).toUrl();
+
+    const auto activity = _finalList.at(activityIndex);
+    if (activity._status == SyncFileItem::Conflict) {
+        Q_ASSERT(!activity._file.isEmpty());
+        Q_ASSERT(!activity._folder.isEmpty());
+        Q_ASSERT(Utility::isConflictFile(activity._file));
+
+        const auto folder = FolderMan::instance()->folder(activity._folder);
+
+        const auto conflictedRelativePath = activity._file;
+        const auto baseRelativePath = folder->journalDb()->conflictFileBaseName(conflictedRelativePath.toUtf8());
+
+        const auto dir = QDir(folder->path());
+        const auto conflictedPath = dir.filePath(conflictedRelativePath);
+        const auto basePath = dir.filePath(baseRelativePath);
+
+        const auto baseName = QFileInfo(basePath).fileName();
+
+        if (!_currentConflictDialog.isNull()) {
+            _currentConflictDialog->close();
+        }
+        _currentConflictDialog = new ConflictDialog;
+        _currentConflictDialog->setBaseFilename(baseName);
+        _currentConflictDialog->setLocalVersionFilename(conflictedPath);
+        _currentConflictDialog->setRemoteVersionFilename(basePath);
+        _currentConflictDialog->setAttribute(Qt::WA_DeleteOnClose);
+        connect(_currentConflictDialog, &ConflictDialog::accepted, folder, [folder]() {
+            folder->scheduleThisFolderSoon();
+        });
+        _currentConflictDialog->open();
+        ownCloudGui::raiseDialog(_currentConflictDialog);
+        return;
+    }
+
+    if (path.isValid()) {
+        QDesktopServices::openUrl(path);
+    } else {
+        const auto link = data(modelIndex, LinkRole).toUrl();
+        Utility::openBrowser(link);
+    }
+}
+
+void ActivityListModel::triggerAction(int activityIndex, int actionIndex)
+{
+    if (activityIndex < 0 || activityIndex >= _finalList.size()) {
+        qCWarning(lcActivity) << "Couldn't trigger action on activity at index" << activityIndex << "/ final list size:" << _finalList.size();
+        return;
+    }
+
+    const auto activity = _finalList[activityIndex];
+
+    if (actionIndex < 0 || actionIndex >= activity._links.size()) {
+        qCWarning(lcActivity) << "Couldn't trigger action at index" << actionIndex << "/ actions list size:" << activity._links.size();
+        return;
+    }
+
+    const auto action = activity._links[actionIndex];
+
+    if (action._verb == "WEB") {
+        Utility::openBrowser(QUrl(action._link));
+        return;
+    }
+
+    emit sendNotificationRequest(activity._accName, action._link, action._verb, activityIndex);
 }
 
 void ActivityListModel::combineActivityLists()

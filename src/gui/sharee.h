@@ -40,8 +40,10 @@ public:
     enum Type {
         User = 0,
         Group = 1,
+        Email = 4,
         Federated = 6,
-        Circle = 7
+        Circle = 7,
+        Room = 10
     };
 
     explicit Sharee(const QString shareWith,
@@ -64,10 +66,15 @@ class ShareeModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
+    enum LookupMode {
+        LocalSearch = 0,
+        GlobalSearch = 1
+    };
+
     explicit ShareeModel(const AccountPtr &account, const QString &type, QObject *parent = nullptr);
 
-    typedef QVector<QSharedPointer<Sharee>> ShareeSet; // FIXME: make it a QSet<Sharee> when Sharee can be compared
-    void fetch(const QString &search, const ShareeSet &blacklist);
+    using ShareeSet = QVector<QSharedPointer<Sharee>>; // FIXME: make it a QSet<Sharee> when Sharee can be compared
+    void fetch(const QString &search, const ShareeSet &blacklist, LookupMode lookupMode);
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role) const override;
 

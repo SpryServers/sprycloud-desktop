@@ -25,10 +25,10 @@
 #define _GNU_SOURCE
 #endif
 
-#include <errno.h>
-#include <limits.h>
-#include <stdio.h>
-#include <time.h>
+#include <cerrno>
+#include <climits>
+#include <cstdio>
+#include <ctime>
 
 #include "common/c_jhash.h"
 #include "csync_util.h"
@@ -37,10 +37,10 @@
 Q_LOGGING_CATEGORY(lcCSyncUtils, "nextcloud.sync.csync.utils", QtInfoMsg)
 
 
-typedef struct {
+struct _instr_code_struct {
   const char *instr_str;
   enum csync_instructions_e instr_code;
-} _instr_code_struct;
+};
 
 static const _instr_code_struct _instr[] =
 {

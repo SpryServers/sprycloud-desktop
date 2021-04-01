@@ -26,6 +26,7 @@ namespace OCC {
 Q_DECLARE_LOGGING_CATEGORY(lcActivity)
 
 class AccountState;
+class ConflictDialog;
 
 /**
  * @brief The ActivityListModel
@@ -56,7 +57,7 @@ public:
     AccountConnectedRole,
     SyncFileStatusRole};
 
-    explicit ActivityListModel(AccountState *accountState, QObject* parent = 0);
+    explicit ActivityListModel(AccountState *accountState, QObject* parent = nullptr);
 
     QVariant data(const QModelIndex &index, int role) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -74,6 +75,9 @@ public:
     void removeActivityFromActivityList(int row);
     void removeActivityFromActivityList(Activity activity);
 
+    Q_INVOKABLE void triggerDefaultAction(int activityIndex);
+    Q_INVOKABLE void triggerAction(int activityIndex, int actionIndex);
+
 public slots:
     void slotRefreshActivity();
     void slotRemoveAccount();
@@ -84,6 +88,7 @@ private slots:
 
 signals:
     void activityJobStatusCode(int statusCode);
+    void sendNotificationRequest(const QString &accountName, const QString &link, const QByteArray &verb, int row);
 
 protected:
     QHash<int, QByteArray> roleNames() const override;
@@ -109,6 +114,8 @@ private:
     int _maxActivities = 100;
     int _maxActivitiesDays = 30;
     bool _showMoreActivitiesAvailableEntry = false;
+
+    QPointer<ConflictDialog> _currentConflictDialog;
 };
 }
 

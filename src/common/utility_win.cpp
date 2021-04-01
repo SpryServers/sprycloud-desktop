@@ -25,7 +25,7 @@
 #include <string>
 #include <QLibrary>
 
-static const char runPathC[] = "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+static const char runPathC[] = R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run)";
 
 namespace OCC {
 
@@ -91,7 +91,7 @@ void setLaunchOnStartup_private(const QString &appName, const QString &guiName, 
 static inline bool hasDarkSystray_private()
 {
     if(Utility::registryGetKeyValue(    HKEY_CURRENT_USER,
-                                        "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                                        R"(Software\Microsoft\Windows\CurrentVersion\Themes\Personalize)",
                                         "SystemUsesLightTheme" ) == 1) {
         return false;
     }
@@ -112,6 +112,17 @@ QRect Utility::getTaskbarDimensions()
 
     RECT barRect = barData.rc;
     return QRect(barRect.left, barRect.top, (barRect.right - barRect.left), (barRect.bottom - barRect.top));
+}
+
+bool Utility::registryKeyExists(HKEY hRootKey, const QString &subKey)
+{
+    HKEY hKey;
+
+    REGSAM sam = KEY_READ | KEY_WOW64_64KEY;
+    LONG result = RegOpenKeyEx(hRootKey, reinterpret_cast<LPCWSTR>(subKey.utf16()), 0, sam, &hKey);
+
+    RegCloseKey(hKey);
+    return result != ERROR_FILE_NOT_FOUND;
 }
 
 QVariant Utility::registryGetKeyValue(HKEY hRootKey, const QString &subKey, const QString &valueName)

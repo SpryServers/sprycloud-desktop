@@ -25,13 +25,13 @@
 #define _GNU_SOURCE
 #endif
 
-#include <assert.h>
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
+#include <cassert>
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
 #include <sys/types.h>
-#include <stdbool.h>
+
 
 #include "c_lib.h"
 #include "csync_private.h"
@@ -326,7 +326,7 @@ int  csync_abort_requested(CSYNC *ctx)
   }
 }
 
-std::unique_ptr<csync_file_stat_t> csync_file_stat_s::fromSyncJournalFileRecord(const OCC::SyncJournalFileRecord &rec)
+std::unique_ptr<csync_file_stat_t> csync_file_stat_t::fromSyncJournalFileRecord(const OCC::SyncJournalFileRecord &rec)
 {
     std::unique_ptr<csync_file_stat_t> st(new csync_file_stat_t);
     st->path = rec._path;

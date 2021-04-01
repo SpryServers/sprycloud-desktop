@@ -84,6 +84,8 @@ void WatcherThread::watchChanges(size_t fileNotifyBufferSize,
             break;
         }
 
+        emit ready();
+
         HANDLE handles[] = { _resultEvent, _stopEvent };
         DWORD result = WaitForMultipleObjects(
             2, handles,
@@ -139,6 +141,8 @@ void WatcherThread::watchChanges(size_t fileNotifyBufferSize,
 
             if (!skip) {
                 emit changed(longfile);
+            } else {
+                qCDebug(lcFolderWatcher) << "Skipping syncing of" << longfile;
             }
 
             if (curEntry->NextEntryOffset == 0) {
@@ -204,6 +208,8 @@ FolderWatcherPrivate::FolderWatcherPrivate(FolderWatcher *p, const QString &path
         _parent, SLOT(changeDetected(const QString &)));
     connect(_thread, SIGNAL(lostChanges()),
         _parent, SIGNAL(lostChanges()));
+    connect(_thread, &WatcherThread::ready,
+        this, [this]() { _ready = 1; });
     _thread->start();
 }
 

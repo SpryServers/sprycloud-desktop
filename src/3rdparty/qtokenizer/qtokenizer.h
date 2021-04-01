@@ -50,7 +50,7 @@ QT_BEGIN_NAMESPACE
 
 template <class T, class const_iterator>
 struct QTokenizerPrivate {
-    typedef typename T::value_type char_type;
+    using char_type = typename T::value_type;
 
     struct State {
         bool inQuote = false;
@@ -110,10 +110,10 @@ struct QTokenizerPrivate {
     bool returnQuotes;
 };
 
-template <class T, class const_iterator>
+template <class T, class const_iterator = typename T::const_iterator>
 class QTokenizer {
 public:
-    typedef typename T::value_type char_type;
+    using char_type = typename T::value_type;
 
     /*!
        \class QTokenizer
@@ -220,7 +220,7 @@ public:
        Use \c hasNext() to fetch the next token.
      */
     T next() const {
-        int len = d->tokenEnd-d->tokenBegin;
+        int len = std::distance(d->tokenBegin, d->tokenEnd);
         const_iterator tmpStart = d->tokenBegin;
         if (!d->returnQuotes && len > 1 && d->isQuote(*d->tokenBegin)) {
             tmpStart++;
@@ -234,7 +234,7 @@ private:
     QSharedPointer<QTokenizerPrivate<T, const_iterator> > d;
 };
 
-class QStringTokenizer : public QTokenizer<QString, QString::const_iterator> {
+class QStringTokenizer : public QTokenizer<QString> {
 public:
     QStringTokenizer(const QString &string, const QString &delim) :
         QTokenizer<QString, QString::const_iterator>(string, delim) {}
@@ -243,8 +243,9 @@ public:
      * @return A reference to the token within the string
      */
     QStringRef stringRef() {
-        int begin = d->tokenBegin-d->begin;
-        int end = d->tokenEnd-d->tokenBegin;
+        // If those differences overflow an int we'd have a veeeeeery long string in memory
+        int begin = std::distance(d->begin, d->tokenBegin);
+        int end = std::distance(d->tokenBegin, d->tokenEnd);
         if (!d->returnQuotes && d->isQuote(*d->tokenBegin)) {
             begin++;
             end -= 2;
@@ -253,9 +254,9 @@ public:
     }
 };
 
-typedef QTokenizer<QByteArray, QByteArray::const_iterator> QByteArrayTokenizer;
-typedef QTokenizer<std::string, std::string::const_iterator> StringTokenizer;
-typedef QTokenizer<std::wstring, std::wstring::const_iterator> WStringTokenizer;
+using QByteArrayTokenizer = QTokenizer<QByteArray>;
+using StringTokenizer = QTokenizer<std::string>;
+using WStringTokenizer = QTokenizer<std::wstring>;
 
 QT_END_NAMESPACE
 

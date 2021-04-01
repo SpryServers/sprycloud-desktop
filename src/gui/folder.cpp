@@ -441,7 +441,7 @@ int Folder::slotDiscardDownloadProgress()
     QSet<QString> keep_nothing;
     const QVector<SyncJournalDb::DownloadInfo> deleted_infos =
         _journal.getAndDeleteStaleDownloadInfos(keep_nothing);
-    foreach (const SyncJournalDb::DownloadInfo &deleted_info, deleted_infos) {
+    for (const auto &deleted_info : deleted_infos) {
         const QString tmppath = folderpath.filePath(deleted_info._tmpfile);
         qCInfo(lcFolder) << "Deleting temporary file: " << tmppath;
         FileSystem::remove(tmppath);
@@ -528,13 +528,10 @@ void Folder::saveToSettings() const
     // This ensures that older clients will not read a configuration
     // where two folders for different accounts point at the same
     // local folders.
-    bool oneAccountOnly = true;
-    foreach (Folder *other, FolderMan::instance()->map()) {
-        if (other != this && other->cleanPath() == this->cleanPath()) {
-            oneAccountOnly = false;
-            break;
-        }
-    }
+    const auto folderMap = FolderMan::instance()->map();
+    const auto oneAccountOnly = std::none_of(folderMap.cbegin(), folderMap.cend(), [this](const auto *other) {
+        return other != this && other->cleanPath() == this->cleanPath();
+    });
 
     bool compatible = _saveBackwardsCompatible || oneAccountOnly;
 
@@ -901,43 +898,6 @@ void Folder::slotItemCompleted(const SyncFileItemPtr &item)
         return;
     }
 
-    // add new directories or remove gone away dirs to the watcher
-    if (_folderWatcher && item->isDirectory()) {
-    switch (item->_instruction) {
-        case CSYNC_INSTRUCTION_NEW:
-                _folderWatcher->addPath(path() + item->_file);
-        break;
-        case CSYNC_INSTRUCTION_REMOVE:
-                _folderWatcher->removePath(path() + item->_file);
-        break;
-        case CSYNC_INSTRUCTION_RENAME:
-                _folderWatcher->removePath(path() + item->_file);
-                _folderWatcher->addPath(path() + item->destination());
-        break;
-        default:
-        break;
-    }
-    }
-
-    // Success and failure of sync items adjust what the next sync is
-    // supposed to do.
-    //
-    // For successes, we want to wipe the file from the list to ensure we don't
-    // rediscover it even if this overall sync fails.
-    //
-    // For failures, we want to add the file to the list so the next sync
-    // will be able to retry it.
-    if (item->_status == SyncFileItem::Success
-        || item->_status == SyncFileItem::FileIgnored
-        || item->_status == SyncFileItem::Restoration
-        || item->_status == SyncFileItem::Conflict) {
-        if (_previousLocalDiscoveryPaths.erase(item->_file.toUtf8()))
-            qCDebug(lcFolder) << "local discovery: wiped" << item->_file;
-    } else {
-        _localDiscoveryPaths.insert(item->_file.toUtf8());
-        qCDebug(lcFolder) << "local discovery: inserted" << item->_file << "due to sync failure";
-    }
-
     _syncResult.processCompletedItem(item);
 
     _fileLog->logItem(*item);
@@ -1080,6 +1040,7 @@ void Folder::registerFolderWatcher()
     connect(_folderWatcher.data(), &FolderWatcher::becameUnreliable,
         this, &Folder::slotWatcherUnreliable);
     _folderWatcher->init(path());
+    _folderWatcher->startNotificatonTest(path() + QLatin1String(".owncloudsync.log"));
 }
 
 void Folder::slotAboutToRemoveAllFiles(SyncFileItem::Direction dir, bool *cancel)
@@ -1207,7 +1168,7 @@ QString FolderDefinition::absoluteJournalPath() const
 
 QString FolderDefinition::defaultJournalPath(AccountPtr account)
 {
-    return SyncJournalDb::makeDbName(account->url(), targetPath, account->credentials()->user());
+    return SyncJournalDb::makeDbName(localPath, account->url(), targetPath, account->credentials()->user());
 }
 
 } // namespace OCC

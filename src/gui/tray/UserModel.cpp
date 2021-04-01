@@ -3,11 +3,13 @@
 
 #include "accountmanager.h"
 #include "owncloudgui.h"
+#include <pushnotifications.h>
 #include "syncengine.h"
 #include "ocsjob.h"
 #include "configfile.h"
 #include "notificationconfirmjob.h"
 #include "logger.h"
+#include "guiutility.h"
 
 #include <QDesktopServices>
 #include <QIcon>
@@ -40,7 +42,8 @@ User::User(AccountStatePtr &account, const bool &isCurrent, QObject *parent)
         this, &User::slotRefresh);
 
     connect(_account.data(), &AccountState::stateChanged,
-            [=]() { if (isConnected()) {slotRefresh();} });
+            [=]() { if (isConnected()) {slotRefreshImmediately();} });
+    connect(_account.data(), &AccountState::stateChanged, this, &User::accountStateChanged);
     connect(_account.data(), &AccountState::hasFetchedNavigationApps,
         this, &User::slotRebuildNavigationAppList);
     connect(_account->account().data(), &Account::accountChangedDisplayName, this, &User::nameChanged);
@@ -48,6 +51,10 @@ User::User(AccountStatePtr &account, const bool &isCurrent, QObject *parent)
     connect(FolderMan::instance(), &FolderMan::folderListChanged, this, &User::hasLocalFolderChanged);
 
     connect(this, &User::guiLog, Logger::instance(), &Logger::guiLog);
+
+    connect(_account->account().data(), &Account::accountChangedAvatar, this, &User::avatarChanged);
+
+    connect(_activityModel, &ActivityListModel::sendNotificationRequest, this, &User::slotSendNotificationRequest);
 }
 
 void User::slotBuildNotificationDisplay(const ActivityList &list)
@@ -100,19 +107,90 @@ void User::slotBuildNotificationDisplay(const ActivityList &list)
 
 void User::setNotificationRefreshInterval(std::chrono::milliseconds interval)
 {
-    qCDebug(lcActivity) << "Starting Notification refresh timer with " << interval.count() / 1000 << " sec interval";
-    _notificationCheckTimer.start(interval.count());
+    if (!checkPushNotificationsAreReady()) {
+        qCDebug(lcActivity) << "Starting Notification refresh timer with " << interval.count() / 1000 << " sec interval";
+        _notificationCheckTimer.start(interval.count());
+    }
+}
+
+void User::slotPushNotificationsReady()
+{
+    qCInfo(lcActivity) << "Push notifications are ready";
+
+    if (_notificationCheckTimer.isActive()) {
+        // as we are now able to use push notifications - let's stop the polling timer
+        _notificationCheckTimer.stop();
+    }
+
+    connectPushNotifications();
+}
+
+void User::slotDisconnectPushNotifications()
+{
+    disconnect(_account->account()->pushNotifications(), &PushNotifications::notificationsChanged, this, &User::slotReceivedPushNotification);
+    disconnect(_account->account()->pushNotifications(), &PushNotifications::activitiesChanged, this, &User::slotReceivedPushActivity);
+
+    disconnect(_account->account().data(), &Account::pushNotificationsDisabled, this, &User::slotDisconnectPushNotifications);
+
+    // connection to WebSocket may have dropped or an error occured, so we need to bring back the polling until we have re-established the connection
+    setNotificationRefreshInterval(ConfigFile().notificationRefreshInterval());
+}
+
+void User::slotReceivedPushNotification(Account *account)
+{
+    if (account->id() == _account->account()->id()) {
+        slotRefreshNotifications();
+    }
+}
+
+void User::slotReceivedPushActivity(Account *account)
+{
+    if (account->id() == _account->account()->id()) {
+        slotRefreshActivities();
+    }
+}
+
+void User::connectPushNotifications() const
+{
+    connect(_account->account().data(), &Account::pushNotificationsDisabled, this, &User::slotDisconnectPushNotifications, Qt::UniqueConnection);
+
+    connect(_account->account()->pushNotifications(), &PushNotifications::notificationsChanged, this, &User::slotReceivedPushNotification, Qt::UniqueConnection);
+    connect(_account->account()->pushNotifications(), &PushNotifications::activitiesChanged, this, &User::slotReceivedPushActivity, Qt::UniqueConnection);
+}
+
+bool User::checkPushNotificationsAreReady() const
+{
+    const auto pushNotifications = _account->account()->pushNotifications();
+
+    const auto pushActivitiesAvailable = _account->account()->capabilities().availablePushNotifications() & PushNotificationType::Activities;
+    const auto pushNotificationsAvailable = _account->account()->capabilities().availablePushNotifications() & PushNotificationType::Notifications;
+
+    const auto pushActivitiesAndNotificationsAvailable = pushActivitiesAvailable && pushNotificationsAvailable;
+
+    if (pushActivitiesAndNotificationsAvailable && pushNotifications && pushNotifications->isReady()) {
+        connectPushNotifications();
+        return true;
+    } else {
+        connect(_account->account().data(), &Account::pushNotificationsReady, this, &User::slotPushNotificationsReady, Qt::UniqueConnection);
+        return false;
+    }
 }
 
 void User::slotRefreshImmediately() {
     if (_account.data() && _account.data()->isConnected()) {
-        this->slotRefreshActivities();
+        slotRefreshActivities();
     }
-    this->slotRefreshNotifications();
+    slotRefreshNotifications();
 }
 
 void User::slotRefresh()
 {
+    if (checkPushNotificationsAreReady()) {
+        // we are relying on WebSocket push notifications - ignore refresh attempts from UI
+        _timeSinceLastCheck[_account.data()].invalidate();
+        return;
+    }
+
     // QElapsedTimer isn't actually constructed as invalid.
     if (!_timeSinceLastCheck.contains(_account.data())) {
         _timeSinceLastCheck[_account.data()].invalidate();
@@ -126,9 +204,9 @@ void User::slotRefresh()
     }
     if (_account.data() && _account.data()->isConnected()) {
         if (!timer.isValid()) {
-            this->slotRefreshActivities();
+            slotRefreshActivities();
         }
-        this->slotRefreshNotifications();
+        slotRefreshNotifications();
         timer.start();
     }
 }
@@ -326,7 +404,7 @@ void User::slotAddError(const QString &folderAlias, const QString &message, Erro
             link._label = tr("Retry all uploads");
             link._link = folderInstance->path();
             link._verb = "";
-            link._isPrimary = true;
+            link._primary = true;
             activity._links.append(link);
         }
 
@@ -463,21 +541,18 @@ QString User::server(bool shortened) const
     return serverUrl;
 }
 
-QImage User::avatar(bool whiteBg) const
+QImage User::avatar() const
 {
-    QImage img = AvatarJob::makeCircularAvatar(_account->account()->avatar());
-    if (img.isNull()) {
-        QImage image(128, 128, QImage::Format_ARGB32);
-        image.fill(Qt::GlobalColor::transparent);
-        QPainter painter(&image);
+    return AvatarJob::makeCircularAvatar(_account->account()->avatar());
+}
 
-        QSvgRenderer renderer(QString(whiteBg ? ":/client/theme/black/user.svg" : ":/client/theme/white/user.svg"));
-        renderer.render(&painter);
-
-        return image;
-    } else {
-        return img;
+QString User::avatarUrl() const
+{
+    if (avatar().isNull()) {
+        return QString();
     }
+
+    return QStringLiteral("image://avatars/") + _account->account()->id();
 }
 
 bool User::hasLocalFolder() const
@@ -553,6 +628,7 @@ void UserModel::buildUserList()
     }
     if (_init) {
         _users.first()->setCurrentUser(true);
+        connect(_users.first(), &User::accountStateChanged, this, &UserModel::refreshCurrentUserGui);
         _init = false;
     }
 }
@@ -569,38 +645,23 @@ Q_INVOKABLE int UserModel::currentUserId() const
 
 Q_INVOKABLE bool UserModel::isUserConnected(const int &id)
 {
-    if (_users.isEmpty())
+    if (id < 0 || id >= _users.size())
         return false;
 
     return _users[id]->isConnected();
 }
 
-Q_INVOKABLE QImage UserModel::currentUserAvatar()
-{
-    if (!_users.isEmpty()) {
-        return _users[_currentUserId]->avatar();
-    } else {
-        QImage image(128, 128, QImage::Format_ARGB32);
-        image.fill(Qt::GlobalColor::transparent);
-        QPainter painter(&image);
-        QSvgRenderer renderer(QString(":/client/theme/white/user.svg"));
-        renderer.render(&painter);
-
-        return image;
-    }
-}
-
 QImage UserModel::avatarById(const int &id)
 {
-    if (_users.isEmpty())
+    if (id < 0 || id >= _users.size())
         return {};
 
-    return _users[id]->avatar(true);
+    return _users[id]->avatar();
 }
 
 Q_INVOKABLE QString UserModel::currentUserServer()
 {
-    if (_users.isEmpty())
+    if (_currentUserId < 0 || _currentUserId >= _users.size())
         return {};
 
     return _users[_currentUserId]->server();
@@ -609,19 +670,29 @@ Q_INVOKABLE QString UserModel::currentUserServer()
 void UserModel::addUser(AccountStatePtr &user, const bool &isCurrent)
 {
     bool containsUser = false;
-    for (int i = 0; i < _users.size(); i++) {
-        if (_users[i]->account() == user->account()) {
+    for (const auto &u : qAsConst(_users)) {
+        if (u->account() == user->account()) {
             containsUser = true;
             continue;
         }
     }
 
     if (!containsUser) {
-        beginInsertRows(QModelIndex(), rowCount(), rowCount());
-        _users << new User(user, isCurrent);
+        int row = rowCount();
+        beginInsertRows(QModelIndex(), row, row);
+
+        User *u = new User(user, isCurrent);
+
+        connect(u, &User::avatarChanged, this, [this, row] {
+           emit dataChanged(index(row, 0), index(row, 0), {UserModel::AvatarRole});
+        });
+
+        _users << u;
         if (isCurrent) {
             _currentUserId = _users.indexOf(_users.last());
+            connect(u, &User::accountStateChanged, this, &UserModel::refreshCurrentUserGui);
         }
+
         endInsertRows();
         ConfigFile cfg;
         _users.last()->setNotificationRefreshInterval(cfg.notificationRefreshInterval());
@@ -636,7 +707,7 @@ int UserModel::currentUserIndex()
 
 Q_INVOKABLE void UserModel::openCurrentAccountLocalFolder()
 {
-    if (_users.isEmpty())
+    if (_currentUserId < 0 || _currentUserId >= _users.size())
         return;
 
     _users[_currentUserId]->openLocalFolder();
@@ -649,7 +720,7 @@ Q_INVOKABLE void UserModel::openCurrentAccountTalk()
 
     const auto talkApp = currentUser()->talkApp();
     if (talkApp) {
-        QDesktopServices::openUrl(talkApp->url());
+        Utility::openBrowser(talkApp->url());
     } else {
         qCWarning(lcActivity) << "The Talk app is not enabled on" << currentUser()->server();
     }
@@ -657,23 +728,26 @@ Q_INVOKABLE void UserModel::openCurrentAccountTalk()
 
 Q_INVOKABLE void UserModel::openCurrentAccountServer()
 {
-    if (_users.isEmpty())
+    if (_currentUserId < 0 || _currentUserId >= _users.size())
         return;
 
     QString url = _users[_currentUserId]->server(false);
-    if (!(url.contains("http://") || url.contains("https://"))) {
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
         url = "https://" + _users[_currentUserId]->server(false);
     }
-    QDesktopServices::openUrl(QUrl(url));
+
+    QDesktopServices::openUrl(url);
 }
 
 Q_INVOKABLE void UserModel::switchCurrentUser(const int &id)
 {
-    if (_users.isEmpty())
+    if (_currentUserId < 0 || _currentUserId >= _users.size())
         return;
 
+    disconnect(_users[_currentUserId], &User::accountStateChanged, this, &UserModel::refreshCurrentUserGui);
     _users[_currentUserId]->setCurrentUser(false);
     _users[id]->setCurrentUser(true);
+    connect(_users[id], &User::accountStateChanged, this, &UserModel::refreshCurrentUserGui);
     _currentUserId = id;
     emit refreshCurrentUserGui();
     emit newUserSelected();
@@ -681,7 +755,7 @@ Q_INVOKABLE void UserModel::switchCurrentUser(const int &id)
 
 Q_INVOKABLE void UserModel::login(const int &id)
 {
-    if (_users.isEmpty())
+    if (id < 0 || id >= _users.size())
         return;
 
     _users[id]->login();
@@ -690,7 +764,7 @@ Q_INVOKABLE void UserModel::login(const int &id)
 
 Q_INVOKABLE void UserModel::logout(const int &id)
 {
-    if (_users.isEmpty())
+    if (id < 0 || id >= _users.size())
         return;
 
     _users[id]->logout();
@@ -699,7 +773,7 @@ Q_INVOKABLE void UserModel::logout(const int &id)
 
 Q_INVOKABLE void UserModel::removeAccount(const int &id)
 {
-    if (_users.isEmpty())
+    if (id < 0 || id >= _users.size())
         return;
 
     QMessageBox messageBox(QMessageBox::Question,
@@ -715,6 +789,10 @@ Q_INVOKABLE void UserModel::removeAccount(const int &id)
     messageBox.exec();
     if (messageBox.clickedButton() != yesButton) {
         return;
+    }
+
+    if (_users[id]->isCurrentUser()) {
+        disconnect(_users[id], &User::accountStateChanged, this, &UserModel::refreshCurrentUserGui);
     }
 
     if (_users[id]->isCurrentUser() && _users.count() > 1) {
@@ -748,7 +826,7 @@ QVariant UserModel::data(const QModelIndex &index, int role) const
     } else if (role == ServerRole) {
         return _users[index.row()]->server();
     } else if (role == AvatarRole) {
-        return _users[index.row()]->avatar();
+        return _users[index.row()]->avatarUrl();
     } else if (role == IsCurrentUserRole) {
         return _users[index.row()]->isCurrentUser();
     } else if (role == IsConnectedRole) {
@@ -773,7 +851,7 @@ QHash<int, QByteArray> UserModel::roleNames() const
 
 ActivityListModel *UserModel::currentActivityModel()
 {
-    if (_users.isEmpty())
+    if (currentUserIndex() < 0 || currentUserIndex() >= _users.size())
         return nullptr;
 
     return _users[currentUserIndex()]->getActivityModel();
@@ -781,7 +859,7 @@ ActivityListModel *UserModel::currentActivityModel()
 
 bool UserModel::currentUserHasActivities()
 {
-    if (_users.isEmpty())
+    if (currentUserIndex() < 0 || currentUserIndex() >= _users.size())
         return false;
 
     return _users[currentUserIndex()]->hasActivities();
@@ -789,7 +867,7 @@ bool UserModel::currentUserHasActivities()
 
 bool UserModel::currentUserHasLocalFolder()
 {
-    if (_users.isEmpty())
+    if (currentUserIndex() < 0 || currentUserIndex() >= _users.size())
         return false;
 
     return _users[currentUserIndex()]->getFolder() != nullptr;
@@ -797,24 +875,40 @@ bool UserModel::currentUserHasLocalFolder()
 
 void UserModel::fetchCurrentActivityModel()
 {
-    if (!_users.isEmpty())
-        _users[currentUserId()]->slotRefresh();
+    if (currentUserId() < 0 || currentUserId() >= _users.size())
+        return;
+
+    _users[currentUserId()]->slotRefresh();
 }
 
 AccountAppList UserModel::appList() const
 {
-    if (_users.isEmpty())
-        return AccountAppList();
+    if (_currentUserId < 0 || _currentUserId >= _users.size())
+        return {};
 
     return _users[_currentUserId]->appList();
 }
 
 User *UserModel::currentUser() const
 {
-    if (_users.isEmpty())
+    if (currentUserId() < 0 || currentUserId() >= _users.size())
         return nullptr;
 
     return _users[currentUserId()];
+}
+
+int UserModel::findUserIdForAccount(AccountState *account) const
+{
+    const auto it = std::find_if(std::cbegin(_users), std::cend(_users), [=](const User *user) {
+        return user->account()->id() == account->account()->id();
+    });
+
+    if (it == std::cend(_users)) {
+        return -1;
+    }
+
+    const auto id = std::distance(std::cbegin(_users), it);
+    return id;
 }
 
 /*-------------------------------------------------------------------------------------*/
@@ -829,12 +923,25 @@ QImage ImageProvider::requestImage(const QString &id, QSize *size, const QSize &
     Q_UNUSED(size)
     Q_UNUSED(requestedSize)
 
-    if (id == "currentUser") {
-        return UserModel::instance()->currentUserAvatar();
-    } else {
-        int uid = id.toInt();
-        return UserModel::instance()->avatarById(uid);
+    const auto makeIcon = [](const QString &path) {
+        QImage image(128, 128, QImage::Format_ARGB32);
+        image.fill(Qt::GlobalColor::transparent);
+        QPainter painter(&image);
+        QSvgRenderer renderer(path);
+        renderer.render(&painter);
+        return image;
+    };
+
+    if (id == QLatin1String("fallbackWhite")) {
+        return makeIcon(QStringLiteral(":/client/theme/white/user.svg"));
     }
+
+    if (id == QLatin1String("fallbackBlack")) {
+        return makeIcon(QStringLiteral(":/client/theme/black/user.svg"));
+    }
+
+    const int uid = id.toInt();
+    return UserModel::instance()->avatarById(uid);
 }
 
 /*-------------------------------------------------------------------------------------*/
@@ -878,7 +985,7 @@ void UserAppsModel::buildAppList()
 
 void UserAppsModel::openAppUrl(const QUrl &url)
 {
-    QDesktopServices::openUrl(url);
+    Utility::openBrowser(url);
 }
 
 int UserAppsModel::rowCount(const QModelIndex &parent) const

@@ -102,7 +102,7 @@ void FolderStatusModel::setAccountState(const AccountState *accountState)
 Qt::ItemFlags FolderStatusModel::flags(const QModelIndex &index) const
 {
     if (!_accountState) {
-        return nullptr;
+        return {};
     }
     switch (classify(index)) {
     case AddButton: {
@@ -120,7 +120,7 @@ Qt::ItemFlags FolderStatusModel::flags(const QModelIndex &index) const
     case SubFolder:
         return Qt::ItemIsEnabled | Qt::ItemIsUserCheckable | Qt::ItemIsSelectable;
     }
-    return nullptr;
+    return {};
 }
 
 QVariant FolderStatusModel::data(const QModelIndex &index, int role) const
@@ -250,9 +250,7 @@ QVariant FolderStatusModel::data(const QModelIndex &index, int role) const
             if (f->syncPaused()) {
                 return theme->folderDisabledIcon();
             } else {
-                if (status == SyncResult::SyncPrepare) {
-                    return theme->syncStateIcon(SyncResult::SyncRunning);
-                } else if (status == SyncResult::Undefined) {
+                if (status == SyncResult::SyncPrepare || status == SyncResult::Undefined) {
                     return theme->syncStateIcon(SyncResult::SyncRunning);
                 } else {
                     // The "Problem" *result* just means some files weren't
@@ -407,24 +405,6 @@ FolderStatusModel::SubFolderInfo *FolderStatusModel::infoForIndex(const QModelIn
         }
         return const_cast<SubFolderInfo *>(&_folders[index.row()]);
     }
-}
-
-/* Recursivelly traverse the file info looking for the id */
-FolderStatusModel::SubFolderInfo *FolderStatusModel::infoForFileId(const QByteArray& fileId, SubFolderInfo* info) const
-{
-  const QVector<SubFolderInfo>& infoVec = info ? info->_subs : _folders;
-  for(int i = 0, end = infoVec.size(); i < end; i++) {
-    auto *info = const_cast<SubFolderInfo *>(&infoVec[i]);
-    if (info->_fileId == fileId) {
-      return info;
-    } else if (info->_subs.size()) {
-      if (auto *subInfo = infoForFileId(fileId, info)) {
-        return subInfo;
-      }
-    }
-  }
-
-  return nullptr;
 }
 
 QModelIndex FolderStatusModel::indexForPath(Folder *f, const QString &path) const
@@ -748,8 +728,8 @@ void FolderStatusModel::slotUpdateDirectories(const QStringList &list)
         endInsertRows();
     }
 
-    for (auto it = undecidedIndexes.begin(); it != undecidedIndexes.end(); ++it) {
-        suggestExpand(index(*it, 0, idx));
+    for (int undecidedIndex : qAsConst(undecidedIndexes)) {
+        suggestExpand(index(undecidedIndex, 0, idx));
     }
 
 /* We need lambda function for the following code.
@@ -1090,7 +1070,7 @@ void FolderStatusModel::slotFolderSyncStateChange(Folder *f)
     auto &pi = _folders[folderIndex]._progress;
 
     SyncResult::Status state = f->syncResult().status();
-    if (!f->canSync()) {
+    if (!f->canSync() || state == SyncResult::Problem || state == SyncResult::Success || state == SyncResult::Error) {
         // Reset progress info.
         pi = SubFolderInfo::Progress();
     } else if (state == SyncResult::NotYetStarted) {
@@ -1111,11 +1091,6 @@ void FolderStatusModel::slotFolderSyncStateChange(Folder *f)
     } else if (state == SyncResult::SyncPrepare) {
         pi = SubFolderInfo::Progress();
         pi._overallSyncString = tr("Preparing to sync …");
-    } else if (state == SyncResult::Problem || state == SyncResult::Success) {
-        // Reset the progress info after a sync.
-        pi = SubFolderInfo::Progress();
-    } else if (state == SyncResult::Error) {
-        pi = SubFolderInfo::Progress();
     }
 
     // update the icon etc. now

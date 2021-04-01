@@ -19,12 +19,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <errno.h>
+#include <cerrno>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <dirent.h>
-#include <stdio.h>
+#include <cstdio>
 
 #include <memory>
 
@@ -43,10 +43,10 @@ Q_LOGGING_CATEGORY(lcCSyncVIOLocal, "nextcloud.sync.csync.vio_local", QtInfoMsg)
  * directory functions
  */
 
-typedef struct dhandle_s {
+struct dhandle_t {
   DIR *dh;
   char *path;
-} dhandle_t;
+};
 
 static int _csync_vio_local_stat_mb(const mbchar_t *wuri, csync_file_stat_t *buf);
 

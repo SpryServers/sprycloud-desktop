@@ -93,13 +93,34 @@ Systray::Systray()
     } else {
         contextMenu->addAction(tr("Open main dialog"), this, &Systray::openMainDialog);
     }
+
+    auto pauseAction = contextMenu->addAction(tr("Pause sync"), this, &Systray::slotPauseAllFolders);
+    auto resumeAction = contextMenu->addAction(tr("Resume sync"), this, &Systray::slotUnpauseAllFolders);
     contextMenu->addAction(tr("Settings"), this, &Systray::openSettings);
     contextMenu->addAction(tr("Exit %1").arg(Theme::instance()->appNameGUI()), this, &Systray::shutdown);
     setContextMenu(contextMenu);
+
+    connect(contextMenu, &QMenu::aboutToShow, [=] {
+        const auto folders = FolderMan::instance()->map();
+
+        const auto allPaused = std::all_of(std::cbegin(folders), std::cend(folders), [](Folder *f) { return f->syncPaused(); });
+        const auto pauseText = folders.size() > 1 ? tr("Pause sync for all") : tr("Pause sync");
+        pauseAction->setText(pauseText);
+        pauseAction->setVisible(!allPaused);
+        pauseAction->setEnabled(!allPaused);
+
+        const auto anyPaused = std::any_of(std::cbegin(folders), std::cend(folders), [](Folder *f) { return f->syncPaused(); });
+        const auto resumeText = folders.size() > 1 ? tr("Resume sync for all") : tr("Resume sync");
+        resumeAction->setText(resumeText);
+        resumeAction->setVisible(anyPaused);
+        resumeAction->setEnabled(anyPaused);
+    });
 #endif
 
     connect(UserModel::instance(), &UserModel::newUserSelected,
         this, &Systray::slotNewUserSelected);
+    connect(UserModel::instance(), &UserModel::addAccount,
+            this, &Systray::openAccountWizard);
 
     connect(AccountManager::instance(), &AccountManager::accountAdded,
         this, &Systray::showWindow);
@@ -134,6 +155,41 @@ void Systray::slotNewUserSelected()
 
     // Rebuild App list
     UserAppsModel::instance()->buildAppList();
+}
+
+void Systray::slotUnpauseAllFolders()
+{
+    setPauseOnAllFoldersHelper(false);
+}
+
+void Systray::slotPauseAllFolders()
+{
+    setPauseOnAllFoldersHelper(true);
+}
+
+void Systray::setPauseOnAllFoldersHelper(bool pause)
+{
+    // For some reason we get the raw pointer from Folder::accountState()
+    // that's why we need a list of raw pointers for the call to contains
+    // later on...
+    const auto accounts = [=] {
+        const auto ptrList = AccountManager::instance()->accounts();
+        auto result = QList<AccountState *>();
+        result.reserve(ptrList.size());
+        std::transform(std::cbegin(ptrList), std::cend(ptrList), std::back_inserter(result), [](const AccountStatePtr &account) {
+            return account.data();
+        });
+        return result;
+    }();
+    const auto folders = FolderMan::instance()->map();
+    for (auto f : folders) {
+        if (accounts.contains(f->accountState())) {
+            f->setSyncPaused(pause);
+            if (pause) {
+                f->slotTerminateSync();
+            }
+        }
+    }
 }
 
 bool Systray::isOpen()
@@ -187,10 +243,10 @@ void Systray::pauseResumeSync()
 {
     if (_syncIsPaused) {
         _syncIsPaused = false;
-        emit resumeSync();
+        slotUnpauseAllFolders();
     } else {
         _syncIsPaused = true;
-        emit pauseSync();
+        slotPauseAllFolders();
     }
 }
 
@@ -204,6 +260,23 @@ void Systray::positionWindow(QQuickWindow *window) const
 
     const auto position = computeWindowPosition(window->width(), window->height());
     window->setPosition(position);
+}
+
+void Systray::forceWindowInit(QQuickWindow *window) const
+{
+    // HACK: At least on Windows, if the systray window is not shown at least once
+    // it can prevent session handling to carry on properly, so we show/hide it here
+    // this shouldn't flicker
+    window->show();
+    window->hide();
+    
+#ifdef Q_OS_MAC
+    // On macOS we need to designate the tray window as visible on all spaces and
+    // at the menu bar level, otherwise showing it can cause the current spaces to
+    // change, or the window could be obscured by another window that shouldn't
+    // normally cover a menu.
+    OCC::setTrayWindowLevelAndVisibleOnAllSpaces(window);
+#endif
 }
 
 QScreen *Systray::currentScreen() const
@@ -229,9 +302,15 @@ Systray::TaskBarPosition Systray::taskbarOrientation() const
     return TaskBarPosition::Top;
 // Windows: Check registry for actual taskbar orientation
 #elif defined(Q_OS_WIN)
-    auto taskbarPosition = Utility::registryGetKeyValue(HKEY_CURRENT_USER,
-        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StuckRects3",
-        "Settings");
+    auto taskbarPositionSubkey = QStringLiteral("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StuckRects3");
+    if (!Utility::registryKeyExists(HKEY_CURRENT_USER, taskbarPositionSubkey)) {
+        // Windows 7
+        taskbarPositionSubkey = QStringLiteral("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StuckRects2");
+    }
+    if (!Utility::registryKeyExists(HKEY_CURRENT_USER, taskbarPositionSubkey)) {
+        return TaskBarPosition::Bottom;
+    }
+    auto taskbarPosition = Utility::registryGetKeyValue(HKEY_CURRENT_USER, taskbarPositionSubkey, "Settings");
     switch (taskbarPosition.toInt()) {
     // Mapping windows binary value (0 = left, 1 = top, 2 = right, 3 = bottom) to qml logic (0 = bottom, 1 = left...)
     case 0:
@@ -384,7 +463,7 @@ QPoint Systray::computeWindowPosition(int width, int height) const
     qCDebug(lcSystray) << "taskbarScreenEdge:" << taskbarScreenEdge;
     qCDebug(lcSystray) << "screenRect:" << screenRect;
     qCDebug(lcSystray) << "windowRect (reference)" << QRect(topLeft, bottomRight);
-    qCDebug(lcSystray) << "windowRect (adjusted )" << windowRect;
+    qCDebug(lcSystray) << "windowRect (adjusted)" << windowRect;
 
     return windowRect.topLeft();
 }

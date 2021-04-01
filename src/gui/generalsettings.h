@@ -48,10 +48,12 @@ private slots:
     void slotToggleOptionalServerNotifications(bool);
     void slotShowInExplorerNavigationPane(bool);
     void slotIgnoreFilesEditor();
+    void slotCreateDebugArchive();
     void loadMiscSettings();
     void slotShowLegalNotice();
 #if defined(BUILD_UPDATER)
     void slotUpdateInfo();
+    void slotUpdateChannelChanged(const QString &channel);
     void slotUpdateCheckNow();
     void slotToggleAutoUpdateCheck();
 #endif

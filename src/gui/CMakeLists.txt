@@ -4,6 +4,10 @@ set(CMAKE_AUTOMOC TRUE)
 set(CMAKE_AUTOUIC TRUE)
 set(CMAKE_AUTORCC TRUE)
 
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    add_definitions(-DQT_QML_DEBUG)
+endif()
+
 IF(BUILD_UPDATER)
     add_subdirectory(updater)
 endif()
@@ -21,6 +25,7 @@ endif()
 
 set(client_UI_SRCS
     accountsettings.ui
+    conflictdialog.ui
     folderwizardsourcepage.ui
     folderwizardtargetpage.ui
     generalsettings.ui
@@ -38,6 +43,7 @@ set(client_UI_SRCS
     addcertificatedialog.ui
     proxyauthdialog.ui
     mnemonicdialog.ui
+    tray/ActivityActionButton.qml
     tray/Window.qml
     tray/UserLine.qml
     wizard/flow2authwidget.ui
@@ -54,6 +60,8 @@ set(client_SRCS
     accountmanager.cpp
     accountsettings.cpp
     application.cpp
+    conflictdialog.cpp
+    conflictsolver.cpp
     connectionvalidator.cpp
     folder.cpp
     folderman.cpp
@@ -154,9 +162,16 @@ IF( APPLE )
     list(APPEND client_SRCS systray.mm)
 
     if(SPARKLE_FOUND AND BUILD_UPDATER)
-       # Define this, we need to check in updater.cpp
-       add_definitions( -DHAVE_SPARKLE )
-       list(APPEND updater_SRCS updater/sparkleupdater_mac.mm)
+        # Define this, we need to check in updater.cpp
+        add_definitions(-DHAVE_SPARKLE)
+        list(APPEND updater_SRCS updater/sparkleupdater_mac.mm updater/sparkleupdater.h)
+        list(APPEND updater_DEPS ${SPARKLE_LIBRARY})
+
+        # Sparkle.framework is installed from here because macdeployqt's CopyFramework breaks on this bundle
+        # as its logic is tightly tailored around Qt5 frameworks
+        install(DIRECTORY "${SPARKLE_LIBRARY}"
+                DESTINATION "${OWNCLOUD_OSX_BUNDLE}/Contents/Frameworks" USE_SOURCE_PERMISSIONS)
+
    endif()
 ENDIF()
 
@@ -224,9 +239,8 @@ set( final_src
     ${3rdparty_MOC}
 )
 
-if(QTKEYCHAIN_FOUND OR QT5KEYCHAIN_FOUND)
-    list(APPEND libsync_LINK_TARGETS ${QTKEYCHAIN_LIBRARY})
-    include_directories(${QTKEYCHAIN_INCLUDE_DIR})
+if(Qt5Keychain_FOUND)
+    list(APPEND libsync_LINK_TARGETS qt5keychain)
 endif()
 
 # add executable icon on windows and osx
@@ -303,7 +317,7 @@ endif()
 
 IF(BUILD_UPDATER)
     add_library(updater STATIC ${updater_SRCS})
-    target_link_libraries(updater ${synclib_NAME} Qt5::Widgets Qt5::Svg Qt5::Network Qt5::Xml)
+    target_link_libraries(updater ${synclib_NAME} ${updater_DEPS} Qt5::Widgets Qt5::Svg Qt5::Network Qt5::Xml)
     target_include_directories(updater PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
@@ -314,7 +328,7 @@ set_target_properties( ${APPLICATION_EXECUTABLE} PROPERTIES
 set_target_properties( ${APPLICATION_EXECUTABLE} PROPERTIES
         INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}/${APPLICATION_EXECUTABLE};${CMAKE_INSTALL_RPATH}" )
 
-target_link_libraries( ${APPLICATION_EXECUTABLE} Qt5::Widgets Qt5::Svg Qt5::Network Qt5::Xml Qt5::Qml Qt5::Quick Qt5::QuickControls2 Qt5::WebEngineWidgets)
+target_link_libraries( ${APPLICATION_EXECUTABLE} Qt5::Widgets Qt5::GuiPrivate Qt5::Svg Qt5::Network Qt5::Xml Qt5::Qml Qt5::Quick Qt5::QuickControls2 Qt5::WebEngineWidgets)
 target_link_libraries( ${APPLICATION_EXECUTABLE} ${synclib_NAME} )
 IF(BUILD_UPDATER)
     target_link_libraries( ${APPLICATION_EXECUTABLE} updater )

@@ -85,10 +85,7 @@ static void addSettingsToJob(Account *account, QKeychain::Job *job)
 }
 #endif
 
-WebFlowCredentials::WebFlowCredentials()
-{
-
-}
+WebFlowCredentials::WebFlowCredentials() = default;
 
 WebFlowCredentials::WebFlowCredentials(const QString &user, const QString &password, const QSslCertificate &certificate, const QSslKey &key, const QList<QSslCertificate> &caCertificates)
     : _user(user)
@@ -252,6 +249,7 @@ void WebFlowCredentials::persist() {
 
 void WebFlowCredentials::slotWriteClientCertPEMJobDone(KeychainChunk::WriteJob *writeJob)
 {
+    Q_UNUSED(writeJob)
     // write ssl key if there is one
     if (!_clientSslKey.isNull()) {
         auto job = new KeychainChunk::WriteJob(_account,
@@ -298,6 +296,7 @@ void WebFlowCredentials::writeSingleClientCaCertPEM()
 
 void WebFlowCredentials::slotWriteClientKeyPEMJobDone(KeychainChunk::WriteJob *writeJob)
 {
+    Q_UNUSED(writeJob)
     _clientSslCaCertificatesWriteQueue.clear();
 
     // write ca certs if there are any

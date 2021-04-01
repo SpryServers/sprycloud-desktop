@@ -33,7 +33,7 @@
 #include <QUuid>
 #include <QScopeGuard>
 
-#include <keychain.h>
+#include <qt5keychain/keychain.h>
 #include "common/utility.h"
 
 #include "wordlist.h"
@@ -1697,7 +1697,7 @@ bool EncryptionHelper::fileDecryption(const QByteArray &key, const QByteArray& i
 
     while(input->pos() < size) {
 
-        int toRead = size - input->pos();
+        auto toRead = size - input->pos();
         if (toRead > 1024) {
             toRead = 1024;
         }

@@ -25,6 +25,7 @@
 #include "theme.h"
 #include "networkjobs.h"
 #include "configfile.h"
+#include "guiutility.h"
 
 namespace OCC {
 
@@ -82,6 +83,7 @@ void Flow2Auth::fetchNewToken(const TokenAction action)
     // add 'Content-Length: 0' header (see https://github.com/nextcloud/desktop/issues/1473)
     QNetworkRequest req;
     req.setHeader(QNetworkRequest::ContentLengthHeader, "0");
+    req.setHeader(QNetworkRequest::UserAgentHeader, Utility::friendlyUserAgentString());
 
     auto job = _account->sendRequest("POST", url, req);
     job->setTimeout(qMin(30 * 1000ll, job->timeoutMsec()));
@@ -145,7 +147,7 @@ void Flow2Auth::fetchNewToken(const TokenAction action)
         {
         case actionOpenBrowser:
             // Try to open Browser
-            if (!QDesktopServices::openUrl(authorisationLink())) {
+            if (!Utility::openBrowser(authorisationLink())) {
                 // We cannot open the browser, then we claim we don't support Flow2Auth.
                 // Our UI callee will ask the user to copy and open the link.
                 emit result(NotSupported);

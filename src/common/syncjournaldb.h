@@ -42,11 +42,12 @@ class OCSYNC_EXPORT SyncJournalDb : public QObject
 {
     Q_OBJECT
 public:
-    explicit SyncJournalDb(const QString &dbFilePath, QObject *parent = 0);
+    explicit SyncJournalDb(const QString &dbFilePath, QObject *parent = nullptr);
     virtual ~SyncJournalDb();
 
     /// Create a journal path for a specific configuration
-    static QString makeDbName(const QUrl &remoteUrl,
+    static QString makeDbName(const QString &localPath,
+        const QUrl &remoteUrl,
         const QString &remotePath,
         const QString &user);
 
@@ -94,7 +95,7 @@ public:
     struct UploadInfo
     {
         int _chunk = 0;
-        int _transferid = 0;
+        quint64 _transferid = 0;
         quint64 _size = 0; //currently unused
         qint64 _modtime = 0;
         int _errorCount = 0;
@@ -225,6 +226,13 @@ public:
     /// Return all paths of files with a conflict tag in the name and records in the db
     QByteArrayList conflictRecordPaths();
 
+    /** Find the base name for a conflict file name, using journal or name pattern
+     *
+     * The path must be sync-folder relative.
+     *
+     * Will return an empty string if it's not even a conflict file by pattern.
+     */
+    QByteArray conflictFileBaseName(const QByteArray &conflictName);
 
     /**
      * Delete any file entry. This will force the next sync to re-sync everything as if it was new,

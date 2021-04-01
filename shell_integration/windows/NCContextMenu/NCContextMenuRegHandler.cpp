@@ -83,7 +83,7 @@ HRESULT NCContextMenuRegHandler::RegisterInprocServer(PCWSTR pszModule, const CL
     wchar_t szSubkey[MAX_PATH];
 
     // Create the HKCR\CLSID\{<CLSID>} key.
-    hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey), L"CLSID\\%s", szCLSID);
+    hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey), LR"(CLSID\%s)", szCLSID);
     if (SUCCEEDED(hr))
     {
         hr = SetHKCRRegistryKeyAndValue(szSubkey, nullptr, pszFriendlyName);
@@ -92,7 +92,7 @@ HRESULT NCContextMenuRegHandler::RegisterInprocServer(PCWSTR pszModule, const CL
         if (SUCCEEDED(hr))
         {
             hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey),
-                L"CLSID\\%s\\InprocServer32", szCLSID);
+                LR"(CLSID\%s\InprocServer32)", szCLSID);
             if (SUCCEEDED(hr))
             {
                 // Set the default value of the InprocServer32 key to the 
@@ -121,7 +121,7 @@ HRESULT NCContextMenuRegHandler::UnregisterInprocServer(const CLSID& clsid)
     wchar_t szSubkey[MAX_PATH];
 
     // Delete the HKCR\CLSID\{<CLSID>} key.
-    hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey), L"CLSID\\%s", szCLSID);
+    hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey), LR"(CLSID\%s)", szCLSID);
     if (SUCCEEDED(hr))
     {
         hr = HRESULT_FROM_WIN32(RegDelnode(HKEY_CLASSES_ROOT, szSubkey));
@@ -165,7 +165,7 @@ HRESULT NCContextMenuRegHandler::RegisterShellExtContextMenuHandler(
 
     // Create the key HKCR\<File Type>\shellex\ContextMenuHandlers\{friendlyName>}
     hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey),
-        L"%s\\shellex\\ContextMenuHandlers\\%s", pszFileType, pszFriendlyName);
+        LR"(%s\shellex\ContextMenuHandlers\%s)", pszFileType, pszFriendlyName);
     if (SUCCEEDED(hr))
     {
         // Set the default value of the key.
@@ -206,7 +206,7 @@ HRESULT NCContextMenuRegHandler::UnregisterShellExtContextMenuHandler(
 
     // Remove the HKCR\<File Type>\shellex\ContextMenuHandlers\{friendlyName} key.
     hr = StringCchPrintf(szSubkey, ARRAYSIZE(szSubkey),
-        L"%s\\shellex\\ContextMenuHandlers\\%s", pszFileType, pszFriendlyName);
+        LR"(%s\shellex\ContextMenuHandlers\%s)", pszFileType, pszFriendlyName);
     if (SUCCEEDED(hr))
     {
         hr = HRESULT_FROM_WIN32(RegDelnode(HKEY_CLASSES_ROOT, szSubkey));

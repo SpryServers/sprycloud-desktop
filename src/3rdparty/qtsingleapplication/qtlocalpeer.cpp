@@ -36,12 +36,12 @@
 #if defined(Q_OS_WIN)
 #include <QLibrary>
 #include <qt_windows.h>
-typedef BOOL(WINAPI*PProcessIdToSessionId)(DWORD,DWORD*);
+using PProcessIdToSessionId = BOOL (WINAPI*)(DWORD, DWORD*);
 static PProcessIdToSessionId pProcessIdToSessionId = 0;
 #endif
 
 #if defined(Q_OS_UNIX)
-#include <time.h>
+#include <ctime>
 #include <unistd.h>
 #endif
 

@@ -62,7 +62,6 @@ SettingsDialog::SettingsDialog(ownCloudGui *gui, QWidget *parent)
 {
     ConfigFile cfg;
 
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     _ui->setupUi(this);
     _toolBar = new QToolBar;
     _toolBar->setIconSize(QSize(32, 32));
@@ -130,6 +129,7 @@ SettingsDialog::SettingsDialog(ownCloudGui *gui, QWidget *parent)
 
     customizeStyle();
 
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     cfg.restoreGeometry(this);
 }
 
@@ -188,13 +188,12 @@ void SettingsDialog::showFirstPage()
     }
 }
 
-void SettingsDialog::showIssuesList(AccountState *account) {
-    /*for (auto it = _actionGroupWidgets.begin(); it != _actionGroupWidgets.end(); ++it) {
-        if (it.value() == _activitySettings[account]) {
-            it.key()->activate(QAction::ActionEvent::Trigger);
-            break;
-        }
-    }*/
+void SettingsDialog::showIssuesList(AccountState *account)
+{
+    const auto userModel = UserModel::instance();
+    const auto id = userModel->findUserIdForAccount(account);
+    UserModel::instance()->switchCurrentUser(id);
+    emit Systray::instance()->showWindow();
 }
 
 void SettingsDialog::accountAdded(AccountState *s)
@@ -215,7 +214,7 @@ void SettingsDialog::accountAdded(AccountState *s)
 
     if (!brandingSingleAccount) {
         accountAction->setToolTip(s->account()->displayName());
-        accountAction->setIconText(SettingsDialogCommon::shortDisplayNameForSettings(s->account().data(),  height * buttonSizeRatio));
+        accountAction->setIconText(SettingsDialogCommon::shortDisplayNameForSettings(s->account().data(), qRound(height * buttonSizeRatio)));
     }
 
     _toolBar->insertAction(_actionBefore, accountAction);
@@ -229,6 +228,7 @@ void SettingsDialog::accountAdded(AccountState *s)
     connect(accountSettings, &AccountSettings::folderChanged, _gui, &ownCloudGui::slotFoldersChanged);
     connect(accountSettings, &AccountSettings::openFolderAlias,
         _gui, &ownCloudGui::slotFolderOpenAction);
+    connect(accountSettings, &AccountSettings::showIssuesList, this, &SettingsDialog::showIssuesList);
     connect(s->account().data(), &Account::accountChangedAvatar, this, &SettingsDialog::slotAccountAvatarChanged);
     connect(s->account().data(), &Account::accountChangedDisplayName, this, &SettingsDialog::slotAccountDisplayNameChanged);
 
@@ -259,7 +259,7 @@ void SettingsDialog::slotAccountDisplayNameChanged()
             QString displayName = account->displayName();
             action->setText(displayName);
             auto height = _toolBar->sizeHint().height();
-            action->setIconText(SettingsDialogCommon::shortDisplayNameForSettings(account, height * buttonSizeRatio));
+            action->setIconText(SettingsDialogCommon::shortDisplayNameForSettings(account, qRound(height * buttonSizeRatio)));
         }
     }
 }

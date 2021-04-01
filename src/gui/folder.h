@@ -51,7 +51,7 @@ public:
     QString alias;
     /// path on local machine
     QString localPath;
-    /// path to the journal, usually in QStandardPaths::AppDataLocation
+    /// path to the journal, usually relative to localPath
     QString journalPath;
     /// path on remote
     QString targetPath;
@@ -95,8 +95,8 @@ public:
 
     ~Folder();
 
-    typedef QMap<QString, Folder *> Map;
-    typedef QMapIterator<QString, Folder *> MapIterator;
+    using Map = QMap<QString, Folder *>;
+    using MapIterator = QMapIterator<QString, Folder *>;
 
     /**
      * The account the folder is configured on.

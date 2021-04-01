@@ -28,6 +28,7 @@
 #include "accountmanager.h"
 #include "common/syncjournalfilerecord.h"
 #include "creds/abstractcredentials.h"
+#include "guiutility.h"
 #ifdef WITH_LIBCLOUDPROVIDERS
 #include "cloudproviders/cloudprovidermanager.h"
 #endif
@@ -59,7 +60,7 @@ const char propertyAccountC[] = "oc_account";
 ownCloudGui::ownCloudGui(Application *parent)
     : QObject(parent)
     , _tray(nullptr)
-    , _settingsDialog(new SettingsDialog(this))
+    , _settingsDialog(nullptr)
     , _logBrowser(nullptr)
 #ifdef WITH_LIBCLOUDPROVIDERS
     , _bus(QDBusConnection::sessionBus())
@@ -75,12 +76,6 @@ ownCloudGui::ownCloudGui(Application *parent)
 
     connect(_tray.data(), &QSystemTrayIcon::activated,
         this, &ownCloudGui::slotTrayClicked);
-
-    connect(_tray.data(), &Systray::pauseSync,
-        this, &ownCloudGui::slotPauseAllFolders);
-
-    connect(_tray.data(), &Systray::resumeSync,
-        this, &ownCloudGui::slotUnpauseAllFolders);
 
     connect(_tray.data(), &Systray::openHelp,
         this, &ownCloudGui::slotHelp);
@@ -248,6 +243,8 @@ void ownCloudGui::slotComputeOverallSyncStatus()
     bool allDisconnected = true;
     QVector<AccountStatePtr> problemAccounts;
     auto setStatusText = [&](const QString &text) {
+        // FIXME: So this doesn't do anything? Needs to be revisited
+        Q_UNUSED(text)
         // Don't overwrite the status if we're currently syncing
         if (FolderMan::instance()->currentSyncFolder())
             return;
@@ -411,14 +408,17 @@ void ownCloudGui::slotUpdateProgress(const QString &folder, const ProgressInfo &
 {
     Q_UNUSED(folder);
 
+    // FIXME: Lots of messages computed for nothing in this method, needs revisiting
     if (progress.status() == ProgressInfo::Discovery) {
+#if 0
         if (!progress._currentDiscoveredRemoteFolder.isEmpty()) {
-            //_actionStatus->setText(tr("Checking for changes in remote '%1'")
-                                       //.arg(progress._currentDiscoveredRemoteFolder));
+            _actionStatus->setText(tr("Checking for changes in remote '%1'")
+                                       .arg(progress._currentDiscoveredRemoteFolder));
         } else if (!progress._currentDiscoveredLocalFolder.isEmpty()) {
-            //_actionStatus->setText(tr("Checking for changes in local '%1'")
-                                       //.arg(progress._currentDiscoveredLocalFolder));
+            _actionStatus->setText(tr("Checking for changes in local '%1'")
+                                       .arg(progress._currentDiscoveredLocalFolder));
         }
+#endif
     } else if (progress.status() == ProgressInfo::Done) {
         QTimer::singleShot(2000, this, &ownCloudGui::slotComputeOverallSyncStatus);
     }
@@ -502,39 +502,9 @@ void ownCloudGui::slotLogout()
     }
 }
 
-void ownCloudGui::slotUnpauseAllFolders()
-{
-    setPauseOnAllFoldersHelper(false);
-}
-
-void ownCloudGui::slotPauseAllFolders()
-{
-    setPauseOnAllFoldersHelper(true);
-}
-
 void ownCloudGui::slotNewAccountWizard()
 {
     OwncloudSetupWizard::runWizard(qApp, SLOT(slotownCloudWizardDone(int)));
-}
-
-void ownCloudGui::setPauseOnAllFoldersHelper(bool pause)
-{
-    QList<AccountState *> accounts;
-    if (auto account = qvariant_cast<AccountStatePtr>(sender()->property(propertyAccountC))) {
-        accounts.append(account.data());
-    } else {
-        foreach (auto a, AccountManager::instance()->accounts()) {
-            accounts.append(a.data());
-        }
-    }
-    foreach (Folder *f, FolderMan::instance()->map()) {
-        if (accounts.contains(f->accountState())) {
-            f->setSyncPaused(pause);
-            if (pause) {
-                f->slotTerminateSync();
-            }
-        }
-    }
 }
 
 void ownCloudGui::slotShowGuiMessage(const QString &title, const QString &message)
@@ -601,7 +571,7 @@ void ownCloudGui::slotToggleLogBrowser()
 void ownCloudGui::slotOpenOwnCloud()
 {
     if (auto account = qvariant_cast<AccountPtr>(sender()->property(propertyAccountC))) {
-        QDesktopServices::openUrl(account->url());
+        Utility::openBrowser(account->url());
     }
 }
 
@@ -653,7 +623,9 @@ void ownCloudGui::slotShowShareDialog(const QString &sharePath, const QString &l
     }
 
     // For https://github.com/owncloud/client/issues/3783
-    _settingsDialog->hide();
+    if (_settingsDialog) {
+        _settingsDialog->hide();
+    }
 
     const auto accountState = folder->accountState();
 
@@ -678,7 +650,7 @@ void ownCloudGui::slotShowShareDialog(const QString &sharePath, const QString &l
         | SharePermissionUpdate | SharePermissionCreate | SharePermissionDelete
         | SharePermissionShare;
     if (!resharingAllowed) {
-        maxSharingPermissions = nullptr;
+        maxSharingPermissions = {};
     }
 
 

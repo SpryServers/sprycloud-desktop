@@ -23,17 +23,15 @@
 class QScreen;
 class QQmlApplicationEngine;
 class QQuickWindow;
+class QWindow;
 
 namespace OCC {
 
 #ifdef Q_OS_OSX
 bool canOsXSendUserNotification();
 void sendOsXUserNotification(const QString &title, const QString &message);
+void setTrayWindowLevelAndVisibleOnAllSpaces(QWindow *window);
 #endif
-
-namespace Ui {
-    class Systray;
-}
 
 /**
  * @brief The Systray class
@@ -45,7 +43,7 @@ class Systray
     Q_OBJECT
 public:
     static Systray *instance();
-    virtual ~Systray() {};
+    virtual ~Systray() = default;
 
     enum class TaskBarPosition { Bottom, Left, Top, Right };
     Q_ENUM(TaskBarPosition);
@@ -61,6 +59,7 @@ public:
     Q_INVOKABLE void setOpened();
     Q_INVOKABLE void setClosed();
     Q_INVOKABLE void positionWindow(QQuickWindow *window) const;
+    Q_INVOKABLE void forceWindowInit(QQuickWindow *window) const;
 
 signals:
     void currentUserChanged();
@@ -69,8 +68,6 @@ signals:
     void openSettings();
     void openHelp();
     void shutdown();
-    void pauseSync();
-    void resumeSync();
 
     Q_INVOKABLE void hideWindow();
     Q_INVOKABLE void showWindow();
@@ -79,7 +76,13 @@ signals:
 public slots:
     void slotNewUserSelected();
 
+private slots:
+    void slotUnpauseAllFolders();
+    void slotPauseAllFolders();
+
 private:
+    void setPauseOnAllFoldersHelper(bool pause);
+
     static Systray *_instance;
     Systray();
 

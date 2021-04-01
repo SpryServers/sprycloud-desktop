@@ -15,12 +15,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD|OpenBSD")
     )
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD|OpenBSD")
 
-if(SPARKLE_FOUND AND NOT BUILD_LIBRARIES_ONLY)
-    list (APPEND OS_SPECIFIC_LINK_LIBRARIES ${SPARKLE_LIBRARY})
-endif()
-
 set(libsync_SRCS
     account.cpp
+    pushnotifications.cpp
     wordlist.cpp
     bandwidthmanager.cpp
     capabilities.cpp
@@ -95,6 +92,7 @@ IF (NOT APPLE)
     )
 ENDIF(NOT APPLE)
 
+find_package(Qt5 REQUIRED COMPONENTS WebSockets)
 add_library(${synclib_NAME} SHARED ${libsync_SRCS})
 target_link_libraries(${synclib_NAME}
     ocsync
@@ -102,12 +100,12 @@ target_link_libraries(${synclib_NAME}
     OpenSSL::SSL
     ${OS_SPECIFIC_LINK_LIBRARIES}
     Qt5::Core Qt5::Network
+    Qt5::WebSockets
 )
 
 if (NOT TOKEN_AUTH_ONLY)
     find_package(Qt5 REQUIRED COMPONENTS Widgets Svg)
-    target_link_libraries(${synclib_NAME} Qt5::Widgets Qt5::Svg ${QTKEYCHAIN_LIBRARY})
-    target_include_directories(${synclib_NAME} PRIVATE ${QTKEYCHAIN_INCLUDE_DIR})
+    target_link_libraries(${synclib_NAME} Qt5::Widgets Qt5::Svg qt5keychain)
 endif()
 
 if(INOTIFY_FOUND)
@@ -142,10 +140,6 @@ if(NOT BUILD_OWNCLOUD_OSX_BUNDLE)
     )
 else()
     install(TARGETS ${synclib_NAME} DESTINATION ${OWNCLOUD_OSX_BUNDLE}/Contents/MacOS)
-    if (SPARKLE_FOUND)
-        install(DIRECTORY "${SPARKLE_LIBRARY}"
-	        DESTINATION "${OWNCLOUD_OSX_BUNDLE}/Contents/Frameworks" USE_SOURCE_PERMISSIONS)
-    endif (SPARKLE_FOUND)
 endif()
 
 

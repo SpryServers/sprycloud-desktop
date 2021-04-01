@@ -15,7 +15,7 @@
 #include <QtGlobal>
 
 #include <cmath>
-#include <signal.h>
+#include <csignal>
 
 #ifdef Q_OS_UNIX
 #include <sys/time.h>

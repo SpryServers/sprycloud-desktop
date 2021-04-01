@@ -21,6 +21,11 @@ Window {
 
     readonly property int maxMenuHeight: Style.trayWindowHeight - Style.trayWindowHeaderHeight - 2 * Style.trayWindowBorderWidth
 
+    Accessible.role: Accessible.Application
+    Accessible.name: qsTr("Nextcloud desktop main dialog")
+
+    Component.onCompleted: Systray.forceWindowInit(trayWindow)
+
     // Close tray window when focus is lost (e.g. click somewhere else on the screen)
     onActiveChanged: {
         if(!active) {
@@ -30,10 +35,10 @@ Window {
     }
 
     onVisibleChanged: {
-        currentAccountAvatar.source = ""
-        currentAccountAvatar.source = "image://avatars/currentUser"
         currentAccountStateIndicator.source = ""
-        currentAccountStateIndicator.source = UserModel.isUserConnected(UserModel.currentUserId()) ? "qrc:///client/theme/colored/state-ok.svg" : "qrc:///client/theme/colored/state-offline.svg"
+        currentAccountStateIndicator.source = UserModel.isUserConnected(UserModel.currentUserId)
+                ? Style.stateOnlineImageSource
+                : Style.stateOfflineImageSource
 
         // HACK: reload account Instantiator immediately by restting it - could be done better I guess
         // see also id:accountMenu below
@@ -44,10 +49,10 @@ Window {
     Connections {
         target: UserModel
         onRefreshCurrentUserGui: {
-            currentAccountAvatar.source = ""
-            currentAccountAvatar.source = "image://avatars/currentUser"
             currentAccountStateIndicator.source = ""
-            currentAccountStateIndicator.source = UserModel.isUserConnected(UserModel.currentUserId()) ? "qrc:///client/theme/colored/state-ok.svg" : "qrc:///client/theme/colored/state-offline.svg"
+            currentAccountStateIndicator.source = UserModel.isUserConnected(UserModel.currentUserId)
+                    ? Style.stateOnlineImageSource
+                    : Style.stateOfflineImageSource
         }
         onNewUserSelected: {
             accountMenu.close();
@@ -96,26 +101,17 @@ Window {
         border.width:   Style.trayWindowBorderWidth
         border.color:   Style.menuBorder
 
+        Accessible.role: Accessible.Grouping
+        Accessible.name: qsTr("Nextcloud desktop main dialog")
+
         Rectangle {
             id: trayWindowHeaderBackground
 
             anchors.left:   trayWindowBackground.left
+            anchors.right:  trayWindowBackground.right
             anchors.top:    trayWindowBackground.top
             height:         Style.trayWindowHeaderHeight
-            width:          Style.trayWindowWidth
             color:          Style.ncBlue
-
-            // The overlay rectangle below eliminates the rounded corners from the bottom of the header
-            // as Qt only allows setting the radius for all corners right now, not specific ones
-            Rectangle {
-                id: trayWindowHeaderButtomHalfBackground
-
-                anchors.left:   trayWindowHeaderBackground.left
-                anchors.bottom: trayWindowHeaderBackground.bottom
-                height:         Style.trayWindowHeaderHeight / 2
-                width:          Style.trayWindowWidth
-                color:          Style.ncBlue
-            }
 
             RowLayout {
                 id: trayWindowHeaderLayout
@@ -130,6 +126,10 @@ Window {
                     Layout.preferredHeight: Style.trayWindowHeaderHeight
                     display:                AbstractButton.IconOnly
                     flat:                   true
+
+                    Accessible.role: Accessible.ButtonMenu
+                    Accessible.name: qsTr("Current account")
+                    Accessible.onPressAction: currentAccountButton.clicked()
 
                     MouseArea {
                         id: accountBtnMouseArea
@@ -164,6 +164,9 @@ Window {
                                 border.color: Style.menuBorder
                                 radius: Style.currentAccountButtonRadius
                             }
+
+                            Accessible.role: PopupMenu
+                            Accessible.name: qsTr("Account switcher and settings menu")
 
                             onClosed: {
                                 // HACK: reload account Instantiator immediately by restting it - could be done better I guess
@@ -219,6 +222,10 @@ Window {
                                     }
                                 }
                                 onClicked: UserModel.addAccount()
+
+                                Accessible.role: Accessible.MenuItem
+                                Accessible.name: qsTr("Add new account")
+                                Accessible.onPressAction: addAccountButton.clicked()
                             }
 
                             MenuSeparator {
@@ -243,9 +250,14 @@ Window {
                                         color: parent.parent.hovered ? Style.lightHover : "transparent"
                                     }
                                 }
+
+                                Accessible.role: Accessible.MenuItem
+                                Accessible.name: Systray.syncIsPaused() ? qsTr("Resume sync for all") : qsTr("Pause sync for all")
+                                Accessible.onPressAction: syncPauseButton.clicked()
                             }
 
                             MenuItem {
+                                id: settingsButton
                                 text: qsTr("Settings")
                                 font.pixelSize: Style.topLinePixelSize
                                 hoverEnabled: true
@@ -260,9 +272,14 @@ Window {
                                         color: parent.parent.hovered ? Style.lightHover : "transparent"
                                     }
                                 }
+
+                                Accessible.role: Accessible.MenuItem
+                                Accessible.name: text
+                                Accessible.onPressAction: settingsButton.clicked()
                             }
 
                             MenuItem {
+                                id: exitButton
                                 text: qsTr("Exit");
                                 font.pixelSize: Style.topLinePixelSize
                                 hoverEnabled: true
@@ -277,6 +294,10 @@ Window {
                                         color: parent.parent.hovered ? Style.lightHover : "transparent"
                                     }
                                 }
+
+                                Accessible.role: Accessible.MenuItem
+                                Accessible.name: text
+                                Accessible.onPressAction: exitButton.clicked()
                             }
                         }
                     }
@@ -292,15 +313,19 @@ Window {
                         height: Style.trayWindowHeaderHeight
                         width:  Style.currentAccountButtonWidth
                         spacing: 0
+
                         Image {
                             id: currentAccountAvatar
 
                             Layout.leftMargin: 8
                             verticalAlignment: Qt.AlignCenter
                             cache: false
-                            source: "image://avatars/currentUser"
+                            source: UserModel.currentUser.avatar != "" ? UserModel.currentUser.avatar : "image://avatars/fallbackWhite"
                             Layout.preferredHeight: Style.accountAvatarSize
                             Layout.preferredWidth: Style.accountAvatarSize
+
+                            Accessible.role: Accessible.Graphic
+                            Accessible.name: qsTr("Current user avatar")
 
                             Rectangle {
                                 id: currentAccountStateIndicatorBackground
@@ -324,12 +349,17 @@ Window {
 
                             Image {
                                 id: currentAccountStateIndicator
-                                source: UserModel.isUserConnected(UserModel.currentUserId()) ? "qrc:///client/theme/colored/state-ok.svg" : "qrc:///client/theme/colored/state-offline.svg"
+                                source: UserModel.isUserConnected(UserModel.currentUserId)
+                                        ? Style.stateOnlineImageSource
+                                        : Style.stateOfflineImageSource
                                 cache: false
                                 x: currentAccountStateIndicatorBackground.x + 1
                                 y: currentAccountStateIndicatorBackground.y + 1
                                 sourceSize.width: Style.accountAvatarStateIndicatorSize
                                 sourceSize.height: Style.accountAvatarStateIndicatorSize
+
+                                Accessible.role: Accessible.Indicator
+                                Accessible.name: UserModel.isUserConnected(UserModel.currentUserId()) ? qsTr("Connected") : qsTr("Disconnected")
                             }
                         }
 
@@ -358,13 +388,19 @@ Window {
                             }
                         }
 
-                        Image {
-                            Layout.alignment: Qt.AlignRight
-                            verticalAlignment: Qt.AlignCenter
-                            Layout.margins: Style.accountDropDownCaretMargin
-                            source: "qrc:///client/theme/white/caret-down.svg"
-                            sourceSize.width: Style.accountDropDownCaretSize
-                            sourceSize.height: Style.accountDropDownCaretSize
+                        ColorOverlay {
+                            cached: true
+                            color: Style.ncTextColor
+                            width: source.width
+                            height: source.height
+                            source: Image {
+                                Layout.alignment: Qt.AlignRight
+                                verticalAlignment: Qt.AlignCenter
+                                Layout.margins: Style.accountDropDownCaretMargin
+                                source: "qrc:///client/theme/white/caret-down.svg"
+                                sourceSize.width: Style.accountDropDownCaretSize
+                                sourceSize.height: Style.accountDropDownCaretSize
+                            }
                         }
                     }
                 }
@@ -381,6 +417,10 @@ Window {
                     visible: UserModel.currentUser.hasLocalFolder
                     icon.source: "qrc:///client/theme/white/folder.svg"
                     onClicked: UserModel.openCurrentAccountLocalFolder()
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: qsTr("Open local folder of current account")
+                    Accessible.onPressAction: openLocalFolderButton.clicked()
                 }
 
                 HeaderButton {
@@ -389,6 +429,10 @@ Window {
                     visible: UserModel.currentUser.serverHasTalk
                     icon.source: "qrc:///client/theme/white/talk-app.svg"
                     onClicked: UserModel.openCurrentAccountTalk()
+
+                    Accessible.role: Accessible.Button
+                    Accessible.name: qsTr("Open Nextcloud Talk in browser")
+                    Accessible.onPressAction: trayWindowTalkButton.clicked()
                 }
 
                 HeaderButton {
@@ -404,6 +448,10 @@ Window {
                         }
                     }
 
+                    Accessible.role: Accessible.ButtonMenu
+                    Accessible.name: qsTr("More apps")
+                    Accessible.onPressAction: trayWindowAppsButton.clicked()
+
                     Menu {
                         id: appsMenu
                         y: (trayWindowAppsButton.y + trayWindowAppsButton.height + 2)
@@ -416,6 +464,9 @@ Window {
                             border.color: Style.menuBorder
                             radius: 2
                         }
+
+                        Accessible.role: Accessible.PopupMenu
+                        Accessible.name: qsTr("Apps menu")
 
                         Instantiator {
                             id: appsMenuInstantiator
@@ -441,6 +492,10 @@ Window {
                                         color: appEntry.hovered ? Style.lightHover : "transparent"
                                     }
                                 }
+
+                                Accessible.role: Accessible.MenuItem
+                                Accessible.name: qsTr("Open %1 in browser").arg(appName)
+                                Accessible.onPressAction: appEntry.triggered()
                             }
                         }
                     }
@@ -450,40 +505,49 @@ Window {
 
         ListView {
             id: activityListView
-
             anchors.top: trayWindowHeaderBackground.bottom
-            anchors.horizontalCenter: trayWindowBackground.horizontalCenter
-            width:  Style.trayWindowWidth - Style.trayWindowBorderWidth
-            height: Style.trayWindowHeight - Style.trayWindowHeaderHeight
+            anchors.left: trayWindowBackground.left
+            anchors.right: trayWindowBackground.right
+            anchors.bottom: trayWindowBackground.bottom
             clip: true
             ScrollBar.vertical: ScrollBar {
                 id: listViewScrollbar
             }
+
+            readonly property int maxActionButtons: 2
+
+            keyNavigationEnabled: true
+
+            Accessible.role: Accessible.List
+            Accessible.name: qsTr("Activity list")
 
             model: activityModel
 
             delegate: RowLayout {
                 id: activityItem
 
+                readonly property variant links: model.links
+
+                readonly property int itemIndex: model.index
+
                 width: parent.width
                 height: Style.trayWindowHeaderHeight
                 spacing: 0
+
+                Accessible.role: Accessible.ListItem
+                Accessible.name: path !== "" ? qsTr("Open %1 locally").arg(displayPath)
+                                             : message
+                Accessible.onPressAction: activityMouseArea.clicked()
 
                 MouseArea {
                     id: activityMouseArea
                     enabled: (path !== "" || link !== "")
                     anchors.left: activityItem.left
-                    anchors.right: ((shareButton.visible) ? shareButton.left : activityItem.right)
+                    anchors.right: activityActionsLayout.right
                     height: parent.height
                     anchors.margins: 2
                     hoverEnabled: true
-                    onClicked: {
-                        if (path !== "") {
-                            Qt.openUrlExternally(path)
-                        } else {
-                            Qt.openUrlExternally(link)
-                        }
-                    }
+                    onClicked: activityModel.triggerDefaultAction(model.index)
 
                     Rectangle {
                         anchors.fill: parent
@@ -508,13 +572,14 @@ Window {
                 Column {
                     id: activityTextColumn
                     anchors.left: activityIcon.right
+                    anchors.right: activityActionsLayout.left
                     anchors.leftMargin: 8
                     spacing: 4
                     Layout.alignment: Qt.AlignLeft
                     Text {
                         id: activityTextTitle
                         text: (type === "Activity" || type === "Notification") ? subject : message
-                        width: Style.activityLabelBaseWidth + ((path === "") ? activityItem.height : 0) + ((link === "") ? activityItem.height : 0) - 8
+                        width: parent.width
                         elide: Text.ElideRight
                         font.pixelSize: Style.topLinePixelSize
                         color: activityTextTitleColor
@@ -527,7 +592,7 @@ Window {
                             : (type === "Notification") ? message
                             : ""
                         height: (text === "") ? 0 : activityTextTitle.height
-                        width: Style.activityLabelBaseWidth + ((path === "") ? activityItem.height : 0) + ((link === "") ? activityItem.height : 0) - 8
+                        width: parent.width
                         elide: Text.ElideRight
                         font.pixelSize: Style.subLinePixelSize
                     }
@@ -536,7 +601,7 @@ Window {
                         id: activityTextDateTime
                         text: dateTime
                         height: (text === "") ? 0 : activityTextTitle.height
-                        width: Style.activityLabelBaseWidth + ((path === "") ? activityItem.height : 0) + ((link === "") ? activityItem.height : 0) - 8
+                        width: parent.width
                         elide: Text.ElideRight
                         font.pixelSize: Style.subLinePixelSize
                         color: "#808080"
@@ -557,26 +622,175 @@ Window {
                         }
                     }
                 }
-                Button {
-                    id: shareButton
+                RowLayout {
+                    id: activityActionsLayout
                     anchors.right: activityItem.right
-
-                    Layout.preferredWidth: (path === "") ? 0 : parent.height
-                    Layout.preferredHeight: parent.height
+                    spacing: 0
                     Layout.alignment: Qt.AlignRight
-                    flat: true
-                    hoverEnabled: true
-                    visible: (path === "") ? false : true
-                    display: AbstractButton.IconOnly
-                    icon.source: "qrc:///client/theme/share.svg"
-                    icon.color: "transparent"
-                    background: Rectangle {
-                        color: parent.hovered ? Style.lightHover : "transparent"
+
+                    function actionButtonIcon(actionIndex) {
+                        const verb = String(model.links[actionIndex].verb);
+                        if (verb === "WEB" && (model.objectType === "chat" || model.objectType === "call")) {
+                            return "qrc:///client/theme/reply.svg";
+                        } else if (verb === "DELETE") {
+                            return "qrc:///client/theme/close.svg";
+                        }
+
+                        return "qrc:///client/theme/confirm.svg";
                     }
-                    ToolTip.visible: hovered
-                    ToolTip.delay: 1000
-                    ToolTip.text: qsTr("Open share dialog")
-                    onClicked: Systray.openShareDialog(displayPath,absolutePath)
+
+                    Repeater {
+                        model: activityItem.links.length > activityListView.maxActionButtons ? 1 : activityItem.links.length
+
+                        ActivityActionButton {
+                            id: activityActionButton
+
+                            readonly property int actionIndex: model.index
+                            readonly property bool primary: model.index === 0 && String(activityItem.links[actionIndex].verb) !== "DELETE"
+
+                            height: activityItem.height
+
+                            text: !primary ? "" : activityItem.links[actionIndex].label
+
+                            imageSource: !primary ? activityActionsLayout.actionButtonIcon(actionIndex) : ""
+
+                            textColor: primary ? Style.ncBlue : "black"
+                            textColorHovered: Style.lightHover
+
+                            textBorderColor: Style.ncBlue
+
+                            textBgColor: "transparent"
+                            textBgColorHovered: Style.ncBlue
+
+                            tooltipText: activityItem.links[actionIndex].label
+
+                            Layout.minimumWidth: primary ? 80 : -1
+                            Layout.minimumHeight: parent.height
+
+                            Layout.preferredWidth: primary ? -1 : parent.height
+
+                            onClicked: activityModel.triggerAction(activityItem.itemIndex, actionIndex)
+                        }
+
+                    }
+
+                    Button {
+                        id: moreActionsButton
+
+                        Layout.preferredWidth: parent.height
+                        Layout.preferredHeight: parent.height
+                        Layout.alignment: Qt.AlignRight
+
+                        flat: true
+                        hoverEnabled: true
+                        visible: activityItem.links.length > activityListView.maxActionButtons
+                        display: AbstractButton.IconOnly
+                        icon.source: "qrc:///client/theme/more.svg"
+                        icon.color: "transparent"
+                        background: Rectangle {
+                            color: parent.hovered ? Style.lightHover : "transparent"
+                        }
+                        ToolTip.visible: hovered
+                        ToolTip.delay: 1000
+                        ToolTip.text: qsTr("Show more actions")
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: qsTr("Show more actions")
+                        Accessible.onPressAction: moreActionsButton.clicked()
+
+                        onClicked:  moreActionsButtonContextMenu.popup();
+
+                        Connections {
+                            target: trayWindow
+                            onActiveChanged: {
+                                if (!trayWindow.active) {
+                                    moreActionsButtonContextMenu.close();
+                                }
+                            }
+                        }
+
+                        Connections {
+                            target: activityListView
+
+                            onMovementStarted: {
+                                moreActionsButtonContextMenu.close();
+                            }
+                        }
+
+                        Container {
+                            id: moreActionsButtonContextMenuContainer
+                            visible: moreActionsButtonContextMenu.opened
+
+                            width: moreActionsButtonContextMenu.width
+                            height: moreActionsButtonContextMenu.height
+                            anchors.right: moreActionsButton.right
+                            anchors.top: moreActionsButton.top
+
+                            Menu {
+                                id: moreActionsButtonContextMenu
+                                anchors.centerIn: parent
+
+                                // transform model to contain indexed actions with primary action filtered out
+                                function actionListToContextMenuList(actionList) {
+                                    // early out with non-altered data
+                                    if (activityItem.links.length <= activityListView.maxActionButtons) {
+                                        return actionList;
+                                    }
+
+                                    // add index to every action and filter 'primary' action out
+                                    var reducedActionList = actionList.reduce(function(reduced, action, index) {
+                                        if (!action.primary) {
+                                           var actionWithIndex = { actionIndex: index, label: action.label };
+                                           reduced.push(actionWithIndex);
+                                        }
+                                        return reduced;
+                                    }, []);
+
+
+                                    return reducedActionList;
+                                }
+
+                                Repeater {
+                                    id: moreActionsButtonContextMenuRepeater
+
+                                    model: moreActionsButtonContextMenu.actionListToContextMenuList(activityItem.links)
+
+                                    delegate: MenuItem {
+                                        id: moreActionsButtonContextMenuEntry
+                                        readonly property int actionIndex: model.modelData.actionIndex
+                                        readonly property string label: model.modelData.label
+                                        text: label
+                                        onTriggered: activityModel.triggerAction(activityItem.itemIndex, actionIndex)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Button {
+                        id: shareButton
+
+                        Layout.preferredWidth: (path === "") ? 0 : parent.height
+                        Layout.preferredHeight: parent.height
+                        Layout.alignment: Qt.AlignRight
+                        flat: true
+                        hoverEnabled: true
+                        visible: (path === "") ? false : true
+                        display: AbstractButton.IconOnly
+                        icon.source: "qrc:///client/theme/share.svg"
+                        icon.color: "transparent"
+                        background: Rectangle {
+                            color: parent.hovered ? Style.lightHover : "transparent"
+                        }
+                        ToolTip.visible: hovered
+                        ToolTip.delay: 1000
+                        ToolTip.text: qsTr("Open share dialog")
+                        onClicked: Systray.openShareDialog(displayPath,absolutePath)
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: qsTr("Share %1").arg(displayPath)
+                        Accessible.onPressAction: shareButton.clicked()
+                    }
                 }
             }
 

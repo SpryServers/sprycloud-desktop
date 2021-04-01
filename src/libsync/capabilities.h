@@ -26,6 +26,15 @@ namespace OCC {
 
 class DirectEditor;
 
+enum PushNotificationType {
+    None = 0,
+    Files = 1,
+    Activities = 2,
+    Notifications = 4
+};
+Q_DECLARE_FLAGS(PushNotificationTypes, PushNotificationType)
+Q_DECLARE_OPERATORS_FOR_FLAGS(PushNotificationTypes)
+
 /**
  * @brief The Capabilities class represents the capabilities of an ownCloud
  * server
@@ -47,6 +56,12 @@ public:
     bool sharePublicLinkMultiple() const;
     bool shareResharing() const;
     bool chunkingNg() const;
+
+    /// Returns which kind of push notfications are available
+    PushNotificationTypes availablePushNotifications() const;
+
+    /// Websocket url for files push notifications if available
+    QUrl pushNotificationsWebSocketUrl() const;
 
     /// disable parallel upload in chunking
     bool chunkingParallelUploadDisabled() const;
@@ -148,7 +163,7 @@ class OWNCLOUDSYNC_EXPORT DirectEditor : public QObject
 {
     Q_OBJECT
 public:
-    DirectEditor(const QString &id, const QString &name, QObject* parent = 0);
+    DirectEditor(const QString &id, const QString &name, QObject* parent = nullptr);
 
     void addMimetype(const QByteArray &mimeType);
     void addOptionalMimetype(const QByteArray &mimeType);

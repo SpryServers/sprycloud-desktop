@@ -36,7 +36,7 @@
 #endif
 
 #include <climits>
-#include <assert.h>
+#include <cassert>
 
 #include <QCoreApplication>
 #include <QSslSocket>
@@ -228,7 +228,7 @@ bool SyncEngine::checkErrorBlacklisting(SyncFileItem &item)
         }
     }
 
-    int waitSeconds = entry._lastTryTime + entry._ignoreDuration - now;
+    qint64 waitSeconds = entry._lastTryTime + entry._ignoreDuration - now;
     qCInfo(lcEngine) << "Item is on blacklist: " << entry._file
                      << "retries:" << entry._retryCount
                      << "for another" << waitSeconds << "s";
@@ -359,7 +359,7 @@ void SyncEngine::conflictRecordMaintenance()
             record.path = bapath;
 
             // Determine fileid of target file
-            auto basePath = Utility::conflictFileBaseName(bapath);
+            auto basePath = Utility::conflictFileBaseNameFromPattern(bapath);
             SyncJournalFileRecord baseRecord;
             if (_journal->getFileRecord(basePath, &baseRecord) && baseRecord.isValid()) {
                 record.baseFileId = baseRecord._fileId;
@@ -1086,9 +1086,8 @@ void SyncEngine::slotDiscoveryJobFinished(int discoveryResult)
     _syncItemMap.clear(); // free memory
 
     // Adjust the paths for the renames.
-    for (SyncFileItemVector::iterator it = syncItems.begin();
-         it != syncItems.end(); ++it) {
-        (*it)->_file = adjustRenamedPath((*it)->_file);
+    for (const auto &syncItem : qAsConst(syncItems)) {
+        syncItem->_file = adjustRenamedPath(syncItem->_file);
     }
 
     // Check for invalid character in old server version
@@ -1100,16 +1099,16 @@ void SyncEngine::slotDiscoveryJobFinished(int discoveryResult)
         // files with names that contain these.
         // It's important to respect the capability also for older servers -- the
         // version check doesn't make sense for custom servers.
-        invalidFilenamePattern = R"([\\:?*"<>|])";
+        invalidFilenamePattern = R"([\:?*"<>|])";
     }
     if (!invalidFilenamePattern.isEmpty()) {
         const QRegExp invalidFilenameRx(invalidFilenamePattern);
-        for (auto it = syncItems.begin(); it != syncItems.end(); ++it) {
-            if ((*it)->_direction == SyncFileItem::Up
-                && isFileModifyingInstruction((*it)->_instruction)
-                && (*it)->destination().contains(invalidFilenameRx)) {
-                (*it)->_errorString = tr("File name contains at least one invalid character");
-                (*it)->_instruction = CSYNC_INSTRUCTION_IGNORE;
+        for (const auto &syncItem : qAsConst(syncItems)) {
+            if (syncItem->_direction == SyncFileItem::Up
+                && isFileModifyingInstruction(syncItem->_instruction)
+                && syncItem->destination().contains(invalidFilenameRx)) {
+                syncItem->_errorString = tr("File name contains at least one invalid character");
+                syncItem->_instruction = CSYNC_INSTRUCTION_IGNORE;
             }
         }
     }
@@ -1568,17 +1567,17 @@ void SyncEngine::checkForPermission(SyncFileItemVector &syncItems)
             const auto filePerms = getPermissions((*it)->_file);
 
             //true when it is just a rename in the same directory. (not a move)
-            bool isRename = (*it)->_file.startsWith(parentDir) && (*it)->_file.lastIndexOf('/') == slashPos;
+            const bool isRename = (*it)->_file.startsWith(parentDir) && (*it)->_file.lastIndexOf('/') == slashPos;
 
+            const bool isForbiddenSubDirectoryCreation = (*it)->isDirectory() && !destPerms.hasPermission(RemotePermissions::CanAddSubDirectories);
+            const bool isForbiddenFileCreation = !(*it)->isDirectory() && !destPerms.hasPermission(RemotePermissions::CanAddFile);
 
             // Check if we are allowed to move to the destination.
             bool destinationOK = true;
             if (isRename || destPerms.isNull()) {
                 // no need to check for the destination dir permission
                 destinationOK = true;
-            } else if ((*it)->isDirectory() && !destPerms.hasPermission(RemotePermissions::CanAddSubDirectories)) {
-                destinationOK = false;
-            } else if (!(*it)->isDirectory() && !destPerms.hasPermission(RemotePermissions::CanAddFile)) {
+            } else if (isForbiddenSubDirectoryCreation || isForbiddenFileCreation) {
                 destinationOK = false;
             }
 
@@ -1677,25 +1676,24 @@ void SyncEngine::restoreOldFiles(SyncFileItemVector &syncItems)
        upload the client file. But we still downloaded the old file in a conflict file just in case
     */
 
-    for (auto it = syncItems.begin(); it != syncItems.end(); ++it) {
-        if ((*it)->_direction != SyncFileItem::Down)
+    for (const auto &syncItem : qAsConst(syncItems)) {
+        if (syncItem->_direction != SyncFileItem::Down)
             continue;
 
-        switch ((*it)->_instruction) {
+        switch (syncItem->_instruction) {
         case CSYNC_INSTRUCTION_SYNC:
-            qCWarning(lcEngine) << "restoreOldFiles: RESTORING" << (*it)->_file;
-            (*it)->_instruction = CSYNC_INSTRUCTION_CONFLICT;
+            qCWarning(lcEngine) << "restoreOldFiles: RESTORING" << syncItem->_file;
+            syncItem->_instruction = CSYNC_INSTRUCTION_CONFLICT;
             break;
         case CSYNC_INSTRUCTION_REMOVE:
-            qCWarning(lcEngine) << "restoreOldFiles: RESTORING" << (*it)->_file;
-            (*it)->_instruction = CSYNC_INSTRUCTION_NEW;
-            (*it)->_direction = SyncFileItem::Up;
+            qCWarning(lcEngine) << "restoreOldFiles: RESTORING" << syncItem->_file;
+            syncItem->_instruction = CSYNC_INSTRUCTION_NEW;
+            syncItem->_direction = SyncFileItem::Up;
             break;
         case CSYNC_INSTRUCTION_RENAME:
         case CSYNC_INSTRUCTION_NEW:
             // Ideally we should try to revert the rename or remove, but this would be dangerous
             // without re-doing the reconcile phase.  So just let it happen.
-            break;
         default:
             break;
         }

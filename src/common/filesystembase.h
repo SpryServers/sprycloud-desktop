@@ -107,7 +107,7 @@ namespace FileSystem {
      * Equivalent to QFile::remove(), except on Windows, where it will also
      * successfully remove read-only files.
      */
-    bool OCSYNC_EXPORT remove(const QString &fileName, QString *errorString = 0);
+    bool OCSYNC_EXPORT remove(const QString &fileName, QString *errorString = nullptr);
 
     /**
      * Move the specified file or folder to the trash. (Only implemented on linux)
@@ -175,10 +175,10 @@ namespace FileSystem {
         if( str[0] == '/' || str[0] == '\\' ) {
             // Don't prepend if already UNC
             if( !(len > 1 && (str[1] == '/' || str[1] == '\\')) ) {
-                longStr.append("\\\\?");
+                longStr.append(R"(\\?)");
             }
         } else {
-            longStr.append("\\\\?\\"); // prepend string by this four magic chars.
+            longStr.append(R"(\\?\)"); // prepend string by this four magic chars.
         }
         longStr += str;
 

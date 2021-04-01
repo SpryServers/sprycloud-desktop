@@ -26,24 +26,115 @@
 #if defined(BUILD_UPDATER)
 #include "updater/updater.h"
 #include "updater/ocupdater.h"
+#ifdef Q_OS_MAC
+// FIXME We should unify those, but Sparkle does everything behind the scene transparently
+#include "updater/sparkleupdater.h"
+#endif
 #endif
 
 #include "ignorelisteditor.h"
 #include "common/utility.h"
+#include "logger.h"
 
 #include "config.h"
 
 #include "legalnotice.h"
 
+#include <QFileDialog>
+#include <QMessageBox>
 #include <QNetworkProxy>
 #include <QDir>
 #include <QScopedValueRollback>
+#include <QMessageBox>
+
+#include <private/qzipwriter_p.h>
 
 #define QTLEGACY (QT_VERSION < QT_VERSION_CHECK(5,9,0))
 
 #if !(QTLEGACY)
 #include <QOperatingSystemVersion>
 #endif
+
+namespace {
+struct ZipEntry {
+    QString localFilename;
+    QString zipFilename;
+};
+
+ZipEntry fileInfoToZipEntry(const QFileInfo &info)
+{
+    return {
+        info.absoluteFilePath(),
+        info.fileName()
+    };
+}
+
+ZipEntry fileInfoToLogZipEntry(const QFileInfo &info)
+{
+    auto entry = fileInfoToZipEntry(info);
+    entry.zipFilename.prepend(QStringLiteral("logs/"));
+    return entry;
+}
+
+ZipEntry syncFolderToZipEntry(OCC::Folder *f)
+{
+    const auto journalPath = f->journalDb()->databaseFilePath();
+    const auto journalInfo = QFileInfo(journalPath);
+    return fileInfoToZipEntry(journalInfo);
+}
+
+QVector<ZipEntry> createFileList()
+{
+    auto list = QVector<ZipEntry>();
+    OCC::ConfigFile cfg;
+
+    list.append(fileInfoToZipEntry(QFileInfo(cfg.configFile())));
+
+    const auto logger = OCC::Logger::instance();
+
+    if (!logger->logDir().isEmpty()) {
+        list.append({QString(), QStringLiteral("logs")});
+
+        QDir dir(logger->logDir());
+        const auto infoList = dir.entryInfoList(QDir::Files);
+        std::transform(std::cbegin(infoList), std::cend(infoList),
+                       std::back_inserter(list),
+                       fileInfoToLogZipEntry);
+    } else if (!logger->logFile().isEmpty()) {
+        list.append(fileInfoToZipEntry(QFileInfo(logger->logFile())));
+    }
+
+    const auto folders = OCC::FolderMan::instance()->map().values();
+    std::transform(std::cbegin(folders), std::cend(folders),
+                   std::back_inserter(list),
+                   syncFolderToZipEntry);
+
+    return list;
+}
+
+void createDebugArchive(const QString &filename)
+{
+    const auto entries = createFileList();
+
+    QZipWriter zip(filename);
+    for (const auto &entry : entries) {
+        if (entry.localFilename.isEmpty()) {
+            zip.addDirectory(entry.zipFilename);
+        } else {
+            QFile file(entry.localFilename);
+            if (!file.open(QFile::ReadOnly)) {
+                continue;
+            }
+            zip.addFile(entry.zipFilename, &file);
+        }
+    }
+
+    zip.addFile("__nextcloud_client_parameters.txt", QCoreApplication::arguments().join(' ').toUtf8());
+
+    const auto buildInfo = QString(OCC::Theme::instance()->about() + "\n\n" + OCC::Theme::instance()->aboutDetails());
+    zip.addFile("__nextcloud_client_buildinfo.txt", buildInfo.toUtf8());
+}
+}
 
 namespace OCC {
 
@@ -122,6 +213,7 @@ GeneralSettings::GeneralSettings(QWidget *parent)
     _ui->monoIconsCheckBox->setVisible(Theme::instance()->monoIconsAvailable());
 
     connect(_ui->ignoredFilesButton, &QAbstractButton::clicked, this, &GeneralSettings::slotIgnoreFilesEditor);
+    connect(_ui->debugArchiveButton, &QAbstractButton::clicked, this, &GeneralSettings::slotCreateDebugArchive);
 
     // accountAdded means the wizard was finished and the wizard might change some options.
     connect(AccountManager::instance(), &AccountManager::accountAdded, this, &GeneralSettings::loadMiscSettings);
@@ -161,34 +253,88 @@ void GeneralSettings::loadMiscSettings()
 #if defined(BUILD_UPDATER)
 void GeneralSettings::slotUpdateInfo()
 {
-    // Note: the sparkle-updater is not an OCUpdater
-    auto *updater = qobject_cast<OCUpdater *>(Updater::instance());
-    if (ConfigFile().skipUpdateCheck()) {
-        updater = nullptr; // don't show update info if updates are disabled
+    if (ConfigFile().skipUpdateCheck() || !Updater::instance()) {
+        // updater disabled on compile
+        _ui->updatesGroupBox->setVisible(false);
+        return;
     }
 
-    if (updater) {
-        connect(updater, &OCUpdater::downloadStateChanged, this, &GeneralSettings::slotUpdateInfo, Qt::UniqueConnection);
-        connect(_ui->restartButton, &QAbstractButton::clicked, updater, &OCUpdater::slotStartInstaller, Qt::UniqueConnection);
+    // Note: the sparkle-updater is not an OCUpdater
+    auto *ocupdater = qobject_cast<OCUpdater *>(Updater::instance());
+    if (ocupdater) {
+        connect(ocupdater, &OCUpdater::downloadStateChanged, this, &GeneralSettings::slotUpdateInfo, Qt::UniqueConnection);
+        connect(_ui->restartButton, &QAbstractButton::clicked, ocupdater, &OCUpdater::slotStartInstaller, Qt::UniqueConnection);
         connect(_ui->restartButton, &QAbstractButton::clicked, qApp, &QApplication::quit, Qt::UniqueConnection);
         connect(_ui->updateButton, &QAbstractButton::clicked, this, &GeneralSettings::slotUpdateCheckNow, Qt::UniqueConnection);
         connect(_ui->autoCheckForUpdatesCheckBox, &QAbstractButton::toggled, this, &GeneralSettings::slotToggleAutoUpdateCheck);
 
-        QString status = updater->statusString();
+        QString status = ocupdater->statusString();
         Theme::replaceLinkColorStringBackgroundAware(status);
         _ui->updateStateLabel->setText(status);
 
-        _ui->restartButton->setVisible(updater->downloadState() == OCUpdater::DownloadComplete);
+        _ui->restartButton->setVisible(ocupdater->downloadState() == OCUpdater::DownloadComplete);
 
-        _ui->updateButton->setEnabled(updater->downloadState() != OCUpdater::CheckingServer &&
-                                      updater->downloadState() != OCUpdater::Downloading &&
-                                      updater->downloadState() != OCUpdater::DownloadComplete);
+        _ui->updateButton->setEnabled(ocupdater->downloadState() != OCUpdater::CheckingServer &&
+                                      ocupdater->downloadState() != OCUpdater::Downloading &&
+                                      ocupdater->downloadState() != OCUpdater::DownloadComplete);
 
         _ui->autoCheckForUpdatesCheckBox->setChecked(ConfigFile().autoUpdateCheck());
-    } else {
-        // can't have those infos from sparkle currently
-        _ui->updatesGroupBox->setVisible(false);
     }
+#if defined(Q_OS_MAC) && defined(HAVE_SPARKLE)
+    else if (auto sparkleUpdater = qobject_cast<SparkleUpdater *>(Updater::instance())) {
+        _ui->updateStateLabel->setText(sparkleUpdater->statusString());
+        _ui->restartButton->setVisible(false);
+    }
+#endif
+
+    // Channel selection
+    _ui->updateChannel->setCurrentIndex(ConfigFile().updateChannel() == "beta" ? 1 : 0);
+    connect(_ui->updateChannel, &QComboBox::currentTextChanged,
+        this, &GeneralSettings::slotUpdateChannelChanged, Qt::UniqueConnection);
+}
+
+void GeneralSettings::slotUpdateChannelChanged(const QString &channel)
+{
+    if (channel == ConfigFile().updateChannel())
+        return;
+
+    auto msgBox = new QMessageBox(
+        QMessageBox::Warning,
+        tr("Change update channel?"),
+        tr("The update channel determines which client updates will be offered "
+           "for installation. The \"stable\" channel contains only upgrades that "
+           "are considered reliable, while the versions in the \"beta\" channel "
+           "may contain newer features and bugfixes, but have not yet been tested "
+           "thoroughly."
+           "\n\n"
+           "Note that this selects only what pool upgrades are taken from, and that "
+           "there are no downgrades: So going back from the beta channel to "
+           "the stable channel usually cannot be done immediately and means waiting "
+           "for a stable version that is newer than the currently installed beta "
+           "version."),
+        QMessageBox::NoButton,
+        this);
+    msgBox->addButton(tr("Change update channel"), QMessageBox::AcceptRole);
+    msgBox->addButton(tr("Cancel"), QMessageBox::RejectRole);
+    connect(msgBox, &QMessageBox::finished, msgBox, [this, channel, msgBox](int result) {
+        msgBox->deleteLater();
+        if (result == QMessageBox::AcceptRole) {
+            ConfigFile().setUpdateChannel(channel);
+            if (auto updater = qobject_cast<OCUpdater *>(Updater::instance())) {
+                updater->setUpdateUrl(Updater::updateUrl());
+                updater->checkForUpdate();
+            }
+#if defined(Q_OS_MAC) && defined(HAVE_SPARKLE)
+            else if (auto updater = qobject_cast<SparkleUpdater *>(Updater::instance())) {
+                updater->setUpdateUrl(Updater::updateUrl());
+                updater->checkForUpdate();
+            }
+#endif
+        } else {
+            _ui->updateChannel->setCurrentText(ConfigFile().updateChannel());
+        }
+    });
+    msgBox->open();
 }
 
 void GeneralSettings::slotUpdateCheckNow()
@@ -258,6 +404,17 @@ void GeneralSettings::slotIgnoreFilesEditor()
     } else {
         ownCloudGui::raiseDialog(_ignoreEditor);
     }
+}
+
+void GeneralSettings::slotCreateDebugArchive()
+{
+    const auto filename = QFileDialog::getSaveFileName(this, tr("Create Debug Archive"), QString(), tr("Zip Archives") + " (*.zip)");
+    if (filename.isEmpty()) {
+        return;
+    }
+
+    createDebugArchive(filename);
+    QMessageBox::information(this, tr("Debug Archive Created"), tr("Debug archive is created at %1").arg(filename));
 }
 
 void GeneralSettings::slotShowLegalNotice()

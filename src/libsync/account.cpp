@@ -20,6 +20,7 @@
 #include "creds/abstractcredentials.h"
 #include "capabilities.h"
 #include "theme.h"
+#include "pushnotifications.h"
 
 #include "common/asserts.h"
 #include "clientsideencryption.h"
@@ -40,7 +41,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-#include <keychain.h>
+#include <qt5keychain/keychain.h>
 #include "creds/abstractcredentials.h"
 
 using namespace QKeychain;
@@ -61,6 +62,7 @@ Account::Account(QObject *parent)
     , _davPath(Theme::instance()->webDavPath())
 {
     qRegisterMetaType<AccountPtr>("AccountPtr");
+    qRegisterMetaType<Account *>("Account*");
 }
 
 AccountPtr Account::create()
@@ -203,6 +205,33 @@ void Account::setCredentials(AbstractCredentials *cred)
         this, &Account::slotCredentialsFetched);
     connect(_credentials.data(), &AbstractCredentials::asked,
         this, &Account::slotCredentialsAsked);
+
+    trySetupPushNotifications();
+}
+
+void Account::trySetupPushNotifications()
+{
+    if (_capabilities.availablePushNotifications() != PushNotificationType::None) {
+        qCInfo(lcAccount) << "Try to setup push notifications";
+
+        if (!_pushNotifications) {
+            _pushNotifications = new PushNotifications(this, this);
+
+            connect(_pushNotifications, &PushNotifications::ready, this, [this]() { emit pushNotificationsReady(this); });
+
+            const auto deletePushNotifications = [this]() {
+                qCInfo(lcAccount) << "Delete push notifications object because authentication failed or connection lost";
+                _pushNotifications->deleteLater();
+                _pushNotifications = nullptr;
+                emit pushNotificationsDisabled(this);
+            };
+
+            connect(_pushNotifications, &PushNotifications::connectionLost, this, deletePushNotifications);
+            connect(_pushNotifications, &PushNotifications::authenticationFailed, this, deletePushNotifications);
+        }
+        // If push notifications already running it is no problem to call setup again
+        _pushNotifications->setup();
+    }
 }
 
 QUrl Account::davUrl() const
@@ -476,6 +505,8 @@ const Capabilities &Account::capabilities() const
 void Account::setCapabilities(const QVariantMap &caps)
 {
     _capabilities = Capabilities(caps);
+
+    trySetupPushNotifications();
 }
 
 QString Account::serverVersion() const
@@ -661,6 +692,11 @@ void Account::slotDirectEditingRecieved(const QJsonDocument &json)
             _capabilities.addDirectEditor(directEditor);
         }
     }
+}
+
+PushNotifications *Account::pushNotifications() const
+{
+    return _pushNotifications;
 }
 
 } // namespace OCC

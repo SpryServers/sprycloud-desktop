@@ -681,7 +681,7 @@ static void check_csync_exclude_expand_escapes(void **state)
 {
     (void)state;
 
-    QByteArray line = "keep \\' \\\" \\? \\\\ \\a \\b \\f \\n \\r \\t \\v \\z \\#";
+    QByteArray line = R"(keep \' \" \? \\ \a \b \f \n \r \t \v \z \#)";
     csync_exclude_expand_escapes(line);
     assert_true(0 == strcmp(line.constData(), "keep ' \" ? \\\\ \a \b \f \n \r \t \v \\z #"));
 
@@ -698,7 +698,7 @@ static void check_csync_exclude_expand_escapes(void **state)
 
 int torture_run_tests(void)
 {
-    typedef ExcludedFilesTest T;
+    using T = ExcludedFilesTest;
 
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup_teardown(T::check_csync_exclude_add, T::setup, T::teardown),

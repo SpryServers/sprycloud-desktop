@@ -44,8 +44,8 @@
 #include <unistd.h>
 #endif
 
-#include <math.h>
-#include <stdarg.h>
+#include <cmath>
+#include <cstdarg>
 #include <cstring>
 
 #if defined(Q_OS_WIN)
@@ -188,6 +188,13 @@ QByteArray Utility::userAgentString()
         re += QString(" (%1)").arg(appName);
     }
     return re.toLatin1();
+}
+
+QByteArray Utility::friendlyUserAgentString()
+{
+    const auto pattern = QStringLiteral("%1 (Desktop Client - %2)");
+    const auto userAgent = pattern.arg(QSysInfo::machineHostName(), platform());
+    return userAgent.toUtf8();
 }
 
 bool Utility::hasLaunchOnStartup(const QString &appName)
@@ -407,7 +414,7 @@ uint Utility::convertSizeToUint(size_t &convertVar)
     return static_cast<uint>(convertVar);
 }
 
-uint Utility::convertSizeToInt(size_t &convertVar)
+int Utility::convertSizeToInt(size_t &convertVar)
 {
     if (convertVar > INT_MAX) {
         //throw std::bad_cast();
@@ -634,7 +641,7 @@ bool Utility::isConflictFile(const QString &name)
     return false;
 }
 
-QByteArray Utility::conflictFileBaseName(const QByteArray &conflictName)
+QByteArray Utility::conflictFileBaseNameFromPattern(const QByteArray &conflictName)
 {
     // This function must be able to deal with conflict files for conflict files.
     // To do this, we scan backwards, for the outermost conflict marker and
@@ -666,7 +673,7 @@ QByteArray Utility::conflictFileBaseName(const QByteArray &conflictName)
 
 QString Utility::sanitizeForFileName(const QString &name)
 {
-    const auto invalid = QStringLiteral("/?<>\\:*|\"");
+    const auto invalid = QStringLiteral(R"(/?<>\:*|")");
     QString result;
     result.reserve(name.size());
     for (const auto c : name) {

@@ -22,7 +22,7 @@
 #include <QJsonDocument>
 #include <QBuffer>
 
-#include <keychain.h>
+#include <qt5keychain/keychain.h>
 
 #include "account.h"
 #include "accessmanager.h"
@@ -103,9 +103,7 @@ static void addSettingsToJob(Account *account, QKeychain::Job *job)
     job->setSettings(settings.release());
 }
 
-HttpCredentials::HttpCredentials()
-{
-}
+HttpCredentials::HttpCredentials() = default;
 
 // From wizard
 HttpCredentials::HttpCredentials(const QString &user, const QString &password, const QSslCertificate &certificate, const QSslKey &key)

@@ -27,11 +27,18 @@ namespace OCC {
 
 class ActivityLink
 {
+    Q_GADGET
+
+    Q_PROPERTY(QString label MEMBER _label)
+    Q_PROPERTY(QString link MEMBER _link)
+    Q_PROPERTY(QByteArray verb MEMBER _verb)
+    Q_PROPERTY(bool primary MEMBER _primary)
+
 public:
     QString _label;
     QString _link;
     QByteArray _verb;
-    bool _isPrimary;
+    bool _primary;
 };
 
 /* ==================================================================== */
@@ -45,7 +52,7 @@ public:
 class Activity
 {
 public:
-    typedef QPair<qlonglong, QString> Identifier;
+    using Identifier = QPair<qlonglong, QString>;
 
     enum Type {
         ActivityType,
@@ -92,8 +99,7 @@ bool operator<(const Activity &rhs, const Activity &lhs);
  *
  * A QList based list of Activities
  */
-
-typedef QList<Activity> ActivityList;
+using ActivityList = QList<Activity>;
 }
 
 Q_DECLARE_METATYPE(OCC::Activity::Type)

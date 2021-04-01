@@ -18,6 +18,7 @@
 #include "theme.h"
 #include "common/utility.h"
 #include "common/asserts.h"
+#include "version.h"
 
 #include "creds/abstractcredentials.h"
 #include "creds/keychainchunk.h"
@@ -67,6 +68,7 @@ static const char skipUpdateCheckC[] = "skipUpdateCheck";
 static const char autoUpdateCheckC[] = "autoUpdateCheck";
 static const char updateCheckIntervalC[] = "updateCheckInterval";
 static const char updateSegmentC[] = "updateSegment";
+static const char updateChannelC[] = "updateChannel";
 static const char geometryC[] = "geometry";
 static const char timeoutC[] = "timeout";
 static const char chunkSizeC[] = "chunkSize";
@@ -624,6 +626,28 @@ int ConfigFile::updateSegment() const
     return segment;
 }
 
+QString ConfigFile::updateChannel() const
+{
+    QString defaultUpdateChannel = QStringLiteral("stable");
+    QString suffix = QString::fromLatin1(MIRALL_STRINGIFY(MIRALL_VERSION_SUFFIX));
+    if (suffix.startsWith("daily")
+        || suffix.startsWith("nightly")
+        || suffix.startsWith("alpha")
+        || suffix.startsWith("rc")
+        || suffix.startsWith("beta")) {
+        defaultUpdateChannel = QStringLiteral("beta");
+    }
+
+    QSettings settings(configFile(), QSettings::IniFormat);
+    return settings.value(QLatin1String(updateChannelC), defaultUpdateChannel).toString();
+}
+
+void ConfigFile::setUpdateChannel(const QString &channel)
+{
+    QSettings settings(configFile(), QSettings::IniFormat);
+    settings.setValue(QLatin1String(updateChannelC), channel);
+}
+
 int ConfigFile::maxLogLines() const
 {
     QSettings settings(configFile(), QSettings::IniFormat);
@@ -864,7 +888,7 @@ bool ConfigFile::monoIcons() const
     bool monoDefault = false; // On Mac we want bw by default
 #ifdef Q_OS_MAC
     // OEM themes are not obliged to ship mono icons
-    monoDefault = (0 == (strcmp("ownCloud", APPLICATION_NAME)));
+    monoDefault = QByteArrayLiteral("Nextcloud") == QByteArrayLiteral(APPLICATION_NAME);
 #endif
     return settings.value(QLatin1String(monoIconsC), monoDefault).toBool();
 }
@@ -901,8 +925,9 @@ void ConfigFile::setAutomaticLogDir(bool enabled)
 
 QString ConfigFile::logDir() const
 {
+    const auto defaultLogDir = QString(configPath() + QStringLiteral("/logs"));
     QSettings settings(configFile(), QSettings::IniFormat);
-    return settings.value(QLatin1String(logDirC), QString()).toString();
+    return settings.value(QLatin1String(logDirC), defaultLogDir).toString();
 }
 
 void ConfigFile::setLogDir(const QString &dir)
@@ -914,7 +939,7 @@ void ConfigFile::setLogDir(const QString &dir)
 bool ConfigFile::logDebug() const
 {
     QSettings settings(configFile(), QSettings::IniFormat);
-    return settings.value(QLatin1String(logDebugC), false).toBool();
+    return settings.value(QLatin1String(logDebugC), true).toBool();
 }
 
 void ConfigFile::setLogDebug(bool enabled)
@@ -926,7 +951,7 @@ void ConfigFile::setLogDebug(bool enabled)
 int ConfigFile::logExpire() const
 {
     QSettings settings(configFile(), QSettings::IniFormat);
-    return settings.value(QLatin1String(logExpireC), 0).toBool();
+    return settings.value(QLatin1String(logExpireC), 24).toInt();
 }
 
 void ConfigFile::setLogExpire(int hours)

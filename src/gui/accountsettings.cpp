@@ -22,6 +22,7 @@
 #include "folderstatusmodel.h"
 #include "folderstatusdelegate.h"
 #include "common/utility.h"
+#include "guiutility.h"
 #include "application.h"
 #include "configfile.h"
 #include "account.h"
@@ -37,7 +38,7 @@
 #include "syncresult.h"
 #include "ignorelisttablewidget.h"
 
-#include <math.h>
+#include <cmath>
 
 #include <QDesktopServices>
 #include <QDialogButtonBox>
@@ -208,9 +209,6 @@ AccountSettings::AccountSettings(AccountState *accountState, QWidget *parent)
         _ui->encryptionMessage->hide();
     }
 
-    connect(UserModel::instance(), &UserModel::addAccount,
-         this, &AccountSettings::slotOpenAccountWizard);
-
     customizeStyle();
 }
 
@@ -244,17 +242,6 @@ QString AccountSettings::selectedFolderAlias() const
     if (!selected.isValid())
         return "";
     return _model->data(selected, FolderStatusDelegate::FolderAliasRole).toString();
-}
-
-void AccountSettings::slotOpenAccountWizard()
-{
-    // We can't call isSystemTrayAvailable with appmenu-qt5 because it breaks the systemtray
-    // (issue #4693, #4944)
-    if (qgetenv("QT_QPA_PLATFORMTHEME") == "appmenu-qt5" || QSystemTrayIcon::isSystemTrayAvailable()) {
-        topLevelWidget()->close();
-    }
-
-    OwncloudSetupWizard::runWizard(qApp, SLOT(slotownCloudWizardDone(int)), nullptr);
 }
 
 void AccountSettings::slotToggleSignInState()
@@ -719,8 +706,9 @@ void AccountSettings::slotForceSyncCurrentFolder()
 
 void AccountSettings::slotOpenOC()
 {
-    if (_OCUrl.isValid())
-        QDesktopServices::openUrl(_OCUrl);
+    if (_OCUrl.isValid()) {
+        Utility::openBrowser(_OCUrl);
+    }
 }
 
 void AccountSettings::slotUpdateQuota(qint64 total, qint64 used)
@@ -761,8 +749,8 @@ void AccountSettings::slotAccountStateChanged()
         AccountPtr account = _accountState->account();
         QUrl safeUrl(account->url());
         safeUrl.setPassword(QString()); // Remove the password from the URL to avoid showing it in the UI
-        FolderMan *folderMan = FolderMan::instance();
-        foreach (Folder *folder, folderMan->map().values()) {
+        const auto folders = FolderMan::instance()->map().values();
+        for (Folder *folder : folders) {
             _model->slotUpdateFolderState(folder);
         }
 
@@ -894,15 +882,16 @@ void AccountSettings::refreshSelectiveSyncStatus()
 
     QString msg;
     int cnt = 0;
-    foreach (Folder *folder, FolderMan::instance()->map().values()) {
+    const auto folders = FolderMan::instance()->map().values();
+    for (Folder *folder : folders) {
         if (folder->accountState() != _accountState) {
             continue;
         }
 
         bool ok = false;
-        auto undecidedList = folder->journalDb()->getSelectiveSyncList(SyncJournalDb::SelectiveSyncUndecidedList, &ok);
+        const auto undecidedList = folder->journalDb()->getSelectiveSyncList(SyncJournalDb::SelectiveSyncUndecidedList, &ok);
         QString p;
-        foreach (const auto &it, undecidedList) {
+        for (const auto &it : undecidedList) {
             // FIXME: add the folder alias in a hoover hint.
             // folder->alias() + QLatin1String("/")
             if (cnt++) {

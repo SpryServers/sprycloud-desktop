@@ -11,6 +11,9 @@ MenuItem {
     id: userLine
     height: Style.trayWindowHeaderHeight
 
+    Accessible.role: Accessible.MenuItem
+    Accessible.name: qsTr("Account entry")
+
         RowLayout {
             id: userLineLayout
             spacing: 0
@@ -24,6 +27,9 @@ MenuItem {
                 display: AbstractButton.IconOnly
                 hoverEnabled: true
                 flat: true
+
+                Accessible.role: Accessible.Button
+                Accessible.name: qsTr("Switch to account") + " " + name
 
                 MouseArea {
                     anchors.fill: parent
@@ -61,7 +67,7 @@ MenuItem {
                         Layout.leftMargin: 4
                         verticalAlignment: Qt.AlignCenter
                         cache: false
-                        source: ("image://avatars/" + id)
+                        source: model.avatar != "" ? model.avatar : "image://avatars/fallbackBlack"
                         Layout.preferredHeight: (userLineLayout.height -16)
                         Layout.preferredWidth: (userLineLayout.height -16)
                         Rectangle {
@@ -75,12 +81,17 @@ MenuItem {
                         }
                         Image {
                             id: accountStateIndicator
-                            source: isConnected ? "qrc:///client/theme/colored/state-ok.svg" : "qrc:///client/theme/colored/state-offline.svg"
+                            source: model.isConnected
+                                    ? Style.stateOnlineImageSource
+                                    : Style.stateOfflineImageSource
                             cache: false
                             x: accountStateIndicatorBackground.x + 1
                             y: accountStateIndicatorBackground.y + 1
                             sourceSize.width: Style.accountAvatarStateIndicatorSize
                             sourceSize.height: Style.accountAvatarStateIndicatorSize
+
+                            Accessible.role: Accessible.Indicator
+                            Accessible.name: model.isConnected ? qsTr("Account connected") : qsTr("Account not connected")
                         }
                     }
 
@@ -119,6 +130,10 @@ MenuItem {
                 icon.source: "qrc:///client/theme/more.svg"
                 icon.color: "transparent"
 
+                Accessible.role: Accessible.ButtonMenu
+                Accessible.name: qsTr("Account actions")
+                Accessible.onPressAction: userMoreButtonMouseArea.clicked()
+
                 MouseArea {
                     id: userMoreButtonMouseArea
                     anchors.fill: parent
@@ -150,11 +165,11 @@ MenuItem {
                     }
 
                     MenuItem {
-                        text: isConnected ? qsTr("Log out") : qsTr("Log in")
+                        text: model.isConnected ? qsTr("Log out") : qsTr("Log in")
                         font.pixelSize: Style.topLinePixelSize
                         hoverEnabled: true
                         onClicked: {
-                            isConnected ? UserModel.logout(index) : UserModel.login(index)
+                            model.isConnected ? UserModel.logout(index) : UserModel.login(index)
                             accountMenu.close()
                         }
 
@@ -167,10 +182,23 @@ MenuItem {
                                 color: parent.parent.hovered ? Style.lightHover : "transparent"
                             }
                         }
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: model.isConnected ? qsTr("Log out") : qsTr("Log in")
+
+                        onPressed: {
+                            if (model.isConnected) {
+                                UserModel.logout(index)
+                            } else {
+                                UserModel.login(index)
+                            }
+                            accountMenu.close()
+                        }
                     }
 
                     MenuItem {
-                        text: qsTr("Remove Account")
+                        id: removeAccountButton
+                        text: qsTr("Remove account")
                         font.pixelSize: Style.topLinePixelSize
                         hoverEnabled: true
                         onClicked: {
@@ -187,8 +215,21 @@ MenuItem {
                                 color: parent.parent.hovered ? Style.lightHover : "transparent"
                             }
                         }
+
+                        Accessible.role: Accessible.Button
+                        Accessible.name: text
+                        Accessible.onPressAction: removeAccountButton.clicked()
                     }
                 }
+            }
+        }
+
+        Connections {
+            target: UserModel
+            onRefreshCurrentUserGui: {
+                accountStateIndicator.source = model.isConnected
+                        ? Style.stateOnlineImageSource
+                        : Style.stateOfflineImageSource
             }
         }
 }   // MenuItem userLine

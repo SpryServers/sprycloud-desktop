@@ -54,6 +54,13 @@ AccountState::AccountState(AccountPtr account)
     connect(account.data(), &Account::credentialsAsked,
         this, &AccountState::slotCredentialsAsked);
     _timeSinceLastETagCheck.invalidate();
+
+    connect(this, &AccountState::isConnectedChanged, [=]{
+        // Get the Apps available on the server if we're now connected.
+        if (isConnected()) {
+            fetchNavigationApps();
+        }
+    });
 }
 
 AccountState::~AccountState() = default;
@@ -236,9 +243,6 @@ void AccountState::checkConnectivity()
         // Use a small authed propfind as a minimal ping when we're
         // already connected.
         conValidator->checkAuthentication();
-
-        // Get the Apps available on the server.
-        fetchNavigationApps();
     } else {
         // Check the server and then the auth.
 
@@ -441,10 +445,10 @@ void AccountState::slotNavigationAppsFetched(const QJsonDocument &reply, int sta
 
             if(!reply.isEmpty()){
                 auto element = reply.object().value("ocs").toObject().value("data");
-                auto navLinks = element.toArray();
+                const auto navLinks = element.toArray();
 
                 if(navLinks.size() > 0){
-                    foreach (const QJsonValue &value, navLinks) {
+                    for (const QJsonValue &value : navLinks) {
                         auto navLink = value.toObject();
 
                         auto *app = new AccountApp(navLink.value("name").toString(), QUrl(navLink.value("href").toString()),
@@ -468,9 +472,12 @@ AccountAppList AccountState::appList() const
 AccountApp* AccountState::findApp(const QString &appId) const
 {
     if(!appId.isEmpty()) {
-        foreach(AccountApp *app, appList()) {
-            if(app->id() == appId)
-                return app;
+        const auto apps = appList();
+        const auto it = std::find_if(apps.cbegin(), apps.cend(), [appId](const auto &app) {
+            return app->id() == appId;
+        });
+        if (it != apps.cend()) {
+            return *it;
         }
     }
 
