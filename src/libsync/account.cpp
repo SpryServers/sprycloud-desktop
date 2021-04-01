@@ -46,11 +46,6 @@
 
 using namespace QKeychain;
 
-#include <keychain.h>
-#include "creds/abstractcredentials.h"
-
-using namespace QKeychain;
-
 namespace OCC {
 
 Q_LOGGING_CATEGORY(lcAccount, "nextcloud.sync.account", QtInfoMsg)
