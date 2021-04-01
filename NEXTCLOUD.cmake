@@ -33,7 +33,7 @@ option( WITH_PROVIDERS "Build with providers list" ON )
 
 
 ## Theming options
-set( APPLICATION_WIZARD_HEADER_BACKGROUND_COLOR "#0082c9" CACHE STRING "Hex color of the wizard header background")
+set( APPLICATION_WIZARD_HEADER_BACKGROUND_COLOR "#2cc76a" CACHE STRING "Hex color of the wizard header background")
 set( APPLICATION_WIZARD_HEADER_TITLE_COLOR "#ffffff" CACHE STRING "Hex color of the text in the wizard header")
 option( APPLICATION_WIZARD_USE_CUSTOM_LOGO "Use the logo from ':/client/theme/colored/wizard_logo.png' else the default application icon is used" ON )
 
